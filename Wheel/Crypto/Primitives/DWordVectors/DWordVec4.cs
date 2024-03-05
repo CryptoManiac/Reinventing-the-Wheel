@@ -58,31 +58,33 @@ namespace Wheel.Crypto.Primitives.WordVectors
 
         private readonly ulong GetWord(int index)
         {
-            switch (index)
+            if (index < 0 || index > 3)
             {
-                case 0: return w00;
-                case 1: return w01;
-                case 2: return w02;
-                case 3: return w03;
-                default:
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 3] range");
-                    }
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 3] range");
+            }
+
+            unsafe
+            {
+                fixed (ulong* src = &w00)
+                {
+                    return src[index];
+                }
             }
         }
 
         private ulong SetWord(int index, ulong value)
         {
-            switch (index)
+            if (index < 0 || index > 3)
             {
-                case 0: return w00 = value;
-                case 1: return w01 = value;
-                case 2: return w02 = value;
-                case 3: return w03 = value;
-                default:
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 3] range");
-                    }
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 3] range");
+            }
+
+            unsafe
+            {
+                fixed (ulong* target = &w00)
+                {
+                    return target[index] = value;
+                }
             }
         }
 
@@ -105,13 +107,13 @@ namespace Wheel.Crypto.Primitives.WordVectors
 
         #region Individual word fields
         [FieldOffset(0)]
-        private ulong w00 = 0;
+        public ulong w00 = 0;
         [FieldOffset(1 * sizeof(ulong))]
-        private ulong w01 = 0;
+        public ulong w01 = 0;
         [FieldOffset(2 * sizeof(ulong))]
-        private ulong w02 = 0;
+        public ulong w02 = 0;
         [FieldOffset(3 * sizeof(ulong))]
-        private ulong w03 = 0;
+        public ulong w03 = 0;
         #endregion
     }
 }

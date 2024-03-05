@@ -53,31 +53,33 @@ namespace Wheel.Crypto.Primitives.WordVectors
 
         private readonly uint GetWord(int index)
         {
-            switch (index)
+            if (index < 0 || index > 3)
             {
-                case 0: return w00;
-                case 1: return w01;
-                case 2: return w02;
-                case 3: return w03;
-                default:
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 3] range");
-                    }
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 3] range");
+            }
+
+            unsafe
+            {
+                fixed (uint* src = &w00)
+                {
+                    return src[index];
+                }
             }
         }
 
         private uint SetWord(int index, uint value)
         {
-            switch (index)
+            if (index < 0 || index > 3)
             {
-                case 0: return w00 = value;
-                case 1: return w01 = value;
-                case 2: return w02 = value;
-                case 3: return w03 = value;
-                default:
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 3] range");
-                    }
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 3] range");
+            }
+
+            unsafe
+            {
+                fixed (uint* target = &w00)
+                {
+                    return target[index] = value;
+                }
             }
         }
 
@@ -100,13 +102,13 @@ namespace Wheel.Crypto.Primitives.WordVectors
 
         #region Individual word fields
         [FieldOffset(0)]
-        private uint w00 = 0;
+        public uint w00 = 0;
         [FieldOffset(1 * sizeof(uint))]
-        private uint w01 = 0;
+        public uint w01 = 0;
         [FieldOffset(2 * sizeof(uint))]
-        private uint w02 = 0;
+        public uint w02 = 0;
         [FieldOffset(3 * sizeof(uint))]
-        private uint w03 = 0;
+        public uint w03 = 0;
         #endregion
     }
 }

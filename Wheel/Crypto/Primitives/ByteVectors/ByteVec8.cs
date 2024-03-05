@@ -77,20 +77,18 @@ namespace Wheel.Crypto.Primitives.ByteVectors
                 throw new ArgumentOutOfRangeException(nameof(offset), offset, "Offset must be a non-negative value");
             }
 
-            int offsetPlus8 = offset + 8;
-            if (bytes.Length < offsetPlus8)
+            if (offset + 8 > bytes.Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(offsetPlus8), offsetPlus8, "Offset plus 8 must not be greater than byte array length");
+                throw new ArgumentOutOfRangeException(nameof(offset), offset, "Offset and the end of array must not be closer than 8 bytes");
             }
 
-            b00 = bytes[0];
-            b01 = bytes[1];
-            b02 = bytes[2];
-            b03 = bytes[3];
-            b04 = bytes[4];
-            b05 = bytes[5];
-            b06 = bytes[6];
-            b07 = bytes[7];
+            unsafe
+            {
+                fixed (byte* target = &b00)
+                {
+                    Marshal.Copy(bytes, offset, new IntPtr(target), 8);
+                }
+            }
         }
 
         /// <summary>
@@ -106,20 +104,18 @@ namespace Wheel.Crypto.Primitives.ByteVectors
                 throw new ArgumentOutOfRangeException(nameof(offset), offset, "Offset must be a non-negative value");
             }
 
-            int offsetPlus8 = offset + 8;
-            if (bytes.Length < offsetPlus8)
+            if (offset + 8 > bytes.Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(offsetPlus8), offsetPlus8, "Offset plus 8 must not be greater than byte array length");
+                throw new ArgumentOutOfRangeException(nameof(offset), offset, "Offset and the end of array must not be closer than 8 bytes");
             }
 
-            bytes[0] = b00;
-            bytes[1] = b01;
-            bytes[2] = b02;
-            bytes[3] = b03;
-            bytes[4] = b04;
-            bytes[5] = b05;
-            bytes[6] = b06;
-            bytes[7] = b07;
+            unsafe
+            {
+                fixed (byte* source = &b00)
+                {
+                    Marshal.Copy(new IntPtr(source), bytes, offset, 8);
+                }
+            }
         }
 
         /// <summary>
@@ -135,39 +131,33 @@ namespace Wheel.Crypto.Primitives.ByteVectors
 
         private readonly byte GetByte(int index)
         {
-            switch (index)
+            if (index < 0 || index > 7)
             {
-                case 0: return b00;
-                case 1: return b01;
-                case 2: return b02;
-                case 3: return b03;
-                case 4: return b04;
-                case 5: return b05;
-                case 6: return b06;
-                case 7: return b07;
-                default:
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 7] range");
-                    }
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 7] range");
+            }
+
+            unsafe
+            {
+                fixed (byte* src = &b00)
+                {
+                    return src[index];
+                }
             }
         }
 
         private byte SetByte(int index, byte value)
         {
-            switch (index)
+            if (index < 0 || index > 7)
             {
-                case 0: return b00 = value;
-                case 1: return b01 = value;
-                case 2: return b02 = value;
-                case 3: return b03 = value;
-                case 4: return b04 = value;
-                case 5: return b05 = value;
-                case 6: return b06 = value;
-                case 7: return b07 = value;
-                default:
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 7] range");
-                    }
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 7] range");
+            }
+
+            unsafe
+            {
+                fixed (byte* target = &b00)
+                {
+                    return target[index] = value;
+                }
             }
         }
 
@@ -190,28 +180,28 @@ namespace Wheel.Crypto.Primitives.ByteVectors
 
         #region Individual byte fields
         [FieldOffset(0)]
-        private byte b00 = 0;
+        public byte b00 = 0;
 
         [FieldOffset(1)]
-        private byte b01 = 0;
+        public byte b01 = 0;
 
         [FieldOffset(2)]
-        private byte b02 = 0;
+        public byte b02 = 0;
 
         [FieldOffset(3)]
-        private byte b03 = 0;
+        public byte b03 = 0;
 
         [FieldOffset(4)]
-        private byte b04 = 0;
+        public byte b04 = 0;
 
         [FieldOffset(5)]
-        private byte b05 = 0;
+        public byte b05 = 0;
 
         [FieldOffset(6)]
-        private byte b06 = 0;
+        public byte b06 = 0;
 
         [FieldOffset(7)]
-        private byte b07 = 0;
+        public byte b07 = 0;
         #endregion
 
     }

@@ -24,14 +24,14 @@ namespace Wheel.Crypto.Primitives.WordVectors
 
         public void SetWords(WordVec8 wv8)
         {
-            w00 = wv8.w00;
-            w01 = wv8.w01;
-            w02 = wv8.w02;
-            w03 = wv8.w03;
-            w04 = wv8.w04;
-            w05 = wv8.w05;
-            w06 = wv8.w06;
-            w07 = wv8.w07;
+            unsafe
+            {
+                fixed (uint* target = &w00)
+                {
+                    uint* src = &wv8.w00;
+                    Buffer.MemoryCopy(src, target, sizeof(uint) * 8, sizeof(uint) * 8);
+                }
+            }
         }
 
         public void SetWords(uint[] words)
@@ -41,14 +41,16 @@ namespace Wheel.Crypto.Primitives.WordVectors
                 throw new ArgumentException("Array must be 8 items long", nameof(words));
             }
 
-            w00 = words[0];
-            w01 = words[1];
-            w02 = words[2];
-            w03 = words[3];
-            w04 = words[4];
-            w05 = words[5];
-            w06 = words[6];
-            w07 = words[7];
+            unsafe
+            {
+                fixed (uint* target = &w00)
+                {
+                    fixed (uint* src = &words[0])
+                    {
+                        Buffer.MemoryCopy(src, target, sizeof(uint) * 8, sizeof(uint) * 8);
+                    }
+                }
+            }
         }
 
         public uint[] GetWords()
@@ -131,39 +133,33 @@ namespace Wheel.Crypto.Primitives.WordVectors
 
         private readonly uint GetWord(int index)
         {
-            switch (index)
+            if (index < 0 || index > 7)
             {
-                case 0: return w00;
-                case 1: return w01;
-                case 2: return w02;
-                case 3: return w03;
-                case 4: return w04;
-                case 5: return w05;
-                case 6: return w06;
-                case 7: return w07;
-                default:
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 7] range");
-                    }
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 7] range");
+            }
+
+            unsafe
+            {
+                fixed (uint* src = &w00)
+                {
+                    return src[index];
+                }
             }
         }
 
         private uint SetWord(int index, uint value)
         {
-            switch (index)
+            if (index < 0 || index > 7)
             {
-                case 0: return w00 = value;
-                case 1: return w01 = value;
-                case 2: return w02 = value;
-                case 3: return w03 = value;
-                case 4: return w04 = value;
-                case 5: return w05 = value;
-                case 6: return w06 = value;
-                case 7: return w07 = value;
-                default:
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 7] range");
-                    }
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 7] range");
+            }
+
+            unsafe
+            {
+                fixed (uint* target = &w00)
+                {
+                    return target[index] = value;
+                }
             }
         }
 
@@ -186,22 +182,22 @@ namespace Wheel.Crypto.Primitives.WordVectors
 
         #region Individual word fields
         [FieldOffset(0)]
-        private uint w00 = 0;
+        public uint w00 = 0;
         [FieldOffset(1 * sizeof(uint))]
-        private uint w01 = 0;
+        public uint w01 = 0;
         [FieldOffset(2 * sizeof(uint))]
-        private uint w02 = 0;
+        public uint w02 = 0;
         [FieldOffset(3 * sizeof(uint))]
-        private uint w03 = 0;
+        public uint w03 = 0;
 
         [FieldOffset(4 * sizeof(uint))]
-        private uint w04 = 0;
+        public uint w04 = 0;
         [FieldOffset(5 * sizeof(uint))]
-        private uint w05 = 0;
+        public uint w05 = 0;
         [FieldOffset(6 * sizeof(uint))]
-        private uint w06 = 0;
+        public uint w06 = 0;
         [FieldOffset(7 * sizeof(uint))]
-        private uint w07 = 0;
+        public uint w07 = 0;
         #endregion
     }
 }

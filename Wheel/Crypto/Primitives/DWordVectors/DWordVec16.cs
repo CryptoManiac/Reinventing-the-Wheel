@@ -30,24 +30,16 @@ namespace Wheel.Crypto.Primitives.WordVectors
             this.w15 = w15;
         }
 
-        public void SetWords(DWordVec16 wv8)
+        public void SetWords(DWordVec16 wv16)
         {
-            this.w00 = wv8.w00;
-            this.w01 = wv8.w01;
-            this.w02 = wv8.w02;
-            this.w03 = wv8.w03;
-            this.w04 = wv8.w04;
-            this.w05 = wv8.w05;
-            this.w06 = wv8.w06;
-            this.w07 = wv8.w07;
-            this.w08 = wv8.w08;
-            this.w09 = wv8.w09;
-            this.w10 = wv8.w10;
-            this.w11 = wv8.w11;
-            this.w12 = wv8.w12;
-            this.w13 = wv8.w13;
-            this.w14 = wv8.w14;
-            this.w15 = wv8.w15;
+            unsafe
+            {
+                fixed(ulong* target = &w00)
+                {
+                    ulong* src = &wv16.w00;
+                    Buffer.MemoryCopy(src, target, sizeof(ulong) * 16, sizeof(ulong) * 16);
+                }
+            }
         }
 
         public void AddWords(DWordVec16 wv8)
@@ -154,55 +146,33 @@ namespace Wheel.Crypto.Primitives.WordVectors
 
         private readonly ulong GetWord(int index)
         {
-            switch (index)
+            if (index < 0 || index > 15)
             {
-                case 0: return w00;
-                case 1: return w01;
-                case 2: return w02;
-                case 3: return w03;
-                case 4: return w04;
-                case 5: return w05;
-                case 6: return w06;
-                case 7: return w07;
-                case 8: return w08;
-                case 9: return w09;
-                case 10: return w10;
-                case 11: return w11;
-                case 12: return w12;
-                case 13: return w13;
-                case 14: return w14;
-                case 15: return w15;
-                default:
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 15] range");
-                    }
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 15] range");
+            }
+
+            unsafe
+            {
+                fixed (ulong* src = &w00)
+                {
+                    return src[index];
+                }
             }
         }
 
         private ulong SetWord(int index, ulong value)
         {
-            switch (index)
+            if (index < 0 || index > 15)
             {
-                case 0: return w00 = value;
-                case 1: return w01 = value;
-                case 2: return w02 = value;
-                case 3: return w03 = value;
-                case 4: return w04 = value;
-                case 5: return w05 = value;
-                case 6: return w06 = value;
-                case 7: return w07 = value;
-                case 8: return w08 = value;
-                case 9: return w09 = value;
-                case 10: return w10 = value;
-                case 11: return w11 = value;
-                case 12: return w12 = value;
-                case 13: return w13 = value;
-                case 14: return w14 = value;
-                case 15: return w15 = value;
-                default:
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 15] range");
-                    }
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 15] range");
+            }
+
+            unsafe
+            {
+                fixed (ulong* target = &w00)
+                {
+                    return target[index] = value;
+                }
             }
         }
 
@@ -225,40 +195,40 @@ namespace Wheel.Crypto.Primitives.WordVectors
 
         #region Individual word fields
         [FieldOffset(0)]
-        private ulong w00 = 0;
+        public ulong w00 = 0;
         [FieldOffset(1 * sizeof(ulong))]
-        private ulong w01 = 0;
+        public ulong w01 = 0;
         [FieldOffset(2 * sizeof(ulong))]
-        private ulong w02 = 0;
+        public ulong w02 = 0;
         [FieldOffset(3 * sizeof(ulong))]
-        private ulong w03 = 0;
+        public ulong w03 = 0;
 
         [FieldOffset(4 * sizeof(ulong))]
-        private ulong w04 = 0;
+        public ulong w04 = 0;
         [FieldOffset(5 * sizeof(ulong))]
-        private ulong w05 = 0;
+        public ulong w05 = 0;
         [FieldOffset(6 * sizeof(ulong))]
-        private ulong w06 = 0;
+        public ulong w06 = 0;
         [FieldOffset(7 * sizeof(ulong))]
-        private ulong w07 = 0;
+        public ulong w07 = 0;
 
         [FieldOffset(8 * sizeof(ulong))]
-        private ulong w08 = 0;
+        public ulong w08 = 0;
         [FieldOffset(9 * sizeof(ulong))]
-        private ulong w09 = 0;
+        public ulong w09 = 0;
         [FieldOffset(10 * sizeof(ulong))]
-        private ulong w10 = 0;
+        public ulong w10 = 0;
         [FieldOffset(11 * sizeof(ulong))]
-        private ulong w11 = 0;
+        public ulong w11 = 0;
 
         [FieldOffset(12 * sizeof(ulong))]
-        private ulong w12 = 0;
+        public ulong w12 = 0;
         [FieldOffset(13 * sizeof(ulong))]
-        private ulong w13 = 0;
+        public ulong w13 = 0;
         [FieldOffset(14 * sizeof(ulong))]
-        private ulong w14 = 0;
+        public ulong w14 = 0;
         [FieldOffset(15 * sizeof(ulong))]
-        private ulong w15 = 0;
+        public ulong w15 = 0;
         #endregion
     }
 }

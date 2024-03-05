@@ -148,40 +148,40 @@ namespace Wheel.Crypto.Primitives.WordVectors
 
         #region Individual word fields
         [FieldOffset(0)]
-        private uint w00 = 0;
+        public uint w00 = 0;
         [FieldOffset(1 * sizeof(uint))]
-        private uint w01 = 0;
+        public uint w01 = 0;
         [FieldOffset(2 * sizeof(uint))]
-        private uint w02 = 0;
+        public uint w02 = 0;
         [FieldOffset(3 * sizeof(uint))]
-        private uint w03 = 0;
+        public uint w03 = 0;
 
         [FieldOffset(4 * sizeof(uint))]
-        private uint w04 = 0;
+        public uint w04 = 0;
         [FieldOffset(5 * sizeof(uint))]
-        private uint w05 = 0;
+        public uint w05 = 0;
         [FieldOffset(6 * sizeof(uint))]
-        private uint w06 = 0;
+        public uint w06 = 0;
         [FieldOffset(7 * sizeof(uint))]
-        private uint w07 = 0;
+        public uint w07 = 0;
 
         [FieldOffset(8 * sizeof(uint))]
-        private uint w08 = 0;
+        public uint w08 = 0;
         [FieldOffset(9 * sizeof(uint))]
-        private uint w09 = 0;
+        public uint w09 = 0;
         [FieldOffset(10 * sizeof(uint))]
-        private uint w10 = 0;
+        public uint w10 = 0;
         [FieldOffset(11 * sizeof(uint))]
-        private uint w11 = 0;
+        public uint w11 = 0;
 
         [FieldOffset(12 * sizeof(uint))]
-        private uint w12 = 0;
+        public uint w12 = 0;
         [FieldOffset(13 * sizeof(uint))]
-        private uint w13 = 0;
+        public uint w13 = 0;
         [FieldOffset(14 * sizeof(uint))]
-        private uint w14 = 0;
+        public uint w14 = 0;
         [FieldOffset(15 * sizeof(uint))]
-        private uint w15 = 0;
+        public uint w15 = 0;
         #endregion
     }
 }
