@@ -125,7 +125,8 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         {
             unsafe
             {
-                fixed (byte* ptr = &b00) {
+                fixed (void* ptr = &this)
+                {
                     Unsafe.InitBlockUnaligned(ptr, 0, 128);
                 }
             }

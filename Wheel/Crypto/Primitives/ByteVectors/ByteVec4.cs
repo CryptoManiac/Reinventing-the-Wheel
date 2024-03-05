@@ -1,6 +1,7 @@
 ﻿
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Wheel.Crypto.Primitives.ByteVectors
@@ -44,7 +45,13 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         /// </summary>
         public void Reset()
         {
-            value = 0;
+            unsafe
+            {
+                fixed (void* ptr = &this)
+                {
+                    Unsafe.InitBlockUnaligned(ptr, 0, 4);
+                }
+            }
         }
 
         /// <summary>

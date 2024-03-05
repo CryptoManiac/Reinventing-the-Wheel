@@ -28,7 +28,7 @@ namespace Wheel.Crypto.Primitives.WordVectors
             {
                 fixed (uint* src = &words[0])
                 {
-                    fixed (uint* target = &w00)
+                    fixed (void* target = &this)
                     {
                         Buffer.MemoryCopy(src, target, sizeof(uint) * 64, sizeof(uint) * 64);
                     }
@@ -43,7 +43,7 @@ namespace Wheel.Crypto.Primitives.WordVectors
         {
             unsafe
             {
-                fixed (uint* ptr = &w00)
+                fixed (void* ptr = &this)
                 {
                     Unsafe.InitBlockUnaligned(ptr, 0, sizeof(uint) * 64);
                 }
@@ -58,9 +58,9 @@ namespace Wheel.Crypto.Primitives.WordVectors
         {
             unsafe
             {
-                fixed (uint* target = &w00)
+                fixed (void* target = &this)
                 {
-                    Buffer.MemoryCopy(&words.w00, target, sizeof(uint) * 16, sizeof(uint) * 16);
+                    Buffer.MemoryCopy(&words, target, sizeof(uint) * 16, sizeof(uint) * 16);
                 }
             }
         }
