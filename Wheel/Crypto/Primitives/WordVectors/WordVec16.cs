@@ -92,55 +92,33 @@ namespace Wheel.Crypto.Primitives.WordVectors
 
         private readonly uint GetWord(int index)
         {
-            switch (index)
+            if (index < 0 || index > 15)
             {
-                case 0: return w00;
-                case 1: return w01;
-                case 2: return w02;
-                case 3: return w03;
-                case 4: return w04;
-                case 5: return w05;
-                case 6: return w06;
-                case 7: return w07;
-                case 8: return w08;
-                case 9: return w09;
-                case 10: return w10;
-                case 11: return w11;
-                case 12: return w12;
-                case 13: return w13;
-                case 14: return w14;
-                case 15: return w15;
-                default:
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 15] range");
-                    }
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 15] range");
+            }
+
+            unsafe
+            {
+                fixed (uint* src = &w00)
+                {
+                    return src[index];
+                }
             }
         }
 
         private uint SetWord(int index, uint value)
         {
-            switch (index)
+            if (index < 0 || index > 15)
             {
-                case 0: return w00 = value;
-                case 1: return w01 = value;
-                case 2: return w02 = value;
-                case 3: return w03 = value;
-                case 4: return w04 = value;
-                case 5: return w05 = value;
-                case 6: return w06 = value;
-                case 7: return w07 = value;
-                case 8: return w08 = value;
-                case 9: return w09 = value;
-                case 10: return w10 = value;
-                case 11: return w11 = value;
-                case 12: return w12 = value;
-                case 13: return w13 = value;
-                case 14: return w14 = value;
-                case 15: return w15 = value;
-                default:
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 15] range");
-                    }
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 15] range");
+            }
+
+            unsafe
+            {
+                fixed (uint* target = &w00)
+                {
+                    return target[index] = value;
+                }
             }
         }
 
