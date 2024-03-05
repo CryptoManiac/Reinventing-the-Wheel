@@ -8,36 +8,41 @@ namespace Wheel.Crypto.Primitives.WordVectors
     {
         public DWordVec16()
         {
+
         }
 
-        public DWordVec16(ulong w00, ulong w01, ulong w02, ulong w03, ulong w04, ulong w05, ulong w06, ulong w07, ulong w08, ulong w09, ulong w10, ulong w11, ulong w12, ulong w13, ulong w14, ulong w15)
+        public DWordVec16(params ulong[] words)
         {
-            this.w00 = w00;
-            this.w01 = w01;
-            this.w02 = w02;
-            this.w03 = w03;
-            this.w04 = w04;
-            this.w05 = w05;
-            this.w06 = w06;
-            this.w07 = w07;
-            this.w08 = w08;
-            this.w09 = w09;
-            this.w10 = w10;
-            this.w11 = w11;
-            this.w12 = w12;
-            this.w13 = w13;
-            this.w14 = w14;
-            this.w15 = w15;
+            SetWords(words);
         }
 
-        public void SetWords(DWordVec16 wv16)
+        public void SetWords(DWordVec8 wv8)
         {
             unsafe
             {
-                fixed(ulong* target = &w00)
+                fixed (ulong* target = &w00)
                 {
-                    ulong* src = &wv16.w00;
+                    ulong* src = &wv8.w00;
                     Buffer.MemoryCopy(src, target, sizeof(ulong) * 16, sizeof(ulong) * 16);
+                }
+            }
+        }
+
+        public void SetWords(params ulong[] words)
+        {
+            if (words.Length != 16)
+            {
+                throw new ArgumentException("Must provide 16 words exactly", nameof(words));
+            }
+
+            unsafe
+            {
+                fixed (ulong* src = &words[0])
+                {
+                    fixed (ulong* target = &w00)
+                    {
+                        Buffer.MemoryCopy(src, target, sizeof(ulong) * 16, sizeof(ulong) * 16);
+                    }
                 }
             }
         }
@@ -72,26 +77,6 @@ namespace Wheel.Crypto.Primitives.WordVectors
             this.w13 += w13;
             this.w14 += w14;
             this.w15 += w15;
-        }
-
-        public void SetWords(ulong w00, ulong w01, ulong w02, ulong w03, ulong w04, ulong w05, ulong w06, ulong w07, ulong w08, ulong w09, ulong w10, ulong w11, ulong w12, ulong w13, ulong w14, ulong w15)
-        {
-            this.w00 = w00;
-            this.w01 = w01;
-            this.w02 = w02;
-            this.w03 = w03;
-            this.w04 = w04;
-            this.w05 = w05;
-            this.w06 = w06;
-            this.w07 = w07;
-            this.w08 = w08;
-            this.w09 = w09;
-            this.w10 = w10;
-            this.w11 = w11;
-            this.w12 = w12;
-            this.w13 = w13;
-            this.w14 = w14;
-            this.w15 = w15;
         }
 
         public readonly ulong[] GetWords()

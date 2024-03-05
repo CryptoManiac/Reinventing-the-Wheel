@@ -6,14 +6,40 @@ namespace Wheel.Crypto.Primitives.WordVectors
     [StructLayout(LayoutKind.Explicit)]
     public struct WordVec2
 	{
-        public WordVec2()
+        public WordVec2(params uint[] words)
         {
+            SetWords(words);
         }
 
-        public void SetWords(uint w00, uint w01)
+        public void SetWords(WordVec2 wv2)
         {
-            this.w00 = w00;
-            this.w01 = w01;
+            unsafe
+            {
+                fixed (uint* target = &w00)
+                {
+                    uint* src = &wv2.w00;
+                    Buffer.MemoryCopy(src, target, sizeof(uint) * 2, sizeof(uint) * 2);
+                }
+            }
+        }
+
+        public void SetWords(params uint[] words)
+        {
+            if (words.Length != 2)
+            {
+                throw new ArgumentException("Must provide 2 words exactly", nameof(words));
+            }
+
+            unsafe
+            {
+                fixed (uint* target = &w00)
+                {
+                    fixed (uint* src = &words[0])
+                    {
+                        Buffer.MemoryCopy(src, target, sizeof(uint) * 2, sizeof(uint) * 2);
+                    }
+                }
+            }
         }
 
         /// <summary>

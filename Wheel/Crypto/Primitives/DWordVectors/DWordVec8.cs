@@ -8,18 +8,12 @@ namespace Wheel.Crypto.Primitives.WordVectors
     {
         public DWordVec8()
         {
+
         }
 
-        public DWordVec8(ulong w00, ulong w01, ulong w02, ulong w03, ulong w04, ulong w05, ulong w06, ulong w07)
+        public DWordVec8(params ulong[] words)
         {
-            this.w00 = w00;
-            this.w01 = w01;
-            this.w02 = w02;
-            this.w03 = w03;
-            this.w04 = w04;
-            this.w05 = w05;
-            this.w06 = w06;
-            this.w07 = w07;
+            SetWords(words);
         }
 
         public void SetWords(DWordVec8 wv8)
@@ -34,35 +28,23 @@ namespace Wheel.Crypto.Primitives.WordVectors
             }
         }
 
-        public void SetWords(ulong[] words)
+        public void SetWords(params ulong[] words)
         {
             if (words.Length != 8)
             {
-                throw new ArgumentException("Array must be 8 items long", nameof(words));
+                throw new ArgumentException("Must provide 8 words exactly", nameof(words));
             }
 
             unsafe
             {
-                fixed (ulong* target = &w00)
+                fixed (ulong* src = &words[0])
                 {
-                    fixed (ulong* src = &words[0])
+                    fixed (ulong* target = &w00)
                     {
                         Buffer.MemoryCopy(src, target, sizeof(ulong) * 8, sizeof(ulong) * 8);
                     }
                 }
             }
-        }
-
-        public void SetWords(ulong w00, ulong w01, ulong w02, ulong w03, ulong w04, ulong w05, ulong w06, ulong w07)
-        {
-            this.w00 = w00;
-            this.w01 = w01;
-            this.w02 = w02;
-            this.w03 = w03;
-            this.w04 = w04;
-            this.w05 = w05;
-            this.w06 = w06;
-            this.w07 = w07;
         }
 
         public readonly ulong[] GetWords()

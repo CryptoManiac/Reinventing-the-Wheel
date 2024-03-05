@@ -11,140 +11,28 @@ namespace Wheel.Crypto.Primitives.WordVectors
 
         }
 
-        public WordVec64(uint w00, uint w01, uint w02, uint w03, uint w04, uint w05, uint w06, uint w07, uint w08, uint w09, uint w10, uint w11, uint w12, uint w13, uint w14, uint w15, uint w16, uint w17, uint w18, uint w19, uint w20, uint w21, uint w22, uint w23, uint w24, uint w25, uint w26, uint w27, uint w28, uint w29, uint w30, uint w31, uint w32, uint w33, uint w34, uint w35, uint w36, uint w37, uint w38, uint w39, uint w40, uint w41, uint w42, uint w43, uint w44, uint w45, uint w46, uint w47, uint w48, uint w49, uint w50, uint w51, uint w52, uint w53, uint w54, uint w55, uint w56, uint w57, uint w58, uint w59, uint w60, uint w61, uint w62, uint w63)
+        public WordVec64(params uint[] words)
         {
-            this.w00 = w00;
-            this.w01 = w01;
-            this.w02 = w02;
-            this.w03 = w03;
-            this.w04 = w04;
-            this.w05 = w05;
-            this.w06 = w06;
-            this.w07 = w07;
-            this.w08 = w08;
-            this.w09 = w09;
-            this.w10 = w10;
-            this.w11 = w11;
-            this.w12 = w12;
-            this.w13 = w13;
-            this.w14 = w14;
-            this.w15 = w15;
-            this.w16 = w16;
-            this.w17 = w17;
-            this.w18 = w18;
-            this.w19 = w19;
-            this.w20 = w20;
-            this.w21 = w21;
-            this.w22 = w22;
-            this.w23 = w23;
-            this.w24 = w24;
-            this.w25 = w25;
-            this.w26 = w26;
-            this.w27 = w27;
-            this.w28 = w28;
-            this.w29 = w29;
-            this.w30 = w30;
-            this.w31 = w31;
-            this.w32 = w32;
-            this.w33 = w33;
-            this.w34 = w34;
-            this.w35 = w35;
-            this.w36 = w36;
-            this.w37 = w37;
-            this.w38 = w38;
-            this.w39 = w39;
-            this.w40 = w40;
-            this.w41 = w41;
-            this.w42 = w42;
-            this.w43 = w43;
-            this.w44 = w44;
-            this.w45 = w45;
-            this.w46 = w46;
-            this.w47 = w47;
-            this.w48 = w48;
-            this.w49 = w49;
-            this.w50 = w50;
-            this.w51 = w51;
-            this.w52 = w52;
-            this.w53 = w53;
-            this.w54 = w54;
-            this.w55 = w55;
-            this.w56 = w56;
-            this.w57 = w57;
-            this.w58 = w58;
-            this.w59 = w59;
-            this.w60 = w60;
-            this.w61 = w61;
-            this.w62 = w62;
-            this.w63 = w63;
+            SetWords(words);
         }
 
-        public void SetWords(uint w00, uint w01, uint w02, uint w03, uint w04, uint w05, uint w06, uint w07, uint w08, uint w09, uint w10, uint w11, uint w12, uint w13, uint w14, uint w15, uint w16, uint w17, uint w18, uint w19, uint w20, uint w21, uint w22, uint w23, uint w24, uint w25, uint w26, uint w27, uint w28, uint w29, uint w30, uint w31, uint w32, uint w33, uint w34, uint w35, uint w36, uint w37, uint w38, uint w39, uint w40, uint w41, uint w42, uint w43, uint w44, uint w45, uint w46, uint w47, uint w48, uint w49, uint w50, uint w51, uint w52, uint w53, uint w54, uint w55, uint w56, uint w57, uint w58, uint w59, uint w60, uint w61, uint w62, uint w63)
+        public void SetWords(params uint[] words)
         {
-            this.w00 = w00;
-            this.w01 = w01;
-            this.w02 = w02;
-            this.w03 = w03;
-            this.w04 = w04;
-            this.w05 = w05;
-            this.w06 = w06;
-            this.w07 = w07;
-            this.w08 = w08;
-            this.w09 = w09;
-            this.w10 = w10;
-            this.w11 = w11;
-            this.w12 = w12;
-            this.w13 = w13;
-            this.w14 = w14;
-            this.w15 = w15;
-            this.w16 = w16;
-            this.w17 = w17;
-            this.w18 = w18;
-            this.w19 = w19;
-            this.w20 = w20;
-            this.w21 = w21;
-            this.w22 = w22;
-            this.w23 = w23;
-            this.w24 = w24;
-            this.w25 = w25;
-            this.w26 = w26;
-            this.w27 = w27;
-            this.w28 = w28;
-            this.w29 = w29;
-            this.w30 = w30;
-            this.w31 = w31;
-            this.w32 = w32;
-            this.w33 = w33;
-            this.w34 = w34;
-            this.w35 = w35;
-            this.w36 = w36;
-            this.w37 = w37;
-            this.w38 = w38;
-            this.w39 = w39;
-            this.w40 = w40;
-            this.w41 = w41;
-            this.w42 = w42;
-            this.w43 = w43;
-            this.w44 = w44;
-            this.w45 = w45;
-            this.w46 = w46;
-            this.w47 = w47;
-            this.w48 = w48;
-            this.w49 = w49;
-            this.w50 = w50;
-            this.w51 = w51;
-            this.w52 = w52;
-            this.w53 = w53;
-            this.w54 = w54;
-            this.w55 = w55;
-            this.w56 = w56;
-            this.w57 = w57;
-            this.w58 = w58;
-            this.w59 = w59;
-            this.w60 = w60;
-            this.w61 = w61;
-            this.w62 = w62;
-            this.w63 = w63;
+            if (words.Length != 64)
+            {
+                throw new ArgumentException("Must provide 64 words exactly", nameof(words));
+            }
+
+            unsafe
+            {
+                fixed (uint* src = &words[0])
+                {
+                    fixed (uint* target = &w00)
+                    {
+                        Buffer.MemoryCopy(src, target, sizeof(uint) * 64, sizeof(uint) * 64);
+                    }
+                }
+            }
         }
 
         /// <summary>

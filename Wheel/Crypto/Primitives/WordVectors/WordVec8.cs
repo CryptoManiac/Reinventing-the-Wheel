@@ -10,16 +10,9 @@ namespace Wheel.Crypto.Primitives.WordVectors
         {
         }
 
-        public WordVec8(uint w00, uint w01, uint w02, uint w03, uint w04, uint w05, uint w06, uint w07)
+        public WordVec8(params uint[] words)
         {
-            this.w00 = w00;
-            this.w01 = w01;
-            this.w02 = w02;
-            this.w03 = w03;
-            this.w04 = w04;
-            this.w05 = w05;
-            this.w06 = w06;
-            this.w07 = w07;
+            SetWords(words);
         }
 
         public void SetWords(WordVec8 wv8)
@@ -34,11 +27,11 @@ namespace Wheel.Crypto.Primitives.WordVectors
             }
         }
 
-        public void SetWords(uint[] words)
+        public void SetWords(params uint[] words)
         {
             if (words.Length != 8)
             {
-                throw new ArgumentException("Array must be 8 items long", nameof(words));
+                throw new ArgumentException("Must provide 8 words exactly", nameof(words));
             }
 
             unsafe
@@ -53,21 +46,9 @@ namespace Wheel.Crypto.Primitives.WordVectors
             }
         }
 
-        public uint[] GetWords()
+        public readonly uint[] GetWords()
         {
             return new uint[] { w00, w01, w02, w03, w04, w05, w06, w07 };
-        }
-
-        public void SetWords(uint w00, uint w01, uint w02, uint w03, uint w04, uint w05, uint w06, uint w07)
-        {
-            this.w00 = w00;
-            this.w01 = w01;
-            this.w02 = w02;
-            this.w03 = w03;
-            this.w04 = w04;
-            this.w05 = w05;
-            this.w06 = w06;
-            this.w07 = w07;
         }
 
         public void AddWords(WordVec8 wv8)

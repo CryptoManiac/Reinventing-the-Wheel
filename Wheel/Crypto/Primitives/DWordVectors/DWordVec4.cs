@@ -8,14 +8,43 @@ namespace Wheel.Crypto.Primitives.WordVectors
     {
         public DWordVec4()
         {
+
         }
 
-        public void SetWords(ulong w00, ulong w01, ulong w02, ulong w03)
+        public DWordVec4(params ulong[] words)
         {
-            this.w00 = w00;
-            this.w01 = w01;
-            this.w02 = w02;
-            this.w03 = w03;
+            SetWords(words);
+        }
+
+        public void SetWords(DWordVec4 wv4)
+        {
+            unsafe
+            {
+                fixed (ulong* target = &w00)
+                {
+                    ulong* src = &wv4.w00;
+                    Buffer.MemoryCopy(src, target, sizeof(ulong) * 4, sizeof(ulong) * 4);
+                }
+            }
+        }
+
+        public void SetWords(params ulong[] words)
+        {
+            if (words.Length != 4)
+            {
+                throw new ArgumentException("Must provide 4 words exactly", nameof(words));
+            }
+
+            unsafe
+            {
+                fixed (ulong* src = &words[0])
+                {
+                    fixed (ulong* target = &w00)
+                    {
+                        Buffer.MemoryCopy(src, target, sizeof(ulong) * 4, sizeof(ulong) * 4);
+                    }
+                }
+            }
         }
 
         /// <summary>

@@ -6,28 +6,40 @@ namespace Wheel.Crypto.Primitives.WordVectors
     [StructLayout(LayoutKind.Explicit)]
     public struct WordVec16
 	{
-        public WordVec16()
+        public WordVec16(params uint[] words)
         {
+            SetWords(words);
         }
 
-        public void SetWords(uint w00, uint w01, uint w02, uint w03, uint w04, uint w05, uint w06, uint w07, uint w08, uint w09, uint w10, uint w11, uint w12, uint w13, uint w14, uint w15)
+        public void SetWords(WordVec16 wv16)
         {
-            this.w00 = w00;
-            this.w01 = w01;
-            this.w02 = w02;
-            this.w03 = w03;
-            this.w04 = w04;
-            this.w05 = w05;
-            this.w06 = w06;
-            this.w07 = w07;
-            this.w08 = w08;
-            this.w09 = w09;
-            this.w10 = w10;
-            this.w11 = w11;
-            this.w12 = w12;
-            this.w13 = w13;
-            this.w14 = w14;
-            this.w15 = w15;
+            unsafe
+            {
+                fixed (uint* target = &w00)
+                {
+                    uint* src = &wv16.w00;
+                    Buffer.MemoryCopy(src, target, sizeof(uint) * 16, sizeof(uint) * 16);
+                }
+            }
+        }
+
+        public void SetWords(params uint[] words)
+        {
+            if (words.Length != 16)
+            {
+                throw new ArgumentException("Must provide 16 words exactly", nameof(words));
+            }
+
+            unsafe
+            {
+                fixed (uint* target = &w00)
+                {
+                    fixed (uint* src = &words[0])
+                    {
+                        Buffer.MemoryCopy(src, target, sizeof(uint) * 16, sizeof(uint) * 16);
+                    }
+                }
+            }
         }
 
         /// <summary>
