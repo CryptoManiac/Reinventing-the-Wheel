@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Wheel.Crypto.Primitives.WordVectors;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -116,7 +117,13 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         /// </summary>
         public void Reset()
         {
-            wv8.Reset();
+            unsafe
+            {
+                fixed (byte* ptr = &b00)
+                {
+                    Unsafe.InitBlockUnaligned(ptr, 0, 32);
+                }
+            }
         }
 
         /// <summary>

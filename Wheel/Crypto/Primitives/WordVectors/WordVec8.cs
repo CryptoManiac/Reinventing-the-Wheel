@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Wheel.Crypto.Miscellaneous.Support;
 
 namespace Wheel.Crypto.Primitives.WordVectors
@@ -76,13 +77,16 @@ namespace Wheel.Crypto.Primitives.WordVectors
         }
 
         /// <summary>
-        /// Set to zeros
+        /// Set to zero
         /// </summary>
         public void Reset()
         {
-            for (int i = 0; i < 8; i++)
+            unsafe
             {
-                this[i] = 0;
+                fixed (uint* ptr = &w00)
+                {
+                    Unsafe.InitBlockUnaligned(ptr, 0, sizeof(uint) * 8);
+                }
             }
         }
 

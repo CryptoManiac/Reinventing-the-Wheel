@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Wheel.Crypto.Primitives.WordVectors;
 
@@ -61,7 +62,7 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         /// </summary>
         public void Reset()
         {
-            wv2.Reset();
+            value = 0;
         }
 
         /// <summary>

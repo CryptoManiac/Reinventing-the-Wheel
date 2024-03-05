@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Wheel.Crypto.Primitives.WordVectors;
 
@@ -79,7 +80,13 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         /// </summary>
         public void Reset()
         {
-            wv16.Reset();
+            unsafe
+            {
+                fixed (byte* ptr = &b00)
+                {
+                    Unsafe.InitBlockUnaligned(ptr, 0, 64);
+                }
+            }
         }
 
         /// <summary>
