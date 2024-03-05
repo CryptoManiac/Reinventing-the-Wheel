@@ -21,7 +21,7 @@ namespace Wheel.Crypto.Primitives.WordVectors
         {
             if (words.Length != 64)
             {
-                throw new ArgumentException("Must provide 64 words exactly", nameof(words));
+                throw new ArgumentOutOfRangeException(nameof(words), words.Length, "Must provide 64 words exactly");
             }
 
             unsafe
