@@ -26,6 +26,38 @@
         }
 
         /// <summary>
+        /// Reverse byte order for a sequence of 8 words (32-bit) located at given address
+        /// </summary>
+        /// <param name="p">Word sequence address</param>
+        public unsafe static void REVERT8(uint* p)
+        {
+            REVERT(p, 0);
+            REVERT(p, 1);
+            REVERT(p, 2);
+            REVERT(p, 3);
+            REVERT(p, 4);
+            REVERT(p, 5);
+            REVERT(p, 6);
+            REVERT(p, 7);
+        }
+
+        /// <summary>
+        /// Reverse byte order for a sequence of 8 double words (64-bit) located at given address
+        /// </summary>
+        /// <param name="p">Word sequence address</param>
+        public unsafe static void REVERT8(ulong* p)
+        {
+            REVERT(p, 0);
+            REVERT(p, 1);
+            REVERT(p, 2);
+            REVERT(p, 3);
+            REVERT(p, 4);
+            REVERT(p, 5);
+            REVERT(p, 6);
+            REVERT(p, 7);
+        }
+
+        /// <summary>
         /// Reverse byte order for a sequence of 16 words (32-bit) located at given address
         /// </summary>
         /// <param name="p">Word sequence address</param>
