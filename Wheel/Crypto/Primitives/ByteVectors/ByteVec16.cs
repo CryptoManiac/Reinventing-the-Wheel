@@ -53,6 +53,19 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         }
 
         /// <summary>
+        /// Revert byte order
+        /// </summary>
+        public void Reverse()
+        {
+            for (int i = 0; i < 8; ++i)
+            {
+                byte t = this[i];
+                this[i] = this[16 - 1 - i];
+                this[16 - i - 1] = t;
+            }
+        }
+
+        /// <summary>
         /// Load value from byte array at given offset
         /// </summary>
         /// <param name="bytes">Byte array</param>

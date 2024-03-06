@@ -162,7 +162,7 @@ namespace Wheel.Crypto.SHA
         private void Finish()
         {
             int i = (int)blockLen;
-            byte end = (byte)(blockLen < 120 ? 120 : 128);
+            byte end = (byte)(blockLen < 112 ? 112 : 128);
 
             pendingBlock[i++] = 0x80; // Append a bit 1
             while (i < end)
@@ -170,7 +170,7 @@ namespace Wheel.Crypto.SHA
                 pendingBlock[i++] = 0x00; // Pad with zeros
             }
 
-            if (blockLen >= 120)
+            if (blockLen >= 112)
             {
                 Transform();
                 ulong lastWord = pendingBlock.dwv16[15];
@@ -181,7 +181,9 @@ namespace Wheel.Crypto.SHA
             // Append to the padding the total message's
             // length in bits and transform.
             bitLen += blockLen * 8;
-            pendingBlock.dwv16[15] = Common.REVERT(bitLen);
+            pendingBlock.qwv8[7] = bitLen;
+            pendingBlock.qwords.qw_07.Reverse(); // TODO: revert in better way
+
             Transform();
 
             // Reverse byte ordering to get final hashing result

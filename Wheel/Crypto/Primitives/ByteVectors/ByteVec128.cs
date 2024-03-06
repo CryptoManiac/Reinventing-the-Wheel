@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Wheel.Crypto.Primitives.QWordVectors;
 using Wheel.Crypto.Primitives.WordVectors;
 
 namespace Wheel.Crypto.Primitives.ByteVectors
@@ -18,6 +19,12 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         public DWordVec16 dwv16;
 
         /// <summary>
+        /// Same data but as indexed 8 double words structure
+        /// </summary>
+        [FieldOffset(0)]
+        public QWordVec8 qwv8;
+
+        /// <summary>
         /// Same data as sixteen byte vectors
         /// </summary>
         [FieldOffset(0)]
@@ -28,6 +35,11 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         /// </summary>
         [FieldOffset(0)]
         public ByteVec128_Words words;
+
+        /// Same data as 32 byte vectors
+        /// </summary>
+        [FieldOffset(0)]
+        public ByteVec128_QuadWords qwords;
 
         public ByteVec128()
         {
@@ -99,6 +111,16 @@ namespace Wheel.Crypto.Primitives.ByteVectors
                     Marshal.Copy(new IntPtr(source), bytes, offset, 128);
                 }
             }
+        }
+
+        /// <summary>
+        /// Return data as a new byte array
+        /// </summary>
+        public readonly byte[] GetBytes()
+        {
+            byte[] bytes = new byte[128];
+            StoreByteArray(ref bytes);
+            return bytes;
         }
 
         /// <summary>
@@ -451,6 +473,58 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         [FieldOffset(127)]
         public byte b127 = 0;
         #endregion
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct ByteVec128_QuadWords
+    {
+        /// <summary>
+        /// First half as 16-byte vector
+        /// </summary>
+        [FieldOffset(0)]
+        public ByteVec16 qw_00;
+
+        /// <summary>
+        /// Second half as 16-byte vector
+        /// </summary>
+        [FieldOffset(16)]
+        public ByteVec16 qw_01;
+
+        /// <summary>
+        /// Third 16-byte vector
+        /// </summary>
+        [FieldOffset(32)]
+        public ByteVec16 qw_02;
+
+        /// <summary>
+        /// Fourth 16-byte vector
+        /// </summary>
+        [FieldOffset(48)]
+        public ByteVec16 qw_03;
+
+        /// <summary>
+        /// Fith 16-byte vector
+        /// </summary>
+        [FieldOffset(64)]
+        public ByteVec16 qw_04;
+
+        /// <summary>
+        /// Sixth 16-byte vector
+        /// </summary>
+        [FieldOffset(80)]
+        public ByteVec16 qw_05;
+
+        /// <summary>
+        /// Seventh 16-byte vector
+        /// </summary>
+        [FieldOffset(96)]
+        public ByteVec16 qw_06;
+
+        /// <summary>
+        /// Eigth 16-byte vector
+        /// </summary>
+        [FieldOffset(112)]
+        public ByteVec16 qw_07;
     }
 
     /// <summary>
