@@ -1,40 +1,36 @@
 ﻿using Wheel.Crypto.Primitives.ByteVectors;
 using Wheel.Crypto.Primitives.WordVectors;
 using Wheel.Crypto.Miscellaneous.Support;
+using System.Runtime.InteropServices;
 
 namespace Wheel.Crypto.SHA
 {
-    public class SHA512
+    [StructLayout(LayoutKind.Explicit)]
+    public struct SHA512
 	{
-        /// <summary>
-        /// True after Digest() has been called
-        /// </summary>
-        private bool finished;
-
         /// <summary>
         /// Current data block length in bytes
         /// </summary>
+        [FieldOffset(0)]
         private uint blockLen;
 
         /// <summary>
         /// Total input length in bits
         /// </summary>
+        [FieldOffset(4)]
         private ulong bitLen;
 
         /// <summary>
         /// Pending block data to transform
         /// </summary>
+        [FieldOffset(12)]
         private ByteVec128 pendingBlock = new();
 
         /// <summary>
         /// Current hashing state
         /// </summary>
-        private DWordVec8 state = new();
-
-        /// <summary>
-        /// Vector for the final result
-        /// </summary>
-        private ByteVec64 result = new();
+        [FieldOffset(140)]
+        private ByteVec64 state = new();
 
         public SHA512()
         {
@@ -49,8 +45,7 @@ namespace Wheel.Crypto.SHA
             blockLen = 0;
             bitLen = 0;
             pendingBlock.Reset();
-            state.SetWords(SHA512Misc.init_state);
-            finished = false;
+            state.dwv8.SetWords(SHA512Misc.init_state);
         }
 
         /// <summary>
@@ -60,11 +55,6 @@ namespace Wheel.Crypto.SHA
         /// <exception cref="InvalidOperationException"></exception>
         public void Update(byte[] input)
         {
-            if (finished)
-            {
-                throw new InvalidOperationException("Called Update() on finished hasher");
-            }
-
             for (int i = 0; i < input.Length; ++i)
             {
                 pendingBlock[(int)blockLen++] = input[i];
@@ -86,7 +76,9 @@ namespace Wheel.Crypto.SHA
         public byte[] Digest()
         {
             Finish();
-            return result.GetBytes();
+            byte[] hash = state.GetBytes();
+            Reset();
+            return hash;
         }
 
         /// <summary>
@@ -97,7 +89,8 @@ namespace Wheel.Crypto.SHA
         public void Digest(ref byte[] hash, int offset = 0)
         {
             Finish();
-            result.StoreByteArray(ref hash, offset);
+            state.StoreByteArray(ref hash, offset);
+            Reset();
         }
 
         private void Transform()
@@ -117,14 +110,14 @@ namespace Wheel.Crypto.SHA
                 wordPad[i] = SHA512Misc.SIG1(wordPad[i - 2]) + wordPad[i - 7] + SHA512Misc.SIG0(wordPad[i - 15]) + wordPad[i - 16];
             }
 
-            ulong a = state[0];
-            ulong b = state[1];
-            ulong c = state[2];
-            ulong d = state[3];
-            ulong e = state[4];
-            ulong f = state[5];
-            ulong g = state[6];
-            ulong h = state[7];
+            ulong a = state.dwv8[0];
+            ulong b = state.dwv8[1];
+            ulong c = state.dwv8[2];
+            ulong d = state.dwv8[3];
+            ulong e = state.dwv8[4];
+            ulong f = state.dwv8[5];
+            ulong g = state.dwv8[6];
+            ulong h = state.dwv8[7];
             
             for (int i = 0; i < 80; ++i)
             {
@@ -141,16 +134,11 @@ namespace Wheel.Crypto.SHA
                 a = t1 + t2;
             }
 
-            state.AddWords(a, b, c, d, e, f, g, h);
+            state.dwv8.AddWords(a, b, c, d, e, f, g, h);
         }
 
         private void Finish()
         {
-            if (finished)
-            {
-                throw new InvalidOperationException("Called Digest() on a finished hasher");
-            }
-
             int i = (int)blockLen;
             byte end = (byte)(blockLen < 120 ? 120 : 128);
 
@@ -174,14 +162,8 @@ namespace Wheel.Crypto.SHA
             pendingBlock.dwv16[15] = Common.REVERT(bitLen);
             Transform();
 
-            // Store result
-            result.dwv8.SetWords(state);
-
-            // SHA uses big endian byte ordering
-            result.dwv8.RevertWords();
-
-            // Don't let call us anymore
-            finished = true;
+            // Reverse byte ordering to get final hashing result
+            state.dwv8.RevertWords();
         }
     }
 
