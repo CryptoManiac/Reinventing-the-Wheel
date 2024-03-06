@@ -126,7 +126,7 @@ namespace Wheel.Crypto.Primitives.QWordVectors
 
             for (ulong i = 0; i < 8; i++)
             {
-                if (i != wv[(int)i]) throw new InvalidDataException("DWordVec8 fail");
+                if (i != wv[(int)i]) throw new InvalidDataException("QWordVec8 fail");
             }
         }
 
