@@ -1,4 +1,6 @@
-﻿namespace Wheel.Crypto.Miscellaneous.Support
+﻿using System.Runtime.CompilerServices;
+
+namespace Wheel.Crypto.Miscellaneous.Support
 {
 
     internal static class Common
@@ -117,6 +119,7 @@
         }
 
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe static void REVERT(ulong* p, int offset)
         {
             ulong v = *(p + offset);
