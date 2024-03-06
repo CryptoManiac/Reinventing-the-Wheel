@@ -24,52 +24,16 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         public DWordVec8 dwv8;
 
         /// <summary>
-        /// First double word (64-bit)
+        /// Same data as as a structure of eight 64-bit byte vectors
         /// </summary>
         [FieldOffset(0)]
-        public ByteVec8 dw00;
+        public ByteVec64_DoubleWords doubleWords;
 
         /// <summary>
-        /// Second double word
+        /// Same data as as a structure of sixteen 32-bit byte vectors
         /// </summary>
-        [FieldOffset(8)]
-        public ByteVec8 dw01;
-
-        /// <summary>
-        /// Third double word
-        /// </summary>
-        [FieldOffset(16)]
-        public ByteVec8 dw02;
-
-        /// <summary>
-        /// Fourth double word
-        /// </summary>
-        [FieldOffset(24)]
-        public ByteVec8 dw03;
-
-        /// <summary>
-        /// Fifth double word
-        /// </summary>
-        [FieldOffset(32)]
-        public ByteVec8 dw04;
-
-        /// <summary>
-        /// Sixth double word
-        /// </summary>
-        [FieldOffset(40)]
-        public ByteVec8 dw05;
-
-        /// <summary>
-        /// Seventh double word
-        /// </summary>
-        [FieldOffset(48)]
-        public ByteVec8 dw06;
-
-        /// <summary>
-        /// Eighth double word
-        /// </summary>
-        [FieldOffset(56)]
-        public ByteVec8 dw07;
+        [FieldOffset(0)]
+        public ByteVec64_DoubleWords words;
 
         public ByteVec64()
         {
@@ -358,5 +322,157 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         [FieldOffset(63)]
         public byte b63 = 0;
         #endregion
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct ByteVec64_DoubleWords
+    {
+        /// <summary>
+        /// First double word (64-bit)
+        /// </summary>
+        [FieldOffset(0)]
+        public ByteVec8 dw00;
+
+        /// <summary>
+        /// Second double word
+        /// </summary>
+        [FieldOffset(8)]
+        public ByteVec8 dw01;
+
+        /// <summary>
+        /// Third double word
+        /// </summary>
+        [FieldOffset(16)]
+        public ByteVec8 dw02;
+
+        /// <summary>
+        /// Fourth double word
+        /// </summary>
+        [FieldOffset(24)]
+        public ByteVec8 dw03;
+
+        /// <summary>
+        /// Fifth double word
+        /// </summary>
+        [FieldOffset(32)]
+        public ByteVec8 dw04;
+
+        /// <summary>
+        /// Sixth double word
+        /// </summary>
+        [FieldOffset(40)]
+        public ByteVec8 dw05;
+
+        /// <summary>
+        /// Seventh double word
+        /// </summary>
+        [FieldOffset(48)]
+        public ByteVec8 dw06;
+
+        /// <summary>
+        /// Eighth double word
+        /// </summary>
+        [FieldOffset(56)]
+        public ByteVec8 dw07;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct ByteVec64_Words
+    {
+        /// <summary>
+        /// First word (32 bit)
+        /// </summary>
+        [FieldOffset(0)]
+        public ByteVec4 w00;
+
+        /// <summary>
+        /// Second word
+        /// </summary>
+        [FieldOffset(4)]
+        public ByteVec4 w01;
+
+        /// <summary>
+        /// Third word
+        /// </summary>
+        [FieldOffset(8)]
+        public ByteVec4 w02;
+
+        /// <summary>
+        /// Four word
+        /// </summary>
+        [FieldOffset(12)]
+        public ByteVec4 w03;
+
+        /// <summary>
+        /// Fith word (32 bit)
+        /// </summary>
+        [FieldOffset(16)]
+        public ByteVec4 w04;
+
+        /// <summary>
+        /// Sixth word
+        /// </summary>
+        [FieldOffset(20)]
+        public ByteVec4 w05;
+
+        /// <summary>
+        /// Seventh word
+        /// </summary>
+        [FieldOffset(24)]
+        public ByteVec4 w06;
+
+        /// <summary>
+        /// Eigtht word
+        /// </summary>
+        [FieldOffset(28)]
+        public ByteVec4 w07;
+
+        /// <summary>
+        /// Ninth word
+        /// </summary>
+        [FieldOffset(32)]
+        public ByteVec4 w08;
+
+        /// <summary>
+        /// Tenth word
+        /// </summary>
+        [FieldOffset(36)]
+        public ByteVec4 w09;
+
+        /// <summary>
+        /// Eleventh word
+        /// </summary>
+        [FieldOffset(40)]
+        public ByteVec4 w10;
+
+        /// <summary>
+        /// Twelfth word
+        /// </summary>
+        [FieldOffset(44)]
+        public ByteVec4 w11;
+
+        /// <summary>
+        /// Thirteenth word
+        /// </summary>
+        [FieldOffset(48)]
+        public ByteVec4 w12;
+
+        /// <summary>
+        /// Fourteenth word
+        /// </summary>
+        [FieldOffset(52)]
+        public ByteVec4 w13;
+
+        /// <summary>
+        /// Fifteenth word
+        /// </summary>
+        [FieldOffset(56)]
+        public ByteVec4 w14;
+
+        /// <summary>
+        /// Sixteenth word
+        /// </summary>
+        [FieldOffset(60)]
+        public ByteVec4 w15;
     }
 }

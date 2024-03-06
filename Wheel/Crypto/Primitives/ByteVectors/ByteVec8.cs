@@ -35,6 +35,12 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         [FieldOffset(4)]
         public ByteVec4 bv4_01;
 
+        /// <summary>
+        /// Same data as a structure of two 32-bit words
+        /// </summary>
+        [FieldOffset(0)]
+        public ByteVec4_Words words;
+
         public ByteVec8()
         {
         }
@@ -211,5 +217,21 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         public byte b07 = 0;
         #endregion
 
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct ByteVec4_Words
+    {
+        /// <summary>
+        /// First word (32 bit)
+        /// </summary>
+        [FieldOffset(0)]
+        public ByteVec4 w00;
+
+        /// <summary>
+        /// Second word
+        /// </summary>
+        [FieldOffset(4)]
+        public ByteVec4 w01;
     }
 }

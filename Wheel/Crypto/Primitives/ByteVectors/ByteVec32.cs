@@ -1,7 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Wheel.Crypto.Primitives.WordVectors;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Wheel.Crypto.Primitives.ByteVectors
 {
@@ -36,77 +35,16 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         public ByteVec16 bv16_01;
 
         /// <summary>
-        /// First double word (64-bit)
+        /// Same value but as a structure of four 64-bit byte vectors
         /// </summary>
         [FieldOffset(0)]
-        public ByteVec8 dw00;
+        public ByteVec32_DoubleWords doubleWords;
 
         /// <summary>
-        /// Second double word
-        /// </summary>
-        [FieldOffset(8)]
-        public ByteVec8 dw01;
-
-        /// <summary>
-        /// Third double word 
-        /// </summary>
-        [FieldOffset(16)]
-        public ByteVec8 dw02;
-
-        /// <summary>
-        /// Fourth double word
-        /// </summary>
-        [FieldOffset(24)]
-        public ByteVec8 dw03;
-
-
-        /// <summary>
-        /// First word (32 bit)
+        /// Same value but as a structure of eight 32-bit byte vectors
         /// </summary>
         [FieldOffset(0)]
-        public ByteVec4 w00;
-
-        /// <summary>
-        /// Second word
-        /// </summary>
-        [FieldOffset(4)]
-        public ByteVec4 w01;
-
-        /// <summary>
-        /// Third word
-        /// </summary>
-        [FieldOffset(8)]
-        public ByteVec4 w02;
-
-        /// <summary>
-        /// Four word
-        /// </summary>
-        [FieldOffset(12)]
-        public ByteVec4 w03;
-
-        /// <summary>
-        /// Fith word (32 bit)
-        /// </summary>
-        [FieldOffset(16)]
-        public ByteVec4 w04;
-
-        /// <summary>
-        /// Sixth word
-        /// </summary>
-        [FieldOffset(20)]
-        public ByteVec4 w05;
-
-        /// <summary>
-        /// Seventh word
-        /// </summary>
-        [FieldOffset(24)]
-        public ByteVec4 w06;
-
-        /// <summary>
-        /// Eigtht word
-        /// </summary>
-        [FieldOffset(28)]
-        public ByteVec4 w07;
+        public ByteVec32_Words words;
 
         public ByteVec32()
         {
@@ -323,5 +261,85 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         [FieldOffset(31)]
         public byte b31 = 0;
         #endregion
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct ByteVec32_DoubleWords
+    {
+        /// <summary>
+        /// First double word (64-bit)
+        /// </summary>
+        [FieldOffset(0)]
+        public ByteVec8 dw00;
+
+        /// <summary>
+        /// Second double word
+        /// </summary>
+        [FieldOffset(8)]
+        public ByteVec8 dw01;
+
+        /// <summary>
+        /// Third double word 
+        /// </summary>
+        [FieldOffset(16)]
+        public ByteVec8 dw02;
+
+        /// <summary>
+        /// Fourth double word
+        /// </summary>
+        [FieldOffset(24)]
+        public ByteVec8 dw03;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct ByteVec32_Words
+    {
+        /// <summary>
+        /// First word (32 bit)
+        /// </summary>
+        [FieldOffset(0)]
+        public ByteVec4 w00;
+
+        /// <summary>
+        /// Second word
+        /// </summary>
+        [FieldOffset(4)]
+        public ByteVec4 w01;
+
+        /// <summary>
+        /// Third word
+        /// </summary>
+        [FieldOffset(8)]
+        public ByteVec4 w02;
+
+        /// <summary>
+        /// Four word
+        /// </summary>
+        [FieldOffset(12)]
+        public ByteVec4 w03;
+
+        /// <summary>
+        /// Fith word (32 bit)
+        /// </summary>
+        [FieldOffset(16)]
+        public ByteVec4 w04;
+
+        /// <summary>
+        /// Sixth word
+        /// </summary>
+        [FieldOffset(20)]
+        public ByteVec4 w05;
+
+        /// <summary>
+        /// Seventh word
+        /// </summary>
+        [FieldOffset(24)]
+        public ByteVec4 w06;
+
+        /// <summary>
+        /// Eigtht word
+        /// </summary>
+        [FieldOffset(28)]
+        public ByteVec4 w07;
     }
 }
