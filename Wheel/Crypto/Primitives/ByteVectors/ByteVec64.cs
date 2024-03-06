@@ -33,7 +33,7 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         /// Same data as as a structure of sixteen 32-bit byte vectors
         /// </summary>
         [FieldOffset(0)]
-        public ByteVec64_DoubleWords words;
+        public ByteVec64_Words words;
 
         public ByteVec64()
         {
