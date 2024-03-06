@@ -55,14 +55,32 @@ namespace Wheel.Crypto.SHA
         /// <exception cref="InvalidOperationException"></exception>
         public void Update(byte[] input)
         {
-            for (int i = 0; i < input.Length; ++i)
+            for (uint i = 0; i < input.Length;)
             {
-                pendingBlock[(int)blockLen++] = input[i];
+                // How many bytes are needed to complete this block
+                uint needed = 128 - blockLen;
+
+                // How many bytes are left unprocessed
+                uint remaining = (uint)input.Length - i;
+
+                // How many bytes are actually available
+                uint available = remaining < needed ? remaining : needed;
+
+                unsafe
+                {
+                    fixed (byte* target = &pendingBlock.b00)
+                    {
+                        Marshal.Copy(input, (int)i, new IntPtr(target) + (int)blockLen, (int)available);
+                    }
+                }
+
+                i += available;
+                blockLen += available;
+
                 if (blockLen == 128)
                 {
-                    Transform();
-
                     // End of the block
+                    Transform();
                     bitLen += 1024;
                     blockLen = 0;
                 }
