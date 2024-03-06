@@ -54,6 +54,7 @@ namespace Wheel.Crypto.Primitives.WordVectors
         /// Set first 16 words from the provided container
         /// </summary>
         /// <param name="words">Vector to provide 16 words</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Set16Words(WordVec16 words)
         {
             unsafe

@@ -16,6 +16,7 @@ namespace Wheel.Crypto.Primitives.WordVectors
             SetWords(words);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetWords(WordVec8 wv8)
         {
             unsafe
@@ -27,6 +28,7 @@ namespace Wheel.Crypto.Primitives.WordVectors
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetWords(params uint[] words)
         {
             if (words.Length != 8)
