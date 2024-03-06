@@ -71,7 +71,7 @@ namespace Wheel.Crypto.SHA
                 throw new InvalidOperationException("Called Update() on finished hasher");
             }
 
-            for (int i = 0; i < input.Length; i++)
+            for (int i = 0; i < input.Length; ++i)
             {
                 pendingBlock[(int)blockLen++] = input[i];
                 if (blockLen == 64)
@@ -115,7 +115,7 @@ namespace Wheel.Crypto.SHA
             wordPad.Revert16Words();
 
             // Remaining 48 blocks
-            for (int i = 16; i < 64; i++)
+            for (int i = 16; i < 64; ++i)
             {
                 wordPad[i] = SHA256Misc.SIG1(wordPad[i - 2]) + wordPad[i - 7] + SHA256Misc.SIG0(wordPad[i - 15]) + wordPad[i - 16];
             }
@@ -129,7 +129,7 @@ namespace Wheel.Crypto.SHA
             uint g = state[6];
             uint h = state[7];
             
-            for (int i = 0; i < 64; i++)
+            for (int i = 0; i < 64; ++i)
             {
                 uint t1 = h + SHA256Misc.SIGMA1(e) + SHA256Misc.CHOOSE(e, f, g) + SHA256Misc.K[i] + wordPad[i];
                 uint t2 = SHA256Misc.SIGMA0(a) + SHA256Misc.MAJ(a, b, c);
