@@ -235,9 +235,9 @@ namespace Wheel.Crypto.SHA
         public static uint SIG0(uint x) => ROTR(x, 7) ^ ROTR(x, 18) ^ (x >> 3);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint SIG1(uint x) => ROTR(x, 17) ^ ROTR(x, 19) ^ (x >> 10);
-
-        // Inlining these methods might cause more harm than good
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint SIGMA0(uint x) => ROTR(x, 2) ^ ROTR(x, 13) ^ ROTR(x, 22);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint SIGMA1(uint x) => ROTR(x, 6) ^ ROTR(x, 11) ^ ROTR(x, 25);
     }
 }
