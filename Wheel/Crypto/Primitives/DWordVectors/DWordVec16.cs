@@ -119,10 +119,13 @@ namespace Wheel.Crypto.Primitives.WordVectors
         /// <returns>Word value</returns>
         public ulong this[int key]
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => GetWord(key);
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => SetWord(key, value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly ulong GetWord(int index)
         {
             if (index < 0 || index > 15)
@@ -139,6 +142,7 @@ namespace Wheel.Crypto.Primitives.WordVectors
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ulong SetWord(int index, ulong value)
         {
             if (index < 0 || index > 15)

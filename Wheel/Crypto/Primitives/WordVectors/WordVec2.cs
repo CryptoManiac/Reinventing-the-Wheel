@@ -72,10 +72,13 @@ namespace Wheel.Crypto.Primitives.WordVectors
         /// <returns>Word value</returns>
         public uint this[int key]
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => GetWord(key);
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => SetWord(key, value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly uint GetWord(int index)
         {
             if (index < 0 || index > 1)
@@ -92,6 +95,7 @@ namespace Wheel.Crypto.Primitives.WordVectors
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private uint SetWord(int index, uint value)
         {
             if (index < 0 || index > 1)
