@@ -22,6 +22,7 @@
     <None Remove="Crypto\SHA\" />
     <None Remove="Crypto\Primitives\DWordVectors\" />
     <None Remove="Crypto\Primitives\Miscellaneous\" />
+    <None Remove="doc\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Crypto\" />
@@ -31,5 +32,6 @@
     <Folder Include="Crypto\SHA\" />
     <Folder Include="Crypto\Primitives\DWordVectors\" />
     <Folder Include="Crypto\Primitives\Miscellaneous\" />
+    <Folder Include="doc\" />
   </ItemGroup>
 </Project>

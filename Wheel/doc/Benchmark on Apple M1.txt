@@ -1,0 +1,84 @@
+﻿
+alexi@Alfheim Wheel % Wheel/bin/Release/net7.0/Wheel
+SHA256_Calc 144
+2.5 us / 399235 per second / 8015 cycles
+Average 3.17 us, Median 1.7 us, min 1.6, max 1243.5
+80% within ±211.76% average 2.5 | 50% within ±2.94% average 1.71
+57.49 MB/s / 55.66 cycles/byte
+
+SHA256_Calc_Reuse 144
+1.7 us / 588235 per second / 5440 cycles
+Average 1.71 us, Median 1.7 us, min 1.6, max 76.5
+80% within ±0% average 1.7 | 50% within ±0% average 1.7
+84.71 MB/s / 37.78 cycles/byte
+
+SHA512_Calc 144
+3.24 us / 309006 per second / 10356 cycles
+Average 3.76 us, Median 2.2 us, min 2, max 1075
+80% within ±143.18% average 3.24 | 50% within ±25% average 2.18
+44.5 MB/s / 71.92 cycles/byte
+
+SHA512_Calc_Reuse 144
+2.06 us / 485259 per second / 6594 cycles
+Average 2.07 us, Median 2.1 us, min 2, max 122.9
+80% within ±2.38% average 2.06 | 50% within ±2.38% average 2.06
+69.88 MB/s / 45.79 cycles/byte
+
+SHA256 144 81C611F35BFF79491538B2F7CF201C7597A661A5C549633541C62BDC8AF1613F
+SHA512 144 F2E97836724FF97044DA6C594C6DA24D38C7277DDEBA8F838C8EC64F1C479F661A0B83269C184454EC9C478FBE962FA3632F643B1E1F1195B9ED9B181330A4C1
+
+SHA256_Calc 1000
+9.17 us / 109065 per second / 29340 cycles
+Average 9.23 us, Median 9.1 us, min 9, max 146.1
+80% within ±1.1% average 9.17 | 50% within ±1.1% average 9.17
+109.07 MB/s / 29.34 cycles/byte
+
+SHA256_Calc_Reuse 1000
+9.12 us / 109692 per second / 29172 cycles
+Average 9.17 us, Median 9.1 us, min 9, max 63.9
+80% within ±1.1% average 9.12 | 50% within ±0.55% average 9.15
+109.69 MB/s / 29.17 cycles/byte
+
+SHA512_Calc 1000
+8.62 us / 116008 per second / 27584 cycles
+Average 8.69 us, Median 8.7 us, min 8.4, max 148.2
+80% within ±1.72% average 8.62 | 50% within ±1.15% average 8.61
+116.01 MB/s / 27.58 cycles/byte
+
+SHA512_Calc_Reuse 1000
+8.55 us / 116938 per second / 27365 cycles
+Average 8.58 us, Median 8.5 us, min 8.3, max 74.6
+80% within ±1.18% average 8.55 | 50% within ±0.59% average 8.54
+116.94 MB/s / 27.36 cycles/byte
+
+SHA256 1000 541B3E9DAA09B20BF85FA273E5CBD3E80185AA4EC298E765DB87742B70138A53
+SHA512 1000 CA3DFF61BB23477AA6087B27508264A6F9126EE3A004F53CB8DB942ED345F2F2D229B4B59C859220A1CF1913F34248E3803BAB650E849A3D9A709EDC09AE4A76
+
+SHA256_Calc 2048
+18.9 us / 52897 per second / 60495 cycles
+Average 19.07 us, Median 18.8 us, min 18.7, max 239.7
+80% within ±1.33% average 18.9 | 50% within ±0.8% average 18.94
+108.33 MB/s / 29.54 cycles/byte
+
+SHA256_Calc_Reuse 2048
+18.85 us / 53059 per second / 60310 cycles
+Average 18.93 us, Median 18.7 us, min 18.6, max 116.8
+80% within ±1.07% average 18.85 | 50% within ±1.07% average 18.85
+108.66 MB/s / 29.45 cycles/byte
+
+SHA512_Calc 2048
+18.22 us / 54898 per second / 58290 cycles
+Average 18.34 us, Median 18.3 us, min 17.9, max 173.9
+80% within ±1.37% average 18.22 | 50% within ±1.09% average 18.19
+112.43 MB/s / 28.46 cycles/byte
+
+SHA512_Calc_Reuse 2048
+18.07 us / 55344 per second / 57820 cycles
+Average 18.16 us, Median 18 us, min 17.8, max 79.9
+80% within ±1.11% average 18.07 | 50% within ±0.83% average 18.12
+113.35 MB/s / 28.23 cycles/byte
+
+SHA256 2048 E5A00AA9991AC8A5EE3109844D84A55583BD20572AD3FFCD42792F3C36B183AD
+SHA512 2048 8785F615B30C07EB4C5F5D72C9B3663521081581EC670631B28BE491F5F7AD6C6757B9A2025C68471FA3C9DB65305804F6EC6DFD15159B02E91C58AD570E92FB
+
+alexi@Alfheim Wheel %
