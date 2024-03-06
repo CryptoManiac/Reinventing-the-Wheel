@@ -5,6 +5,10 @@ VisualStudioVersion = 25.0.1706.9
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wheel", "Wheel\Wheel.csproj", "{1E9F90CA-A8C0-41EF-BB3D-8D02CDE4CDC1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmark", "Benchmark\Benchmark.csproj", "{794E5199-43B2-4F22-ABCC-C4CC60AAB7F5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{72CC247C-1647-4E0A-A93A-B7F2A01E9996}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{1E9F90CA-A8C0-41EF-BB3D-8D02CDE4CDC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E9F90CA-A8C0-41EF-BB3D-8D02CDE4CDC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1E9F90CA-A8C0-41EF-BB3D-8D02CDE4CDC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{794E5199-43B2-4F22-ABCC-C4CC60AAB7F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{794E5199-43B2-4F22-ABCC-C4CC60AAB7F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{794E5199-43B2-4F22-ABCC-C4CC60AAB7F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{794E5199-43B2-4F22-ABCC-C4CC60AAB7F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72CC247C-1647-4E0A-A93A-B7F2A01E9996}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72CC247C-1647-4E0A-A93A-B7F2A01E9996}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72CC247C-1647-4E0A-A93A-B7F2A01E9996}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72CC247C-1647-4E0A-A93A-B7F2A01E9996}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
