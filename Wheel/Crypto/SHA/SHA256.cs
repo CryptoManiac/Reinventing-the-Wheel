@@ -37,11 +37,6 @@ namespace Wheel.Crypto.SHA
         /// </summary>
         private ByteVec32 result = new();
 
-        /// <summary>
-        /// Vector for sum() calculation in Transform()
-        /// </summary>
-        WordVec64 wordPad = new();
-
         public SHA256()
         {
             Reset();
@@ -56,7 +51,6 @@ namespace Wheel.Crypto.SHA
             bitLen = 0;
             pendingBlock.Reset();
             state.SetWords(SHA256Misc.init_state);
-            wordPad.Reset();
             finished = false;
         }
 
@@ -109,6 +103,9 @@ namespace Wheel.Crypto.SHA
 
         private void Transform()
         {
+            // Block mixing is done here
+            WordVec64 wordPad = new();
+
             // Split data in 32 bit blocks for the first 16 words
             wordPad.Set16Words(pendingBlock.wv16);
 
