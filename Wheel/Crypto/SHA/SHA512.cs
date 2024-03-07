@@ -182,7 +182,8 @@ namespace Wheel.Crypto.SHA
             // Append to the padding the total message's
             // length in bits and transform.
             bitLen += blockLen * 8;
-            pendingBlock.qwv8[7] = Common.REVERT((UInt128)bitLen);
+            pendingBlock.qwv8[7] = bitLen;
+            pendingBlock.qwv8.w07.Revert();
             Transform();
 
             // Reverse byte ordering to get final hashing result

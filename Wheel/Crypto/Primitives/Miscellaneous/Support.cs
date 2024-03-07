@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Net;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Wheel.Crypto.Miscellaneous.Support
@@ -6,69 +7,16 @@ namespace Wheel.Crypto.Miscellaneous.Support
 
     internal static class Common
 	{
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint REVERT(uint value)
         {
-            return
-                (value & 0x000000FFU) << 24
-                | (value & 0x0000FF00U) << 8
-                | (value & 0x00FF0000U) >> 8
-                | (value & 0xFF000000U) >> 24;
+            return (uint)IPAddress.NetworkToHostOrder((int)value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong REVERT(ulong value)
         {
-            return
-                 (0x00000000000000FF) & (value >> 56)
-                 | (0x000000000000FF00) & (value >> 40)
-                 | (0x0000000000FF0000) & (value >> 24)
-                 | (0x00000000FF000000) & (value >> 8)
-                 | (0x000000FF00000000) & (value << 8)
-                 | (0x0000FF0000000000) & (value << 24)
-                 | (0x00FF000000000000) & (value << 40)
-                 | (0xFF00000000000000) & (value << 56);
-        }
-
-        [StructLayout(LayoutKind.Explicit)]
-        private struct ULongLong128
-        {
-            [FieldOffset(0)]
-            public UInt128 value;
-            [FieldOffset(0)]
-            public ulong lo;
-            [FieldOffset(8)]
-            public ulong hi;
-
-            public ULongLong128(UInt128 input)
-            {
-                value = input;
-            }
-
-            public unsafe void Revert()
-            {
-                fixed (ulong* pL = &lo)
-                {
-                    ulong* pH = pL + 1;
-
-                    // Revert in-place
-                    REVERT(pL, 0);
-                    REVERT(pH, 0);
-
-                    // Swap walues
-                    (*pL, *pH) = (*pH, *pL);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Revert byte order for the 128 bit integer value
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns>Reverted value</returns>
-        public static UInt128 REVERT(UInt128 value)
-        {
-            ULongLong128 w = new(value);
-            w.Revert();
-            return w.value;
+            return (ulong)IPAddress.NetworkToHostOrder((long)value);
         }
 
         /// <summary>
@@ -151,32 +99,17 @@ namespace Wheel.Crypto.Miscellaneous.Support
             REVERT(p, 15);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe static void REVERT(uint* p, int offset)
         {
-            uint v = *(p + offset);
-
-            *(p + offset) =
-                (v & 0x000000FFU) << 24
-                | (v & 0x0000FF00U) << 8
-                | (v & 0x00FF0000U) >> 8
-                | (v & 0xFF000000U) >> 24;
+            *(p + offset) = (uint)IPAddress.NetworkToHostOrder((int)*(p + offset));
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe static void REVERT(ulong* p, int offset)
         {
-            ulong v = *(p + offset);
-
-            *(p + offset) =
-                (0x00000000000000FF) & (v >> 56)
-                 | (0x000000000000FF00) & (v >> 40)
-                 | (0x0000000000FF0000) & (v >> 24)
-                 | (0x00000000FF000000) & (v >> 8)
-                 | (0x000000FF00000000) & (v << 8)
-                 | (0x0000FF0000000000) & (v << 24)
-                 | (0x00FF000000000000) & (v << 40)
-                 | (0xFF00000000000000) & (v << 56);
+            *(p + offset) = (ulong)IPAddress.NetworkToHostOrder((long)*(p + offset));
         }
     }
 }

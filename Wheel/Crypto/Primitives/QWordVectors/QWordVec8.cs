@@ -1,9 +1,49 @@
 ﻿using System;
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Wheel.Crypto.Primitives.ByteVectors;
 
 namespace Wheel.Crypto.Primitives.QWordVectors
 {
+    [StructLayout(LayoutKind.Explicit)]
+    public struct QWordStruct
+    {
+        [FieldOffset(0)]
+        public UInt128 value = 0;
+        [FieldOffset(0)]
+        public long lo;
+        [FieldOffset(8)]
+        public long hi;
+
+        public QWordStruct(UInt128 input)
+        {
+            value = input;
+        }
+
+        /// <summary>
+        /// Revert byte order
+        /// </summary>
+        public unsafe void Revert()
+        {
+            (lo, hi) = (IPAddress.NetworkToHostOrder(hi), IPAddress.NetworkToHostOrder(lo));
+        }
+
+        /// <summary>
+        /// Implicit cast operator
+        /// </summary>
+        /// <param name="input">Value to convert from</param>
+        public static implicit operator QWordStruct(UInt128 input)
+        {
+            return new QWordStruct(input);
+        }
+
+        public static implicit operator UInt128(QWordStruct input)
+        {
+            return input.value;
+        }
+    }
+
     [StructLayout(LayoutKind.Explicit)]
     public struct QWordVec8
     {
@@ -59,7 +99,7 @@ namespace Wheel.Crypto.Primitives.QWordVectors
         {
             unsafe
             {
-                fixed (UInt128* ptr = &w00)
+                fixed (void* ptr = &this)
                 {
                     Unsafe.InitBlockUnaligned(ptr, 0, (uint) sizeof(UInt128) * 8);
                 }
@@ -89,9 +129,9 @@ namespace Wheel.Crypto.Primitives.QWordVectors
 
             unsafe
             {
-                fixed (UInt128* src = &w00)
+                fixed (QWordStruct* src = &w00)
                 {
-                    return src[index];
+                    return src[index].value;
                 }
             }
         }
@@ -106,9 +146,9 @@ namespace Wheel.Crypto.Primitives.QWordVectors
 
             unsafe
             {
-                fixed (UInt128* target = &w00)
+                fixed (QWordStruct* target = &w00)
                 {
-                    return target[index] = value;
+                    return target[index].value = value;
                 }
             }
         }
@@ -132,22 +172,22 @@ namespace Wheel.Crypto.Primitives.QWordVectors
 
         #region Individual word fields
         [FieldOffset(0)]
-        public UInt128 w00 = 0;
+        public QWordStruct w00;
         [FieldOffset(16)]
-        public UInt128 w01 = 0;
+        public QWordStruct w01;
         [FieldOffset(32)]
-        public UInt128 w02 = 0;
+        public QWordStruct w02;
         [FieldOffset(48)]
-        public UInt128 w03 = 0;
+        public QWordStruct w03;
 
         [FieldOffset(64)]
-        public UInt128 w04 = 0;
+        public QWordStruct w04;
         [FieldOffset(80)]
-        public UInt128 w05 = 0;
+        public QWordStruct w05;
         [FieldOffset(96)]
-        public UInt128 w06 = 0;
+        public QWordStruct w06;
         [FieldOffset(112)]
-        public UInt128 w07 = 0;
+        public QWordStruct w07;
         #endregion
     }
 }
