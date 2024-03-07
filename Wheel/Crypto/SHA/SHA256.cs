@@ -158,13 +158,16 @@ namespace Wheel.Crypto.SHA
 
         private void Finish()
         {
-            int i = (int)blockLen;
-            byte end = (byte)(blockLen < 56 ? 56 : 64);
+            uint i = blockLen;
+            uint end = (blockLen < 56u) ? 56u : 64u;
 
-            pendingBlock[i++] = 0x80; // Append a bit 1
-            while (i < end)
+            unsafe
             {
-                pendingBlock[i++] = 0x00; // Pad with zeros
+                fixed (byte* p = &pendingBlock.b00)
+                {
+                    p[i++] = 0x80; // Append a bit 1
+                    Unsafe.InitBlockUnaligned(p + i, 0, end - i); // Pad with zeros
+                }
             }
 
             if (blockLen >= 56)
