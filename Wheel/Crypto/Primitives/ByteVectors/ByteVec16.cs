@@ -50,41 +50,51 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         }
 
         /// <summary>
-        /// Load value from byte array at given offset
+        /// Load value from given span
         /// </summary>
-        /// <param name="bytes">Byte array</param>
-        /// <param name="offset">Offset to read from</param>
+        /// <param name="from"></param>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public unsafe void LoadByteArray(byte[] bytes, uint offset = 0)
+        public unsafe void Load(Span<byte> from)
         {
-            if (offset + 16 > bytes.Length)
+            if (16 != from.Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(offset), offset, "Offset and the end of array must not be closer than 16 bytes");
+                throw new ArgumentOutOfRangeException(nameof(from), from.Length, "Span must be exactly 16 bytes long");
             }
 
             fixed (byte* target = &b00)
             {
-                Marshal.Copy(bytes, (int)offset, new IntPtr(target), 16);
+                var to = new Span<byte>(target, 16);
+                from.CopyTo(to);
             }
         }
 
         /// <summary>
-        /// Write vector contents to byte array
+        /// Dump vector contents
         /// </summary>
         /// <param name="bytes"></param>
-        /// <param name="offset"></param>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public unsafe readonly void StoreByteArray(ref byte[] bytes, uint offset = 0)
+        public unsafe readonly void Store(Span<byte> to)
         {
-            if (offset + 16 > bytes.Length)
+            if (16 != to.Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(offset), offset, "Offset and the end of array must not be closer than 16 bytes");
+                throw new ArgumentOutOfRangeException(nameof(to), to.Length, "Span must be exactly 16 bytes long");
             }
 
             fixed (byte* source = &b00)
             {
-                Marshal.Copy(new IntPtr(source), bytes, (int)offset, 16);
+                var from = new Span<byte>(source, 16);
+                from.CopyTo(to);
             }
+        }
+
+        /// <summary>
+        /// Return data as a new byte array
+        /// </summary>
+        public readonly byte[] GetBytes()
+        {
+            byte[] bytes = new byte[16];
+            Store(new Span<byte>(bytes));
+            return bytes;
         }
 
         /// <summary>

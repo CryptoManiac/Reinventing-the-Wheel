@@ -74,7 +74,7 @@ public class BenchmarkProgram
     {
         hasher.Reset();
         hasher.Update(message);
-        hasher.Digest(ref hash);
+        hasher.Digest(new Span<byte>(hash));
     }
 
     private static void SHA512_Calc(byte[] message)
@@ -88,7 +88,7 @@ public class BenchmarkProgram
     {
         hasher.Reset();
         hasher.Update(message);
-        hasher.Digest(ref hash);
+        hasher.Digest(new Span<byte>(hash));
     }
 
     public static void Main()
@@ -99,9 +99,9 @@ public class BenchmarkProgram
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
 
-            var message = new byte[size];
-            var hash256 = new byte[32];
-            var hash512 = new byte[64];
+            byte[] message = new byte[size];
+            byte[] hash256 = new byte[32];
+            byte[] hash512 = new byte[64];
 
             SHA256 hasher256 = new();
             SHA512 hasher512 = new();

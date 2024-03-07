@@ -99,11 +99,10 @@ namespace Wheel.Crypto.SHA
         /// Write SHA256 hash into given byte array
         /// </summary>
         /// <param name="hash">Byte array to write into</param>
-        /// <param name="offset">Byte array offset beginning from zero</param>
-        public void Digest(ref byte[] hash, uint offset = 0)
+        public void Digest(Span<byte> hash)
         {
             Finish();
-            state.StoreByteArray(ref hash, offset);
+            state.Store(hash);
             Reset();
         }
 
