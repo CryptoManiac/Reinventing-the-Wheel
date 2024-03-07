@@ -59,7 +59,7 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         public unsafe void Wipe(uint begin, uint sz)
         {
             // Begin index must have a sane value
-            if (begin < 0 || begin > 63)
+            if (begin > 63)
             {
                 throw new ArgumentOutOfRangeException(nameof(begin), begin, "begin index must be within [0 .. 63] range");
             }
@@ -68,7 +68,7 @@ namespace Wheel.Crypto.Primitives.ByteVectors
             //  beginning and the vector size
             uint maxSz = 64 - begin;
 
-            if (sz < 0 || sz > maxSz)
+            if (sz > maxSz)
             {
                 throw new ArgumentOutOfRangeException(nameof(sz), sz, "sz must be within [0 .. " + maxSz + "] range");
             }
