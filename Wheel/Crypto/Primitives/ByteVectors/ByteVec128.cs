@@ -7,7 +7,7 @@ using Wheel.Crypto.Primitives.WordVectors;
 namespace Wheel.Crypto.Primitives.ByteVectors
 {
     /// <summary>
-    /// 64 bytes long vector which can be represented as either sixteen 32-bit integers or eight 64-bit integers
+    /// 64 bytes long vector which can be represented as either thirty 32-bit integers or sixteen 64-bit integers
     /// </summary>
     [StructLayout(LayoutKind.Explicit)]
     public struct ByteVec128
