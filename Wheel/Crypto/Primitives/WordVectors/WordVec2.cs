@@ -70,36 +70,30 @@ namespace Wheel.Crypto.Primitives.WordVectors
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly uint GetWord(int index)
+        private unsafe readonly uint GetWord(int index)
         {
             if (index < 0 || index > 1)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 1] range");
             }
 
-            unsafe
+            fixed (uint* src = &w00)
             {
-                fixed (uint* src = &w00)
-                {
-                    return src[index];
-                }
+                return src[index];
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private uint SetWord(int index, uint value)
+        private unsafe uint SetWord(int index, uint value)
         {
             if (index < 0 || index > 1)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 1] range");
             }
 
-            unsafe
+            fixed (uint* target = &w00)
             {
-                fixed (uint* target = &w00)
-                {
-                    return target[index] = value;
-                }
+                return target[index] = value;
             }
         }
 

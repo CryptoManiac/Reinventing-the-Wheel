@@ -57,32 +57,26 @@ namespace Wheel.Crypto.Primitives.QWordVectors
             SetWords(words);
         }
 
-        public void SetWords(QWordVec8 wv8)
+        public unsafe void SetWords(QWordVec8 wv8)
         {
-            unsafe
+            fixed (void* target = &this)
             {
-                fixed (void* target = &this)
-                {
-                    Buffer.MemoryCopy(&wv8, target, sizeof(UInt128) * 8, sizeof(UInt128) * 8);
-                }
+                Buffer.MemoryCopy(&wv8, target, sizeof(UInt128) * 8, sizeof(UInt128) * 8);
             }
         }
 
-        public void SetWords(params UInt128[] words)
+        public unsafe void SetWords(params UInt128[] words)
         {
             if (words.Length != 8)
             {
                 throw new ArgumentOutOfRangeException(nameof(words), words.Length, "Must provide 8 words exactly");
             }
 
-            unsafe
+            fixed (void* src = &words[0])
             {
-                fixed (void* src = &words[0])
+                fixed (void* target = &this)
                 {
-                    fixed (void* target = &this)
-                    {
-                        Buffer.MemoryCopy(src, target, sizeof(UInt128) * 8, sizeof(UInt128) * 8);
-                    }
+                    Buffer.MemoryCopy(src, target, sizeof(UInt128) * 8, sizeof(UInt128) * 8);
                 }
             }
         }
@@ -95,14 +89,11 @@ namespace Wheel.Crypto.Primitives.QWordVectors
         /// <summary>
         /// Set to zero
         /// </summary>
-        public void Reset()
+        public unsafe void Reset()
         {
-            unsafe
+            fixed (void* ptr = &this)
             {
-                fixed (void* ptr = &this)
-                {
-                    Unsafe.InitBlockUnaligned(ptr, 0, (uint) sizeof(UInt128) * 8);
-                }
+                Unsafe.InitBlockUnaligned(ptr, 0, (uint)sizeof(UInt128) * 8);
             }
         }
 
@@ -120,36 +111,30 @@ namespace Wheel.Crypto.Primitives.QWordVectors
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly UInt128 GetWord(int index)
+        private unsafe readonly UInt128 GetWord(int index)
         {
             if (index < 0 || index > 7)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 7] range");
             }
 
-            unsafe
+            fixed (QWordStruct* src = &w00)
             {
-                fixed (QWordStruct* src = &w00)
-                {
-                    return src[index].value;
-                }
+                return src[index].value;
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private UInt128 SetWord(int index, UInt128 value)
+        private unsafe UInt128 SetWord(int index, UInt128 value)
         {
             if (index < 0 || index > 7)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 7] range");
             }
 
-            unsafe
+            fixed (QWordStruct* target = &w00)
             {
-                fixed (QWordStruct* target = &w00)
-                {
-                    return target[index].value = value;
-                }
+                return target[index].value = value;
             }
         }
 

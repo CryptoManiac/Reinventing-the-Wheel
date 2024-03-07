@@ -17,21 +17,18 @@ namespace Wheel.Crypto.Primitives.WordVectors
             SetWords(words);
         }
 
-        public void SetWords(params ulong[] words)
+        public unsafe void SetWords(params ulong[] words)
         {
             if (words.Length != 80)
             {
                 throw new ArgumentOutOfRangeException(nameof(words), words.Length, "Must provide 80 words exactly");
             }
 
-            unsafe
+            fixed (void* src = &words[0])
             {
-                fixed (void* src = &words[0])
+                fixed (void* target = &this)
                 {
-                    fixed (void* target = &this)
-                    {
-                        Buffer.MemoryCopy(src, target, sizeof(ulong) * 80, sizeof(ulong) * 80);
-                    }
+                    Buffer.MemoryCopy(src, target, sizeof(ulong) * 80, sizeof(ulong) * 80);
                 }
             }
         }
@@ -39,14 +36,11 @@ namespace Wheel.Crypto.Primitives.WordVectors
         /// <summary>
         /// Set to zero
         /// </summary>
-        public void Reset()
+        public unsafe void Reset()
         {
-            unsafe
+            fixed (void* ptr = &this)
             {
-                fixed (void* ptr = &this)
-                {
-                    Unsafe.InitBlockUnaligned(ptr, 0, sizeof(ulong) * 80);
-                }
+                Unsafe.InitBlockUnaligned(ptr, 0, sizeof(ulong) * 80);
             }
         }
 
@@ -54,14 +48,11 @@ namespace Wheel.Crypto.Primitives.WordVectors
         /// Set first 16 words from the provided container
         /// </summary>
         /// <param name="words">Vector to provide 16 double words</param>
-        public void Set16Words(DWordVec16 words)
+        public unsafe void Set16Words(DWordVec16 words)
         {
-            unsafe
+            fixed (ulong* target = &w00)
             {
-                fixed(ulong *target = &w00)
-                {
-                    Buffer.MemoryCopy(&words.w00, target, sizeof(ulong) * 16, sizeof(ulong) * 16);
-                }
+                Buffer.MemoryCopy(&words.w00, target, sizeof(ulong) * 16, sizeof(ulong) * 16);
             }
         }
 
@@ -70,13 +61,22 @@ namespace Wheel.Crypto.Primitives.WordVectors
         /// </summary>
         public void Revert16Words()
         {
-            unsafe
-            {
-                fixed (ulong* ptr = &w00)
-                {
-                    Common.REVERT16(ptr);
-                }
-            }
+            w00 = Common.REVERT(w00);
+            w01 = Common.REVERT(w01);
+            w02 = Common.REVERT(w02);
+            w03 = Common.REVERT(w03);
+            w04 = Common.REVERT(w04);
+            w05 = Common.REVERT(w05);
+            w06 = Common.REVERT(w06);
+            w07 = Common.REVERT(w07);
+            w08 = Common.REVERT(w08);
+            w09 = Common.REVERT(w09);
+            w10 = Common.REVERT(w10);
+            w11 = Common.REVERT(w11);
+            w12 = Common.REVERT(w12);
+            w13 = Common.REVERT(w13);
+            w14 = Common.REVERT(w14);
+            w15 = Common.REVERT(w15);
         }
 
         /// <summary>
@@ -93,36 +93,30 @@ namespace Wheel.Crypto.Primitives.WordVectors
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly ulong GetWord(int index)
+        private unsafe readonly ulong GetWord(int index)
         {
             if (index < 0 || index > 79)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 79] range");
             }
 
-            unsafe
+            fixed (ulong* src = &w00)
             {
-                fixed (ulong* src = &w00)
-                {
-                    return src[index];
-                }
+                return src[index];
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ulong SetWord(int index, ulong value)
+        private unsafe ulong SetWord(int index, ulong value)
         {
             if (index < 0 || index > 79)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 79] range");
             }
 
-            unsafe
+            fixed (ulong* target = &w00)
             {
-                fixed (ulong* target = &w00)
-                {
-                    return target[index] = value;
-                }
+                return target[index] = value;
             }
         }
 

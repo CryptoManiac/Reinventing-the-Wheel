@@ -50,12 +50,24 @@ namespace Wheel.Crypto.Primitives.WordVectors
         /// <summary>
         /// Reverse byte order for all words
         /// </summary>
-        public unsafe void RevertWords()
+        public void RevertWords()
         {
-            fixed (uint* ptr = &w00)
-            {
-                Common.REVERT16(ptr);
-            }
+            w00 = Common.REVERT(w00);
+            w01 = Common.REVERT(w01);
+            w02 = Common.REVERT(w02);
+            w03 = Common.REVERT(w03);
+            w04 = Common.REVERT(w04);
+            w05 = Common.REVERT(w05);
+            w06 = Common.REVERT(w06);
+            w07 = Common.REVERT(w07);
+            w08 = Common.REVERT(w08);
+            w09 = Common.REVERT(w09);
+            w10 = Common.REVERT(w10);
+            w11 = Common.REVERT(w11);
+            w12 = Common.REVERT(w12);
+            w13 = Common.REVERT(w13);
+            w14 = Common.REVERT(w14);
+            w15 = Common.REVERT(w15);
         }
 
         /// <summary>
