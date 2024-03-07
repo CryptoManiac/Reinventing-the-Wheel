@@ -68,7 +68,7 @@ namespace Wheel.Crypto.SHA
                 Span<byte> toWrite = new(input, i, (remaining < needed) ? remaining : needed);
 
                 // Write data at current index
-                pendingBlock.Write(toWrite, (int)blockLen);
+                pendingBlock.Write(toWrite, blockLen);
 
                 i += toWrite.Length;
                 blockLen += (uint)toWrite.Length;

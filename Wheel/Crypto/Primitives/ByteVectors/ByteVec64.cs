@@ -84,17 +84,17 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         /// </summary>
         /// <param name="bytes">Bytes to write</param>
         /// <param name="targetIndex">Offset to write them from the beginning of this vector</param>
-        public unsafe void Write(Span<byte> bytes, int targetIndex)
+        public unsafe void Write(Span<byte> bytes, uint targetIndex)
         {
             // Target index must have a sane value
-            if (targetIndex < 0 || targetIndex > 127)
+            if (targetIndex > 127)
             {
                 throw new ArgumentOutOfRangeException(nameof(targetIndex), targetIndex, "targetIndex index must be within [0 .. 128) range");
             }
 
             // Maximum size is a distance between the
             //  beginning and the vector size
-            int limit = 128 - targetIndex;
+            uint limit = 128 - targetIndex;
 
             if (bytes.Length > limit)
             {
