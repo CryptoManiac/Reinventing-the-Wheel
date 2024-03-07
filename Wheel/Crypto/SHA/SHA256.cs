@@ -46,7 +46,17 @@ namespace Wheel.Crypto.SHA
         protected abstract void SetInitState();
 
         public abstract byte[] Digest();
-        public abstract void Digest(Span<byte> hash);
+
+        /// <summary>
+        /// Write SHA256/SHA224 hash into given byte array
+        /// </summary>
+        /// <param name="hash">Byte array to write into</param>
+        public void Digest(Span<byte> hash)
+        {
+            Finish();
+            state.Store(hash);
+            Reset();
+        }
 
         /// <summary>
         /// Update hasher with new data bytes
@@ -174,17 +184,6 @@ namespace Wheel.Crypto.SHA
             Reset();
             return hash;
         }
-
-        /// <summary>
-        /// Write SHA256 hash into given byte array
-        /// </summary>
-        /// <param name="hash">Byte array to write into</param>
-        public override void Digest(Span<byte> hash)
-        {
-            Finish();
-            state.Store(hash);
-            Reset();
-        }
     }
 
     public class SHA224 : SHA256
@@ -198,7 +197,7 @@ namespace Wheel.Crypto.SHA
         }
 
         /// <summary>
-        /// Get SHA256 hash as a new byte array
+        /// Get SHA224 hash as a new byte array
         /// </summary>
         /// <returns></returns>
         public override byte[] Digest()
@@ -209,21 +208,10 @@ namespace Wheel.Crypto.SHA
             Reset();
             return hash;
         }
-
-        /// <summary>
-        /// Write SHA256 hash into given byte array
-        /// </summary>
-        /// <param name="hash">Byte array to write into</param>
-        public override void Digest(Span<byte> hash)
-        {
-            Finish();
-            state.Store(hash);
-            Reset();
-        }
     }
 
     /// <summary>
-    /// Constants and functions which are specific for SHA-256
+    /// Constants and functions which are specific for SHA-256 family
     /// </summary>
     internal static class SHA256Misc
     {
