@@ -1,10 +1,11 @@
 ﻿using Wheel.Crypto.Primitives.ByteVectors;
 using Wheel.Crypto.Primitives.WordVectors;
 using System.Runtime.CompilerServices;
+using Wheel.Crypto.Primitives;
 
 namespace Wheel.Crypto.SHA
 {
-    public abstract class SHA512Base
+    public abstract class SHA512Base : IHasherInterface
     {
         /// <summary>
         /// Current data block length in bytes

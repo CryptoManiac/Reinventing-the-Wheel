@@ -2,10 +2,11 @@
 using Wheel.Crypto.Primitives.WordVectors;
 using Wheel.Crypto.Miscellaneous.Support;
 using System.Runtime.CompilerServices;
+using Wheel.Crypto.Primitives;
 
 namespace Wheel.Crypto.SHA
 {
-    public abstract class SHA256Base
+    public abstract class SHA256Base : IHasherInterface
     {
         /// <summary>
         /// Current data block length in bytes
