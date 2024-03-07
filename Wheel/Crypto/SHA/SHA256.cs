@@ -62,15 +62,16 @@ namespace Wheel.Crypto.SHA
                 int remaining = input.Length - i;
 
                 // How many bytes are needed to complete this block
-                int needed = 64 - (int) blockLen;
+                int needed = 64 - (int)blockLen;
 
-                // How many bytes are actually available
-                int available = remaining < needed ? remaining : needed;
+                // Either entire remaining byte stream or merely a needed chunk of it
+                Span<byte> toWrite = new(input, i, (remaining < needed) ? remaining : needed);
 
-                pendingBlock.Write(input, i, available, (int)blockLen);
+                // Write data at current index
+                pendingBlock.Write(toWrite, (int)blockLen);
 
-                i += available;
-                blockLen += (uint)available;
+                i += toWrite.Length;
+                blockLen += (uint)toWrite.Length;
 
                 if (blockLen == 64)
                 {

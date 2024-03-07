@@ -86,6 +86,35 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         }
 
         /// <summary>
+        /// Overwrite the part of value with a sequence of bytes
+        /// </summary>
+        /// <param name="bytes">Bytes to write</param>
+        /// <param name="targetIndex">Offset to write them from the beginning of this vector</param>
+        public unsafe void Write(Span<byte> bytes, int targetIndex)
+        {
+            // Target index must have a sane value
+            if (targetIndex < 0 || targetIndex > 127)
+            {
+                throw new ArgumentOutOfRangeException(nameof(targetIndex), targetIndex, "targetIndex index must be within [0 .. 128) range");
+            }
+
+            // Maximum size is a distance between the
+            //  beginning and the vector size
+            int limit = 128 - targetIndex;
+
+            if (bytes.Length > limit)
+            {
+                throw new ArgumentOutOfRangeException(nameof(bytes), bytes.Length, "byte sequence is too long");
+            }
+
+            fixed (byte* ptr = &b00)
+            {
+                var target = new Span<byte>(ptr + targetIndex, bytes.Length);
+                bytes.CopyTo(target);
+            }
+        }
+
+        /// <summary>
         /// Overwrite part of value by data from a byte array at given offset
         /// </summary>
         /// <param name="bytes">Byte array</param>

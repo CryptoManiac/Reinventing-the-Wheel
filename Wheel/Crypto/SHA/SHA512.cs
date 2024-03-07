@@ -3,6 +3,7 @@ using Wheel.Crypto.Primitives.WordVectors;
 using Wheel.Crypto.Miscellaneous.Support;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
+using System;
 
 namespace Wheel.Crypto.SHA
 {
@@ -65,13 +66,14 @@ namespace Wheel.Crypto.SHA
                 // How many bytes are needed to complete this block
                 int needed = 128 - (int)blockLen;
 
-                // How many bytes are actually available
-                int available = remaining < needed ? remaining : needed;
+                // Either entire remaining byte stream or merely a needed chunk of it
+                Span <byte> toWrite = new(input, i, (remaining < needed) ? remaining : needed);
 
-                pendingBlock.Write(input, i, available, (int)blockLen);
+                // Write data at current index
+                pendingBlock.Write(toWrite, (int)blockLen);
 
-                i += available;
-                blockLen += (uint)available;
+                i += toWrite.Length;
+                blockLen += (uint)toWrite.Length;
 
                 if (blockLen == 128)
                 {
