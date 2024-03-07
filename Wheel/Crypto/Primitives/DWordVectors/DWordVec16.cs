@@ -117,7 +117,7 @@ namespace Wheel.Crypto.Primitives.WordVectors
         /// </summary>
         /// <param name="key">Byte field index [0 .. 7]</param>
         /// <returns>Word value</returns>
-        public ulong this[int key]
+        public ulong this[uint key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => GetWord(key);
@@ -126,9 +126,9 @@ namespace Wheel.Crypto.Primitives.WordVectors
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe readonly ulong GetWord(int index)
+        private unsafe readonly ulong GetWord(uint index)
         {
-            if (index < 0 || index > 15)
+            if (index > 15)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 15] range");
             }
@@ -140,9 +140,9 @@ namespace Wheel.Crypto.Primitives.WordVectors
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe ulong SetWord(int index, ulong value)
+        private unsafe ulong SetWord(uint index, ulong value)
         {
-            if (index < 0 || index > 15)
+            if (index > 15)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 15] range");
             }
@@ -158,15 +158,15 @@ namespace Wheel.Crypto.Primitives.WordVectors
         /// </summary>
         public static void Test()
         {
-            DWordVec8 wv = new();
+            DWordVec16 wv = new();
             for (ulong i = 0; i < 8; i++)
             {
-                wv[(int)i] = i;
+                wv[(uint)i] = i;
             }
 
             for (ulong i = 0; i < 8; i++)
             {
-                if (i != wv[(int)i]) throw new InvalidDataException("DWordVec16 fail");
+                if (i != wv[(uint)i]) throw new InvalidDataException("DWordVec16 fail");
             }
         }
 

@@ -102,7 +102,7 @@ namespace Wheel.Crypto.Primitives.QWordVectors
         /// </summary>
         /// <param name="key">Byte field index [0 .. 7]</param>
         /// <returns>Word value</returns>
-        public UInt128 this[int key]
+        public UInt128 this[uint key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => GetWord(key);
@@ -111,9 +111,9 @@ namespace Wheel.Crypto.Primitives.QWordVectors
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe readonly UInt128 GetWord(int index)
+        private unsafe readonly UInt128 GetWord(uint index)
         {
-            if (index < 0 || index > 7)
+            if (index > 7)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 7] range");
             }
@@ -125,9 +125,9 @@ namespace Wheel.Crypto.Primitives.QWordVectors
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe UInt128 SetWord(int index, UInt128 value)
+        private unsafe UInt128 SetWord(uint index, UInt128 value)
         {
-            if (index < 0 || index > 7)
+            if (index > 7)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 7] range");
             }
@@ -146,12 +146,12 @@ namespace Wheel.Crypto.Primitives.QWordVectors
             QWordVec8 wv = new();
             for (ulong i = 0; i < 8; i++)
             {
-                wv[(int)i] = i;
+                wv[(uint)i] = i;
             }
 
             for (ulong i = 0; i < 8; i++)
             {
-                if (i != wv[(int)i]) throw new InvalidDataException("QWordVec8 fail");
+                if (i != wv[(uint)i]) throw new InvalidDataException("QWordVec8 fail");
             }
         }
 

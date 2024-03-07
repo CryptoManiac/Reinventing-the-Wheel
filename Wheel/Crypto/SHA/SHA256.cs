@@ -100,7 +100,7 @@ namespace Wheel.Crypto.SHA
         /// </summary>
         /// <param name="hash">Byte array to write into</param>
         /// <param name="offset">Byte array offset beginning from zero</param>
-        public void Digest(ref byte[] hash, int offset = 0)
+        public void Digest(ref byte[] hash, uint offset = 0)
         {
             Finish();
             state.StoreByteArray(ref hash, offset);
@@ -119,7 +119,7 @@ namespace Wheel.Crypto.SHA
             wordPad.Revert16Words();
 
             // Remaining 48 blocks
-            for (int i = 16; i < 64; ++i)
+            for (uint i = 16; i < 64; ++i)
             {
                 wordPad[i] = SHA256Misc.SIG1(wordPad[i - 2]) + wordPad[i - 7] + SHA256Misc.SIG0(wordPad[i - 15]) + wordPad[i - 16];
             }
@@ -133,7 +133,7 @@ namespace Wheel.Crypto.SHA
             uint g = state.wv8[6];
             uint h = state.wv8[7];
             
-            for (int i = 0; i < 64; ++i)
+            for (uint i = 0; i < 64; ++i)
             {
                 uint t1 = h + SHA256Misc.SIGMA1(e) + SHA256Misc.CHOOSE(e, f, g) + SHA256Misc.K[i] + wordPad[i];
                 uint t2 = SHA256Misc.SIGMA0(a) + SHA256Misc.MAJ(a, b, c);
@@ -156,7 +156,7 @@ namespace Wheel.Crypto.SHA
 
             uint i = blockLen;
             uint end = (blockLen < 56u) ? 56u : 64u;
-            pendingBlock[(int)i++] = 0x80; // Append a bit 1
+            pendingBlock[i++] = 0x80; // Append a bit 1
             pendingBlock.Wipe(i, end - i); // Pad with zeros
 
             if (blockLen >= 56)

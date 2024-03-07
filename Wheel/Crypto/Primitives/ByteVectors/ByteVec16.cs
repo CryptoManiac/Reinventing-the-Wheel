@@ -55,13 +55,8 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         /// <param name="bytes">Byte array</param>
         /// <param name="offset">Offset to read from</param>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public unsafe void LoadByteArray(byte[] bytes, int offset = 0)
+        public unsafe void LoadByteArray(byte[] bytes, uint offset = 0)
         {
-            if (offset < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(offset), offset, "Offset must be a non-negative value");
-            }
-
             if (offset + 16 > bytes.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(offset), offset, "Offset and the end of array must not be closer than 16 bytes");
@@ -69,7 +64,7 @@ namespace Wheel.Crypto.Primitives.ByteVectors
 
             fixed (byte* target = &b00)
             {
-                Marshal.Copy(bytes, offset, new IntPtr(target), 16);
+                Marshal.Copy(bytes, (int)offset, new IntPtr(target), 16);
             }
         }
 
@@ -79,13 +74,8 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         /// <param name="bytes"></param>
         /// <param name="offset"></param>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public unsafe readonly void StoreByteArray(ref byte[] bytes, int offset = 0)
+        public unsafe readonly void StoreByteArray(ref byte[] bytes, uint offset = 0)
         {
-            if (offset < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(offset), offset, "Offset must be a non-negative value");
-            }
-
             if (offset + 16 > bytes.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(offset), offset, "Offset and the end of array must not be closer than 16 bytes");
@@ -93,7 +83,7 @@ namespace Wheel.Crypto.Primitives.ByteVectors
 
             fixed (byte* source = &b00)
             {
-                Marshal.Copy(new IntPtr(source), bytes, offset, 16);
+                Marshal.Copy(new IntPtr(source), bytes, (int)offset, 16);
             }
         }
 
@@ -102,15 +92,15 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         /// </summary>
         /// <param name="key">Byte field index [0 .. 15]</param>
         /// <returns>Byte value</returns>
-        public byte this[int key]
+        public byte this[uint key]
         {
             readonly get => GetByte(key);
             set => SetByte(key, value);
         }
 
-        private unsafe readonly byte GetByte(int index)
+        private unsafe readonly byte GetByte(uint index)
         {
-            if (index < 0 || index > 15)
+            if (index > 15)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 15] range");
             }
@@ -121,9 +111,9 @@ namespace Wheel.Crypto.Primitives.ByteVectors
             }
         }
 
-        private unsafe byte SetByte(int index, byte value)
+        private unsafe byte SetByte(uint index, byte value)
         {
-            if (index < 0 || index > 15)
+            if (index > 15)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 15] range");
             }

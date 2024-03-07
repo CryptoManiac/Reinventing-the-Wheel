@@ -102,7 +102,7 @@ namespace Wheel.Crypto.Primitives.WordVectors
         /// </summary>
         /// <param name="key">Byte field index [0 .. 7]</param>
         /// <returns>Word value</returns>
-        public uint this[int key]
+        public uint this[uint key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => GetWord(key);
@@ -111,9 +111,9 @@ namespace Wheel.Crypto.Primitives.WordVectors
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe readonly uint GetWord(int index)
+        private unsafe readonly uint GetWord(uint index)
         {
-            if (index < 0 || index > 7)
+            if (index > 7)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 7] range");
             }
@@ -125,9 +125,9 @@ namespace Wheel.Crypto.Primitives.WordVectors
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe uint SetWord(int index, uint value)
+        private unsafe uint SetWord(uint index, uint value)
         {
-            if (index < 0 || index > 7)
+            if (index > 7)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 7] range");
             }
@@ -146,12 +146,12 @@ namespace Wheel.Crypto.Primitives.WordVectors
             WordVec8 wv = new();
             for (uint i = 0; i < 8; i++)
             {
-                wv[(int)i] = i;
+                wv[i] = i;
             }
 
             for (uint i = 0; i < 8; i++)
             {
-                if (i != wv[(int)i]) throw new InvalidDataException("WordVec8 fail");
+                if (i != wv[i]) throw new InvalidDataException("WordVec8 fail");
             }
         }
 
