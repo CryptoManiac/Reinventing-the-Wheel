@@ -43,10 +43,19 @@ namespace Wheel.Crypto.Miscellaneous.Support
                 value = input;
             }
 
-            public ULongLong128(ulong lo, ulong hi)
+            public unsafe void Revert()
             {
-                this.lo = lo;
-                this.hi = hi;
+                fixed (ulong* pL = &lo)
+                {
+                    ulong* pH = pL + 1;
+
+                    // Revert in-place
+                    REVERT(pL, 0);
+                    REVERT(pH, 0);
+
+                    // Swap walues
+                    (*pL, *pH) = (*pH, *pL);
+                }
             }
         }
 
@@ -57,11 +66,9 @@ namespace Wheel.Crypto.Miscellaneous.Support
         /// <returns>Reverted value</returns>
         public static UInt128 REVERT(UInt128 value)
         {
-            ULongLong128 wrapped = new(value);
-            return new ULongLong128(
-                REVERT(wrapped.hi),
-                REVERT(wrapped.lo)
-            ).value;
+            ULongLong128 w = new(value);
+            w.Revert();
+            return w.value;
         }
 
         /// <summary>
