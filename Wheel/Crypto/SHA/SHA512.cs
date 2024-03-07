@@ -57,27 +57,21 @@ namespace Wheel.Crypto.SHA
         public void Update(byte[] input)
         {
 
-            for (uint i = 0; i < input.Length;)
+            for (int i = 0; i < input.Length;)
             {
                 // How many bytes are left unprocessed
-                uint remaining = (uint)input.Length - i;
+                int remaining = input.Length - i;
 
                 // How many bytes are needed to complete this block
-                uint needed = 128 - blockLen;
+                int needed = 128 - (int)blockLen;
 
                 // How many bytes are actually available
-                uint available = remaining < needed ? remaining : needed;
+                int available = remaining < needed ? remaining : needed;
 
-                unsafe
-                {
-                    fixed (void* target = &pendingBlock)
-                    {
-                        Marshal.Copy(input, (int)i, new IntPtr(target) + (int)blockLen, (int)available);
-                    }
-                }
+                pendingBlock.Write(input, i, available, (int)blockLen);
 
                 i += available;
-                blockLen += available;
+                blockLen += (uint)available;
 
                 if (blockLen == 128)
                 {
@@ -161,15 +155,8 @@ namespace Wheel.Crypto.SHA
         {
             uint i = blockLen;
             uint end = (blockLen < 112u) ? 112u : 128u;
-
-            unsafe
-            {
-                fixed (byte* p = &pendingBlock.b00)
-                {
-                    p[i++] = 0x80; // Append a bit 1
-                    Unsafe.InitBlockUnaligned(p + i, 0, end - i); // Pad with zeros
-                }
-            }
+            pendingBlock[(int)i++] = 0x80; // Append a bit 1
+            pendingBlock.Wipe(i, end - i); // Fill with zeros
 
             if (blockLen >= 112)
             {

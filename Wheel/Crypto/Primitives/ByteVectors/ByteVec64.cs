@@ -51,6 +51,79 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         }
 
         /// <summary>
+        /// Reset some sequence of bytes to zero
+        /// </summary>
+        /// <param name="begin">Where to begin</param>
+        /// <param name="sz">How many bytes to erase</param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public unsafe void Wipe(uint begin, uint sz)
+        {
+            // Begin index must have a sane value
+            if (begin < 0 || begin > 63)
+            {
+                throw new ArgumentOutOfRangeException(nameof(begin), begin, "begin index must be within [0 .. 63] range");
+            }
+
+            // Maximum size is a distance between the
+            //  beginning and the vector size
+            uint maxSz = 64 - begin;
+
+            if (sz < 0 || sz > maxSz)
+            {
+                throw new ArgumentOutOfRangeException(nameof(sz), sz, "sz must be within [0 .. " + maxSz + "] range");
+            }
+
+            fixed (byte* ptr = &b00)
+            {
+                Unsafe.InitBlockUnaligned(ptr + begin, 0, sz);
+            }
+        }
+
+        /// <summary>
+        /// Overwrite part of value by data from a byte array at given offset
+        /// </summary>
+        /// <param name="bytes">Byte array</param>
+        /// <param name="sourceIndex">From where begin to read</param>
+        /// <param name="limit">Maximum length of copied sequence</param>
+        /// <param name="targetIndex">Where begin to write</param>
+        public unsafe void Write(byte[] bytes, int sourceIndex, int limit, int targetIndex)
+        {
+            // Begin index must have a sane value
+            if (targetIndex < 0 || targetIndex > 63)
+            {
+                throw new ArgumentOutOfRangeException(nameof(targetIndex), targetIndex, "targetIndex index must be within [0 .. 64) range");
+            }
+
+            // Begin index must have a sane value
+            if (sourceIndex < 0 || sourceIndex >= bytes.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(targetIndex), targetIndex, "sourceIndex index must be within [0 .. " + bytes.Length + ") range");
+            }
+
+            // Maximum source data space is a distance between the
+            //  beginning of source buffer and its size
+            int sourceSize = bytes.Length - sourceIndex;
+
+            // Maximum size is a distance between the
+            //  beginning and the vector size
+            int targetSpace = 64 - targetIndex;
+
+            // Maximum copied sequence length is limited by target
+            //  buffer space and the source data length
+            int maxSz = Math.Min(sourceSize, targetSpace);
+
+            if (limit > maxSz)
+            {
+                throw new ArgumentOutOfRangeException(nameof(limit), limit, "limit must be within [0 .. " + maxSz + "] range");
+            }
+
+            fixed (byte* target = &b00)
+            {
+                Marshal.Copy(bytes, sourceIndex, new IntPtr(target) + targetIndex, limit);
+            }
+        }
+
+        /// <summary>
         /// Load value from byte array at given offset
         /// </summary>
         /// <param name="bytes">Byte array</param>
