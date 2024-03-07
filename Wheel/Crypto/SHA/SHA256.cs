@@ -186,7 +186,7 @@ namespace Wheel.Crypto.SHA
         }
     }
 
-    public class SHA224 : SHA256
+    public class SHA224 : SHA256Base
     {
         /// <summary>
         /// Set SHA224 constants
