@@ -37,6 +37,38 @@ public static class Test
         return v;
     }
 
+    public static SortedDictionary<string, string> GetVectors512_256()
+    {
+        SortedDictionary<string, string> v = new()
+        {
+            {
+                "", // Empty
+                "c672b8d1ef56ed28ab87c3622c5114069bdd3ad7b8f9737498d0c01ecef0967a"
+            },
+            {
+                "abc", // 24 bits
+                "53048e2681941ef99b2e29b76b4c7dabe4c2d0c634fc6d46e0e2f13107e7af23"
+            },
+            {
+                "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq", // 448 bits
+                "bde8e1f9f19bb9fd3406c90ec6bc47bd36d8ada9f11880dbc8a22a7078b6a461"
+            },
+            {
+                "The quick brown fox jumps over the lazy dog",
+                "dd9d67b371519c339ed8dbd25af90e976a1eeefd4ad3d889005e532fc5bef04d"
+            },
+            {
+                "The quick brown fox jumps over the lazy cog",
+                "cc8d255a7f2f38fd50388fd1f65ea7910835c5c1e73da46fba01ea50d5dd76fb"
+            },
+            {
+                "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu", // 896 bits
+                "3928e184fb8690f840da3988121d31be65cb9d3ef83ee6146feac861e19b563a"
+            }
+        };
+        return v;
+    }
+
     public static SortedDictionary<string, string> GetVectors224()
     {
         SortedDictionary<string, string> v = new()
@@ -64,6 +96,70 @@ public static class Test
             {
                 "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu", // 896 bits
                 "c97ca9a559850ce97a04a96def6d99a9e0e0e2ab14e6b8df265fc0b3"
+            }
+        };
+        return v;
+    }
+
+    public static SortedDictionary<string, string> GetVectors512_224()
+    {
+        SortedDictionary<string, string> v = new()
+        {
+            {
+                "", // Empty
+                "6ed0dd02806fa89e25de060c19d3ac86cabb87d6a0ddd05c333b84f4"
+            },
+            {
+                "abc", // 24 bits
+                "4634270f707b6a54daae7530460842e20e37ed265ceee9a43e8924aa"
+            },
+            {
+                "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq", // 448 bits
+                "e5302d6d54bb242275d1e7622d68df6eb02dedd13f564c13dbda2174"
+            },
+            {
+                "The quick brown fox jumps over the lazy dog",
+                "944cd2847fb54558d4775db0485a50003111c8e5daa63fe722c6aa37"
+            },
+            {
+                "The quick brown fox jumps over the lazy cog",
+                "2b9d6565a7e40f780ba8ab7c8dcf41e3ed3b77997f4c55aa987eede5"
+            },
+            {
+                "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu", // 896 bits
+                "23fec5bb94d60b23308192640b0c453335d664734fe40e7268674af9"
+            }
+        };
+        return v;
+    }
+
+    public static SortedDictionary<string, string> GetVectors384()
+    {
+        SortedDictionary<string, string> v = new()
+        {
+            {
+                "", // Empty
+                "38b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b"
+            },
+            {
+                "abc", // 24 bits
+                "cb00753f45a35e8bb5a03d699ac65007272c32ab0eded1631a8b605a43ff5bed8086072ba1e7cc2358baeca134c825a7"
+            },
+            {
+                "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq", // 448 bits
+                "3391fdddfc8dc7393707a65b1b4709397cf8b1d162af05abfe8f450de5f36bc6b0455a8520bc4e6f5fe95b1fe3c8452b"
+            },
+            {
+                "The quick brown fox jumps over the lazy dog",
+                "ca737f1014a48f4c0b6dd43cb177b0afd9e5169367544c494011e3317dbf9a509cb1e5dc1e85a941bbee3d7f2afbc9b1"
+            },
+            {
+                "The quick brown fox jumps over the lazy cog",
+                "098cea620b0978caa5f0befba6ddcf22764bea977e1c70b3483edfdf1de25f4b40d6cea3cadf00f809d422feb1f0161b"
+            },
+            {
+                "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu", // 896 bits
+                "09330c33f71147e83d192fc782cd1b4753111b173b3b05d22fa08086e3b0f712fcc7c71a557e2db966c3e9fa91746039"
             }
         };
         return v;
@@ -124,6 +220,36 @@ public static class Test
     public static string CalculateSHA512(string input)
     {
         SHA512 hasher = new();
+        byte[] data = Encoding.ASCII.GetBytes(input);
+        hasher.Update(data);
+        return Convert.ToHexString(
+            hasher.Digest()
+        ).ToLower();
+    }
+
+    public static string CalculateSHA384(string input)
+    {
+        SHA384 hasher = new();
+        byte[] data = Encoding.ASCII.GetBytes(input);
+        hasher.Update(data);
+        return Convert.ToHexString(
+            hasher.Digest()
+        ).ToLower();
+    }
+
+    public static string CalculateSHA512_256(string input)
+    {
+        SHA512_256 hasher = new();
+        byte[] data = Encoding.ASCII.GetBytes(input);
+        hasher.Update(data);
+        return Convert.ToHexString(
+            hasher.Digest()
+        ).ToLower();
+    }
+
+    public static string CalculateSHA512_224(string input)
+    {
+        SHA512_224 hasher = new();
         byte[] data = Encoding.ASCII.GetBytes(input);
         hasher.Update(data);
         return Convert.ToHexString(
@@ -398,11 +524,53 @@ public static class Test
             Console.WriteLine("Okay");
         }
 
+        foreach (var entry in GetVectors384())
+        {
+            Console.WriteLine("Checking SHA384 \"{0}\" => {1}...", entry.Key, entry.Value.Substring(0, 16));
+
+            string hash = CalculateSHA384(entry.Key);
+            if (hash != entry.Value)
+            {
+                Console.WriteLine("Calculated: {0}", hash);
+                Console.WriteLine("Expected: {0}", entry.Value);
+                throw new SystemException("Result \"" + hash.Substring(0, 16) + "...\" is not \"" + entry.Value.Substring(0, 16) + "...\" for input \"" + entry.Key + "\"");
+            }
+            Console.WriteLine("Okay");
+        }
+
         foreach (var entry in GetVectors512())
         {
             Console.WriteLine("Checking SHA512 \"{0}\" => {1}...", entry.Key, entry.Value.Substring(0, 16));
 
             string hash = CalculateSHA512(entry.Key);
+            if (hash != entry.Value)
+            {
+                Console.WriteLine("Calculated: {0}", hash);
+                Console.WriteLine("Expected: {0}", entry.Value);
+                throw new SystemException("Result \"" + hash.Substring(0, 16) + "...\" is not \"" + entry.Value.Substring(0, 16) + "...\" for input \"" + entry.Key + "\"");
+            }
+            Console.WriteLine("Okay");
+        }
+
+        foreach (var entry in GetVectors512_224())
+        {
+            Console.WriteLine("Checking SHA512_224 \"{0}\" => {1}...", entry.Key, entry.Value.Substring(0, 16));
+
+            string hash = CalculateSHA512_224(entry.Key);
+            if (hash != entry.Value)
+            {
+                Console.WriteLine("Calculated: {0}", hash);
+                Console.WriteLine("Expected: {0}", entry.Value);
+                throw new SystemException("Result \"" + hash.Substring(0, 16) + "...\" is not \"" + entry.Value.Substring(0, 16) + "...\" for input \"" + entry.Key + "\"");
+            }
+            Console.WriteLine("Okay");
+        }
+
+        foreach (var entry in GetVectors512_256())
+        {
+            Console.WriteLine("Checking SHA512_256 \"{0}\" => {1}...", entry.Key, entry.Value.Substring(0, 16));
+
+            string hash = CalculateSHA512_256(entry.Key);
             if (hash != entry.Value)
             {
                 Console.WriteLine("Calculated: {0}", hash);

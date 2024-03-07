@@ -4,29 +4,29 @@ using System.Runtime.CompilerServices;
 
 namespace Wheel.Crypto.SHA
 {
-    public class SHA512
-	{
+    public abstract class SHA512Base
+    {
         /// <summary>
         /// Current data block length in bytes
         /// </summary>
-        private uint blockLen;
+        protected uint blockLen;
 
         /// <summary>
         /// Total input length in bits
         /// </summary>
-        private ulong bitLen;
+        protected ulong bitLen;
 
         /// <summary>
         /// Pending block data to transform
         /// </summary>
-        private ByteVec128 pendingBlock = new();
+        protected ByteVec128 pendingBlock = new();
 
         /// <summary>
         /// Current hashing state
         /// </summary>
-        private ByteVec64 state = new();
+        protected ByteVec64 state = new();
 
-        public SHA512()
+        public SHA512Base()
         {
             Reset();
         }
@@ -39,8 +39,10 @@ namespace Wheel.Crypto.SHA
             blockLen = 0;
             bitLen = 0;
             pendingBlock.Reset();
-            state.dwv8.SetWords(SHA512Misc.init_state);
+            SetInitState();
         }
+
+        protected abstract void SetInitState();
 
         /// <summary>
         /// Update hasher with new data bytes
@@ -59,7 +61,7 @@ namespace Wheel.Crypto.SHA
                 int needed = 128 - (int)blockLen;
 
                 // Either entire remaining byte stream or merely a needed chunk of it
-                Span <byte> toWrite = new(input, i, (remaining < needed) ? remaining : needed);
+                Span<byte> toWrite = new(input, i, (remaining < needed) ? remaining : needed);
 
                 // Write data at current index
                 pendingBlock.Write(toWrite, blockLen);
@@ -77,20 +79,10 @@ namespace Wheel.Crypto.SHA
             }
         }
 
-        /// <summary>
-        /// Get SHA512 hash as a new byte array
-        /// </summary>
-        /// <returns></returns>
-        public byte[] Digest()
-        {
-            Finish();
-            byte[] hash = state.GetBytes();
-            Reset();
-            return hash;
-        }
+        public abstract byte[] Digest();
 
         /// <summary>
-        /// Write SHA512 hash into given byte array
+        /// Write SHA512/SHA384/SHA512_256/SHA512_224 hash into given span
         /// </summary>
         /// <param name="hash">Span to write into</param>
         public void Digest(Span<byte> hash)
@@ -100,7 +92,7 @@ namespace Wheel.Crypto.SHA
             Reset();
         }
 
-        private void Transform()
+        protected void Transform()
         {
             // Block mixing is done here
             DWordVec80 wordPad = new();
@@ -125,7 +117,7 @@ namespace Wheel.Crypto.SHA
             ulong f = state.dwv8[5];
             ulong g = state.dwv8[6];
             ulong h = state.dwv8[7];
-            
+
             for (uint i = 0; i < 80; ++i)
             {
                 ulong t1 = h + SHA512Misc.SIGMA1(e) + SHA512Misc.CHOOSE(e, f, g) + SHA512Misc.K[i] + wordPad[i];
@@ -144,7 +136,7 @@ namespace Wheel.Crypto.SHA
             state.dwv8.AddWords(a, b, c, d, e, f, g, h);
         }
 
-        private void Finish()
+        protected void Finish()
         {
             uint i = blockLen;
             uint end = (blockLen < 112u) ? 112u : 128u;
@@ -171,6 +163,90 @@ namespace Wheel.Crypto.SHA
         }
     }
 
+    public class SHA512 : SHA512Base
+	{
+        protected override void SetInitState()
+        {
+            state.dwv8.SetWords(SHA512Misc.init_state_512);
+        }
+
+        /// <summary>
+        /// Get SHA512 hash as a new byte array
+        /// </summary>
+        /// <returns></returns>
+        public override byte[] Digest()
+        {
+            Finish();
+            byte[] hash = new byte[64];
+            state.Store(hash);
+            Reset();
+            return hash;
+        }
+    }
+
+    public class SHA384 : SHA512Base
+    {
+        protected override void SetInitState()
+        {
+            state.dwv8.SetWords(SHA512Misc.init_state_384);
+        }
+
+        /// <summary>
+        /// Get SHA384 hash as a new byte array
+        /// </summary>
+        /// <returns></returns>
+        public override byte[] Digest()
+        {
+            Finish();
+            byte[] hash = new byte[48];
+            state.Store(hash);
+            Reset();
+            return hash;
+        }
+    }
+
+    public class SHA512_256 : SHA512Base
+    {
+        protected override void SetInitState()
+        {
+            state.dwv8.SetWords(SHA512Misc.init_state_256);
+        }
+
+        /// <summary>
+        /// Get SHA512_256 hash as a new byte array
+        /// </summary>
+        /// <returns></returns>
+        public override byte[] Digest()
+        {
+            Finish();
+            byte[] hash = new byte[32];
+            state.Store(hash);
+            Reset();
+            return hash;
+        }
+    }
+
+    public class SHA512_224 : SHA512Base
+    {
+        protected override void SetInitState()
+        {
+            state.dwv8.SetWords(SHA512Misc.init_state_224);
+        }
+
+        /// <summary>
+        /// Get SHA512_224 hash as a new byte array
+        /// </summary>
+        /// <returns></returns>
+        public override byte[] Digest()
+        {
+            Finish();
+            byte[] hash = new byte[28];
+            state.Store(hash);
+            Reset();
+            return hash;
+        }
+    }
+
     /// <summary>
     /// Constants which are specific for SHA-512
     /// </summary>
@@ -179,7 +255,7 @@ namespace Wheel.Crypto.SHA
         /// <summary>
         /// SHA-512 init state words
         /// </summary>
-        public static readonly DWordVec8 init_state = new(
+        public static readonly DWordVec8 init_state_512 = new(
                   0x6a09e667f3bcc908,
                   0xbb67ae8584caa73b,
                   0x3c6ef372fe94f82b,
@@ -188,6 +264,48 @@ namespace Wheel.Crypto.SHA
                   0x9b05688c2b3e6c1f,
                   0x1f83d9abfb41bd6b,
                   0x5be0cd19137e2179
+            );
+
+        /// <summary>
+        /// SHA-384 init state words
+        /// </summary>
+        public static readonly DWordVec8 init_state_384 = new(
+                  0xcbbb9d5dc1059ed8,
+                  0x629a292a367cd507,
+                  0x9159015a3070dd17,
+                  0x152fecd8f70e5939,
+                  0x67332667ffc00b31,
+                  0x8eb44a8768581511,
+                  0xdb0c2e0d64f98fa7,
+                  0x47b5481dbefa4fa4
+            );
+
+        /// <summary>
+        /// SHA-512/224 init state words
+        /// </summary>
+        public static readonly DWordVec8 init_state_224 = new(
+                  0x8C3D37C819544DA2,
+                  0x73E1996689DCD4D6,
+                  0x1DFAB7AE32FF9C82,
+                  0x679DD514582F9FCF,
+                  0x0F6D2B697BD44DA8,
+                  0x77E36F7304C48942,
+                  0x3F9D85A86A1D36C8,
+                  0x1112E6AD91D692A1
+            );
+
+        /// <summary>
+        /// SHA-512/256 init state words
+        /// </summary>
+        public static readonly DWordVec8 init_state_256 = new(
+                  0x22312194FC2BF72C,
+                  0x9F555FA3C84C64C2,
+                  0x2393B86B6F53B151,
+                  0x963877195940EABD,
+                  0x96283EE2A88EFFE3,
+                  0xBE5E1E2553863992,
+                  0x2B0199FC2C85B8AA,
+                  0x0EB72DDC81C52CA2
             );
 
         /// <summary>
