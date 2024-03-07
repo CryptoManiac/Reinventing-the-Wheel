@@ -56,9 +56,7 @@ namespace Wheel.Crypto.SHA
         /// <exception cref="InvalidOperationException"></exception>
         public void Update(byte[] input)
         {
-            uint i = 0;
-
-            do
+            for (uint i = 0; i < input.Length; )
             {
                 // How many bytes are left unprocessed
                 uint remaining = (uint)input.Length - i;
@@ -88,7 +86,6 @@ namespace Wheel.Crypto.SHA
                     blockLen = 0;
                 }
             }
-            while (i < input.Length);
         }
 
         /// <summary>
