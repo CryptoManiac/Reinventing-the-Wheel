@@ -74,7 +74,7 @@ public class BenchmarkProgram
     {
         hasher.Reset();
         hasher.Update(message);
-        hasher.Digest(new Span<byte>(hash));
+        hasher.Digest(hash);
     }
 
     private static void SHA512_Calc(byte[] message)
@@ -88,7 +88,7 @@ public class BenchmarkProgram
     {
         hasher.Reset();
         hasher.Update(message);
-        hasher.Digest(new Span<byte>(hash));
+        hasher.Digest(hash);
     }
 
     public static void Main()

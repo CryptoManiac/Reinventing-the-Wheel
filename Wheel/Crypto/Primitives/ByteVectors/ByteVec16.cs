@@ -75,14 +75,14 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public unsafe readonly void Store(Span<byte> to)
         {
-            if (16 != to.Length)
+            if (to.Length > 16)
             {
-                throw new ArgumentOutOfRangeException(nameof(to), to.Length, "Span must be exactly 16 bytes long");
+                throw new ArgumentOutOfRangeException(nameof(to), to.Length, "Span must not be longer than 16 bytes");
             }
 
             fixed (byte* source = &b00)
             {
-                var from = new Span<byte>(source, 16);
+                var from = new Span<byte>(source, to.Length);
                 from.CopyTo(to);
             }
         }

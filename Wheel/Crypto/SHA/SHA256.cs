@@ -2,38 +2,32 @@
 using Wheel.Crypto.Primitives.WordVectors;
 using Wheel.Crypto.Miscellaneous.Support;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace Wheel.Crypto.SHA
 {
-    [StructLayout(LayoutKind.Explicit)]
-    public struct SHA256
-	{
+    public abstract class SHA256Base
+    {
         /// <summary>
         /// Current data block length in bytes
         /// </summary>
-        [FieldOffset(0)]
-        private uint blockLen;
+        protected uint blockLen;
 
         /// <summary>
         /// Total input length in bits
         /// </summary>
-        [FieldOffset(4)]
-        private ulong bitLen;
+        protected ulong bitLen;
 
         /// <summary>
         /// Pending block data to transform
         /// </summary>
-        [FieldOffset(12)]
-        private ByteVec64 pendingBlock = new();
+        protected ByteVec64 pendingBlock = new();
 
         /// <summary>
         /// Current hashing state
         /// </summary>
-        [FieldOffset(76)]
-        private ByteVec32 state = new();
+        protected ByteVec32 state = new();
 
-        public SHA256()
+        public SHA256Base()
         {
             Reset();
         }
@@ -46,8 +40,13 @@ namespace Wheel.Crypto.SHA
             blockLen = 0;
             bitLen = 0;
             pendingBlock.Reset();
-            state.wv8.SetWords(SHA256Misc.init_state);
+            SetInitState();
         }
+
+        protected abstract void SetInitState();
+
+        public abstract byte[] Digest();
+        public abstract void Digest(Span<byte> hash);
 
         /// <summary>
         /// Update hasher with new data bytes
@@ -56,7 +55,7 @@ namespace Wheel.Crypto.SHA
         /// <exception cref="InvalidOperationException"></exception>
         public void Update(byte[] input)
         {
-            for (int i = 0; i < input.Length; )
+            for (int i = 0; i < input.Length;)
             {
                 // How many bytes are left unprocessed
                 int remaining = input.Length - i;
@@ -83,30 +82,7 @@ namespace Wheel.Crypto.SHA
             }
         }
 
-        /// <summary>
-        /// Get SHA256 hash as a new byte array
-        /// </summary>
-        /// <returns></returns>
-        public byte[] Digest()
-        {
-            Finish();
-            byte[] hash = state.GetBytes();
-            Reset();
-            return hash;
-        }
-
-        /// <summary>
-        /// Write SHA256 hash into given byte array
-        /// </summary>
-        /// <param name="hash">Byte array to write into</param>
-        public void Digest(Span<byte> hash)
-        {
-            Finish();
-            state.Store(hash);
-            Reset();
-        }
-
-        private void Transform()
+        protected void Transform()
         {
             // Block mixing is done here
             WordVec64 wordPad = new();
@@ -131,7 +107,7 @@ namespace Wheel.Crypto.SHA
             uint f = state.wv8[5];
             uint g = state.wv8[6];
             uint h = state.wv8[7];
-            
+
             for (uint i = 0; i < 64; ++i)
             {
                 uint t1 = h + SHA256Misc.SIGMA1(e) + SHA256Misc.CHOOSE(e, f, g) + SHA256Misc.K[i] + wordPad[i];
@@ -150,7 +126,7 @@ namespace Wheel.Crypto.SHA
             state.wv8.AddWords(a, b, c, d, e, f, g, h);
         }
 
-        private void Finish()
+        protected void Finish()
         {
 
             uint i = blockLen;
@@ -177,6 +153,75 @@ namespace Wheel.Crypto.SHA
         }
     }
 
+    public class SHA256 : SHA256Base
+	{
+        /// <summary>
+        /// Set SHA256 constants
+        /// </summary>
+        protected override void SetInitState()
+        {
+            state.wv8.SetWords(SHA256Misc.init_state_256);
+        }
+
+        /// <summary>
+        /// Get SHA256 hash as a new byte array
+        /// </summary>
+        /// <returns></returns>
+        public override byte[] Digest()
+        {
+            Finish();
+            byte[] hash = state.GetBytes();
+            Reset();
+            return hash;
+        }
+
+        /// <summary>
+        /// Write SHA256 hash into given byte array
+        /// </summary>
+        /// <param name="hash">Byte array to write into</param>
+        public override void Digest(Span<byte> hash)
+        {
+            Finish();
+            state.Store(hash);
+            Reset();
+        }
+    }
+
+    public class SHA224 : SHA256
+    {
+        /// <summary>
+        /// Set SHA224 constants
+        /// </summary>
+        protected override void SetInitState()
+        {
+            state.wv8.SetWords(SHA256Misc.init_state_224);
+        }
+
+        /// <summary>
+        /// Get SHA256 hash as a new byte array
+        /// </summary>
+        /// <returns></returns>
+        public override byte[] Digest()
+        {
+            byte[] hash = new byte[28];
+            Finish();
+            state.Store(hash);
+            Reset();
+            return hash;
+        }
+
+        /// <summary>
+        /// Write SHA256 hash into given byte array
+        /// </summary>
+        /// <param name="hash">Byte array to write into</param>
+        public override void Digest(Span<byte> hash)
+        {
+            Finish();
+            state.Store(hash);
+            Reset();
+        }
+    }
+
     /// <summary>
     /// Constants and functions which are specific for SHA-256
     /// </summary>
@@ -185,9 +230,17 @@ namespace Wheel.Crypto.SHA
         /// <summary>
         /// SHA-256 init state words
         /// </summary>
-        public static readonly WordVec8 init_state = new(
+        public static readonly WordVec8 init_state_256 = new(
                 0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
                 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
+            );
+
+        /// <summary>
+        /// SHA-224 init state words
+        /// </summary>
+        public static readonly WordVec8 init_state_224 = new(
+                0xc1059ed8, 0x367cd507, 0x3070dd17, 0xf70e5939,
+                0xffc00b31, 0x68581511, 0x64f98fa7, 0xbefa4fa4
             );
 
         /// <summary>

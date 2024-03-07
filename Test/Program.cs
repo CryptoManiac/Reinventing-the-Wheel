@@ -37,6 +37,38 @@ public static class Test
         return v;
     }
 
+    public static SortedDictionary<string, string> GetVectors224()
+    {
+        SortedDictionary<string, string> v = new()
+        {
+            {
+                "", // Empty
+                "d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f"
+            },
+            {
+                "abc", // 24 bits
+                "23097d223405d8228642a477bda255b32aadbce4bda0b3f7e36c9da7"
+            },
+            {
+                "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq", // 448 bits
+                "75388b16512776cc5dba5da1fd890150b0c6455cb4f58b1952522525"
+            },
+            {
+                "The quick brown fox jumps over the lazy dog",
+                "730e109bd7a8a32b1cb9d9a09aa2325d2430587ddbc0c38bad911525"
+            },
+            {
+                "The quick brown fox jumps over the lazy cog",
+                "fee755f44a55f20fb3362cdc3c493615b3cb574ed95ce610ee5b1e9b"
+            },
+            {
+                "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu", // 896 bits
+                "c97ca9a559850ce97a04a96def6d99a9e0e0e2ab14e6b8df265fc0b3"
+            }
+        };
+        return v;
+    }
+
     public static SortedDictionary<string, string> GetVectors512()
     {
         SortedDictionary<string, string> v = new()
@@ -69,6 +101,16 @@ public static class Test
         return v;
     }
 
+    public static string CalculateSHA224(string input)
+    {
+        SHA224 hasher = new();
+        byte[] data = Encoding.ASCII.GetBytes(input);
+        hasher.Update(data);
+        return Convert.ToHexString(
+            hasher.Digest()
+        ).ToLower();
+    }
+
     public static string CalculateSHA256(string input) 
     {
         SHA256 hasher = new();
@@ -87,6 +129,29 @@ public static class Test
         return Convert.ToHexString(
             hasher.Digest()
         ).ToLower();
+    }
+
+    public static void Torture_224_1Million_a_once()
+    {
+        string expected = "20794655980c91d8bbb4c1ea97618a4bf03f42581948b2ee4ee7ad67";
+        Console.WriteLine("Torture SHA224 (1M \"a\" characters input at once) => {0} ...", expected.Substring(0, 16));
+
+        // Input message: one million (1,000,000) repetitions of the character "a" (0x61).
+        byte[] input = new byte[1000000];
+        Array.Fill<byte>(input, 0x61);
+
+        SHA224 hasher = new();
+        hasher.Update(input);
+
+        string hash = Convert.ToHexString(hasher.Digest()).ToLower();
+
+        if (hash != expected)
+        {
+            Console.WriteLine("Calculated: {0}", hash);
+            Console.WriteLine("Expected: {0}", expected);
+            throw new SystemException("Result \"" + hash.Substring(0, 16) + "...\" is not \"" + expected.Substring(0, 16) + "...\"");
+        }
+        Console.WriteLine("Okay");
     }
 
     public static void Torture_256_1Million_a_once()
@@ -139,13 +204,40 @@ public static class Test
         Console.WriteLine("Okay");
     }
 
+    public static void Torture_224_1Million_a_iter()
+    {
+        string expected = "20794655980c91d8bbb4c1ea97618a4bf03f42581948b2ee4ee7ad67";
+        Console.WriteLine("Torture SHA224 (1M \"a\" characters input iteratively) => {0} ...", expected.Substring(0, 16));
+
+        // Input message to be repeated: single "a" character
+        byte[] input = new byte[1] { 0x61 };
+
+        SHA224 hasher = new();
+
+        // Update million times
+        for (int i = 0; i < 1000000; ++i)
+        {
+            hasher.Update(input);
+        }
+
+        string hash = Convert.ToHexString(hasher.Digest()).ToLower();
+
+        if (hash != expected)
+        {
+            Console.WriteLine("Calculated: {0}", hash);
+            Console.WriteLine("Expected: {0}", expected);
+            throw new SystemException("Result \"" + hash.Substring(0, 16) + "...\" is not \"" + expected.Substring(0, 16) + "...\"");
+        }
+        Console.WriteLine("Okay");
+    }
+
     public static void Torture_256_1Million_a_iter()
     {
         string expected = "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0";
         Console.WriteLine("Torture SHA256 (1M \"a\" characters input iteratively) => {0} ...", expected.Substring(0, 16));
 
         // Input message to be repeated: single "a" character
-        byte[] input = new byte[1] {0x61};
+        byte[] input = new byte[1] { 0x61 };
 
         SHA256 hasher = new();
 
@@ -176,6 +268,35 @@ public static class Test
 
         SHA512 hasher = new();
         hasher.Update(input);
+
+        string hash = Convert.ToHexString(hasher.Digest()).ToLower();
+
+        if (hash != expected)
+        {
+            Console.WriteLine("Calculated: {0}", hash);
+            Console.WriteLine("Expected: {0}", expected);
+            throw new SystemException("Result \"" + hash.Substring(0, 16) + "...\" is not \"" + expected.Substring(0, 16) + "...\"");
+        }
+        Console.WriteLine("Okay");
+    }
+
+    public static void Torture_224_1Gigabyte()
+    {
+        string pattern = "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmno";
+        string expected = "b5989713ca4fe47a009f8621980b34e6d63ed3063b2a0a2c867d8a85";
+
+        Console.WriteLine("Torture SHA224 (1G \"{0}\" repeated characters input) => {1} ...", pattern, expected.Substring(0, 16));
+
+        // Input message: pattern to be repeated
+        byte[] input = Encoding.ASCII.GetBytes(pattern);
+
+        SHA224 hasher = new();
+
+        // Repeat sequence 16,777,216 times
+        for (int i = 0; i < 16777216; ++i)
+        {
+            hasher.Update(input);
+        }
 
         string hash = Convert.ToHexString(hasher.Digest()).ToLower();
 
@@ -248,9 +369,22 @@ public static class Test
 
     public static void Main()
     {
-        // Test SHA256 and SHA512 against the provided vectors
+        // Test SHA224, SHA256 and SHA512 against the provided vectors
+        foreach (var entry in GetVectors224())
+        {
+            Console.WriteLine("Checking SHA224 \"{0}\" => {1}...", entry.Key, entry.Value.Substring(0, 16));
 
-        foreach(var entry in GetVectors256())
+            string hash = CalculateSHA224(entry.Key);
+            if (hash != entry.Value)
+            {
+                Console.WriteLine("Calculated: {0}", hash);
+                Console.WriteLine("Expected: {0}", entry.Value);
+                throw new SystemException("Result \"" + hash.Substring(0, 16) + "...\" is not \"" + entry.Value.Substring(0, 16) + "...\" for input \"" + entry.Key + "\"");
+            }
+            Console.WriteLine("Okay");
+        }
+
+        foreach (var entry in GetVectors256())
         {
             Console.WriteLine("Checking SHA256 \"{0}\" => {1}...", entry.Key, entry.Value.Substring(0, 16));
 
@@ -279,10 +413,13 @@ public static class Test
         }
 
         // Perverted cases
+        Torture_224_1Million_a_once();
         Torture_256_1Million_a_once();
         Torture_512_1Million_a_once();
+        Torture_224_1Million_a_iter();
         Torture_256_1Million_a_iter();
         Torture_512_1Million_a_iter();
+        Torture_224_1Gigabyte();
         Torture_256_1Gigabyte();
         Torture_512_1Gigabyte();
     }

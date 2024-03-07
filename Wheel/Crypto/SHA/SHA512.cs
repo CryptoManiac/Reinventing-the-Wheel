@@ -1,37 +1,29 @@
 ﻿using Wheel.Crypto.Primitives.ByteVectors;
 using Wheel.Crypto.Primitives.WordVectors;
-using Wheel.Crypto.Miscellaneous.Support;
-using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
-using System;
 
 namespace Wheel.Crypto.SHA
 {
-    [StructLayout(LayoutKind.Explicit)]
-    public struct SHA512
+    public class SHA512
 	{
         /// <summary>
         /// Current data block length in bytes
         /// </summary>
-        [FieldOffset(0)]
         private uint blockLen;
 
         /// <summary>
         /// Total input length in bits
         /// </summary>
-        [FieldOffset(4)]
         private ulong bitLen;
 
         /// <summary>
         /// Pending block data to transform
         /// </summary>
-        [FieldOffset(12)]
         private ByteVec128 pendingBlock = new();
 
         /// <summary>
         /// Current hashing state
         /// </summary>
-        [FieldOffset(140)]
         private ByteVec64 state = new();
 
         public SHA512()
