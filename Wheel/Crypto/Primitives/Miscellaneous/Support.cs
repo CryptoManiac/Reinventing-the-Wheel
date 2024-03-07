@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Wheel.Crypto.Miscellaneous.Support
 {
@@ -25,6 +26,42 @@ namespace Wheel.Crypto.Miscellaneous.Support
                  | (0x0000FF0000000000) & (value << 24)
                  | (0x00FF000000000000) & (value << 40)
                  | (0xFF00000000000000) & (value << 56);
+        }
+
+        [StructLayout(LayoutKind.Explicit)]
+        private struct ULongLong128
+        {
+            [FieldOffset(0)]
+            public UInt128 value;
+            [FieldOffset(0)]
+            public ulong lo;
+            [FieldOffset(8)]
+            public ulong hi;
+
+            public ULongLong128(UInt128 input)
+            {
+                value = input;
+            }
+
+            public ULongLong128(ulong lo, ulong hi)
+            {
+                this.lo = lo;
+                this.hi = hi;
+            }
+        }
+
+        /// <summary>
+        /// Revert byte order for the 128 bit integer value
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns>Reverted value</returns>
+        public static UInt128 REVERT(UInt128 value)
+        {
+            ULongLong128 wrapped = new(value);
+            return new ULongLong128(
+                REVERT(wrapped.hi),
+                REVERT(wrapped.lo)
+            ).value;
         }
 
         /// <summary>
