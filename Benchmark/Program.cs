@@ -95,7 +95,7 @@ public class BenchmarkProgram
     {
         const int n = 10000;
 
-        foreach (var size in new[] { 144, 1000, 2048 })
+        foreach (var size in new[] { 144, 1000, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 1048576, 2097152 })
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
 

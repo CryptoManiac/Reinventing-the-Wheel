@@ -1,83 +1,326 @@
 ﻿alexi@Alfheim net7.0 % ./Benchmark
 SHA256_Calc 144
-7,67 us / 130433 per second / 24534 cycles
-Average 7,97 us, Median 7,5 us, min 7,2, max 1277,2
-80% within ±11,33% average 7,67 | 50% within ±3,33% average 7,58
-18,78 MB/s / 170,37 cycles/byte
+7,71 us / 129762 per second / 24660 cycles
+Average 8 us, Median 7,5 us, min 7,2, max 1273,1
+80% within ±12% average 7,71 | 50% within ±4% average 7,6
+18,69 MB/s / 171,25 cycles/byte
 
 SHA256_Calc_Reuse 144
-7,28 us / 137350 per second / 23298 cycles
-Average 7,32 us, Median 7,3 us, min 7,1, max 68,4
+7,28 us / 137434 per second / 23284 cycles
+Average 7,32 us, Median 7,3 us, min 7,1, max 69
 80% within ±1,37% average 7,28 | 50% within ±0,68% average 7,27
-19,78 MB/s / 161,79 cycles/byte
+19,79 MB/s / 161,69 cycles/byte
 
 SHA512_Calc 144
-6,63 us / 150795 per second / 21221 cycles
-Average 6,77 us, Median 6,6 us, min 6,5, max 1076,5
-80% within ±0,76% average 6,63 | 50% within ±0,76% average 6,63
-21,71 MB/s / 147,37 cycles/byte
+6,62 us / 151041 per second / 21186 cycles
+Average 6,76 us, Median 6,6 us, min 6,5, max 1090,6
+80% within ±0,76% average 6,62 | 50% within ±0% average 6,6
+21,75 MB/s / 147,13 cycles/byte
 
 SHA512_Calc_Reuse 144
-6,57 us / 152133 per second / 21034 cycles
-Average 6,63 us, Median 6,6 us, min 6,4, max 91,8
-80% within ±1,52% average 6,57 | 50% within ±1,52% average 6,57
-21,91 MB/s / 146,07 cycles/byte
+6,51 us / 153631 per second / 20829 cycles
+Average 6,55 us, Median 6,5 us, min 6,4, max 86,4
+80% within ±0,77% average 6,51 | 50% within ±0% average 6,5
+22,12 MB/s / 144,65 cycles/byte
 
 SHA256 144 81C611F35BFF79491538B2F7CF201C7597A661A5C549633541C62BDC8AF1613F
 SHA512 144 F2E97836724FF97044DA6C594C6DA24D38C7277DDEBA8F838C8EC64F1C479F661A0B83269C184454EC9C478FBE962FA3632F643B1E1F1195B9ED9B181330A4C1
 
 SHA256_Calc 1000
-18,71 us / 53446 per second / 59874 cycles
-Average 19,53 us, Median 5,6 us, min 5,3, max 177,9
-80% within ±301,79% average 18,71 | 50% within ±300% average 14,39
-53,45 MB/s / 59,87 cycles/byte
+18,5 us / 54048 per second / 59207 cycles
+Average 19,66 us, Median 5,6 us, min 5,3, max 172,9
+80% within ±300% average 18,5 | 50% within ±294,64% average 14,83
+54,05 MB/s / 59,21 cycles/byte
 
 SHA256_Calc_Reuse 1000
-5,47 us / 182741 per second / 17511 cycles
-Average 5,5 us, Median 5,5 us, min 5,3, max 19,1
-80% within ±1,82% average 5,47 | 50% within ±0,91% average 5,47
-182,74 MB/s / 17,51 cycles/byte
+5,47 us / 182970 per second / 17489 cycles
+Average 5,5 us, Median 5,5 us, min 5,3, max 19,3
+80% within ±0,91% average 5,47 | 50% within ±0,91% average 5,47
+182,97 MB/s / 17,49 cycles/byte
 
 SHA512_Calc 1000
-3,5 us / 285499 per second / 11208 cycles
-Average 3,68 us, Median 3,5 us, min 3,3, max 41,4
-80% within ±2,86% average 3,5 | 50% within ±0% average 3,5
-285,5 MB/s / 11,21 cycles/byte
+3,49 us / 286181 per second / 11182 cycles
+Average 3,69 us, Median 3,5 us, min 3,3, max 41,2
+80% within ±2,86% average 3,49 | 50% within ±0% average 3,5
+286,18 MB/s / 11,18 cycles/byte
 
 SHA512_Calc_Reuse 1000
-3,43 us / 291421 per second / 10981 cycles
-Average 3,47 us, Median 3,4 us, min 3,2, max 20,6
+3,43 us / 291612 per second / 10973 cycles
+Average 3,46 us, Median 3,4 us, min 3,3, max 19,1
 80% within ±1,47% average 3,43 | 50% within ±1,47% average 3,43
-291,42 MB/s / 10,98 cycles/byte
+291,61 MB/s / 10,97 cycles/byte
 
 SHA256 1000 541B3E9DAA09B20BF85FA273E5CBD3E80185AA4EC298E765DB87742B70138A53
 SHA512 1000 CA3DFF61BB23477AA6087B27508264A6F9126EE3A004F53CB8DB942ED345F2F2D229B4B59C859220A1CF1913F34248E3803BAB650E849A3D9A709EDC09AE4A76
 
 SHA256_Calc 2048
-11,26 us / 88839 per second / 36020 cycles
-Average 11,34 us, Median 11,3 us, min 11, max 37,3
-80% within ±0,88% average 11,26 | 50% within ±0,44% average 11,24
-181,94 MB/s / 17,59 cycles/byte
+11,26 us / 88826 per second / 36026 cycles
+Average 11,32 us, Median 11,3 us, min 11, max 30,7
+80% within ±0,88% average 11,26 | 50% within ±0,44% average 11,25
+181,92 MB/s / 17,59 cycles/byte
 
 SHA256_Calc_Reuse 2048
-11,22 us / 89091 per second / 35918 cycles
-Average 11,29 us, Median 11,2 us, min 11, max 31,8
-80% within ±0,45% average 11,22 | 50% within ±0,45% average 11,22
-182,46 MB/s / 17,54 cycles/byte
+11,24 us / 88991 per second / 35959 cycles
+Average 11,34 us, Median 11,2 us, min 11, max 45,1
+80% within ±0,89% average 11,24 | 50% within ±0,45% average 11,23
+182,25 MB/s / 17,56 cycles/byte
 
 SHA512_Calc 2048
-7,27 us / 137572 per second / 23260 cycles
-Average 7,31 us, Median 7,3 us, min 7,1, max 30,5
-80% within ±2,05% average 7,27 | 50% within ±0,68% average 7,25
-281,75 MB/s / 11,36 cycles/byte
+7,29 us / 137183 per second / 23327 cycles
+Average 7,38 us, Median 7,3 us, min 7,1, max 42,1
+80% within ±2,74% average 7,29 | 50% within ±1,37% average 7,24
+280,95 MB/s / 11,39 cycles/byte
 
 SHA512_Calc_Reuse 2048
-7,21 us / 138722 per second / 23068 cycles
-Average 7,25 us, Median 7,2 us, min 7,1, max 24,8
-80% within ±0,69% average 7,21 | 50% within ±0% average 7,2
-284,1 MB/s / 11,26 cycles/byte
+7,24 us / 138031 per second / 23183 cycles
+Average 7,33 us, Median 7,2 us, min 7, max 50,7
+80% within ±2,08% average 7,24 | 50% within ±0,69% average 7,21
+282,69 MB/s / 11,32 cycles/byte
 
 SHA256 2048 E5A00AA9991AC8A5EE3109844D84A55583BD20572AD3FFCD42792F3C36B183AD
 SHA512 2048 8785F615B30C07EB4C5F5D72C9B3663521081581EC670631B28BE491F5F7AD6C6757B9A2025C68471FA3C9DB65305804F6EC6DFD15159B02E91C58AD570E92FB
+
+SHA256_Calc 4096
+22,23 us / 44980 per second / 71142 cycles
+Average 22,51 us, Median 22,2 us, min 21,9, max 59,5
+80% within ±2,03% average 22,23 | 50% within ±0,45% average 22,18
+184,24 MB/s / 17,37 cycles/byte
+
+SHA256_Calc_Reuse 4096
+22,15 us / 45146 per second / 70881 cycles
+Average 22,33 us, Median 22,2 us, min 21,9, max 55,1
+80% within ±0,68% average 22,15 | 50% within ±0,23% average 22,16
+184,92 MB/s / 17,3 cycles/byte
+
+SHA512_Calc 4096
+14,02 us / 71325 per second / 44865 cycles
+Average 14,09 us, Median 14 us, min 13,8, max 40,5
+80% within ±0,36% average 14,02 | 50% within ±0% average 14
+292,15 MB/s / 10,95 cycles/byte
+
+SHA512_Calc_Reuse 4096
+13,97 us / 71568 per second / 44712 cycles
+Average 14,04 us, Median 14 us, min 13,7, max 36,1
+80% within ±0,36% average 13,97 | 50% within ±0,36% average 13,97
+293,14 MB/s / 10,92 cycles/byte
+
+SHA256 4096 AD7FACB2586FC6E966C004D7D1D16B024F5805FF7CB47C7A85DABD8B48892CA7
+SHA512 4096 2D23913D3759EF01704A86B4BEE3AC8A29002313ECC98A7424425A78170F219577822FD77E4AE96313547696AD7D5949B58E12D5063EF2EE063B595740A3A12D
+
+SHA256_Calc 8192
+43,98 us / 22736 per second / 140745 cycles
+Average 44,16 us, Median 44 us, min 43,5, max 103,5
+80% within ±0,45% average 43,98 | 50% within ±0,23% average 43,99
+186,25 MB/s / 17,18 cycles/byte
+
+SHA256_Calc_Reuse 8192
+43,99 us / 22732 per second / 140773 cycles
+Average 44,17 us, Median 44 us, min 43,5, max 86,7
+80% within ±0,45% average 43,99 | 50% within ±0,23% average 43,99
+186,22 MB/s / 17,18 cycles/byte
+
+SHA512_Calc 8192
+27,56 us / 36287 per second / 88185 cycles
+Average 27,67 us, Median 27,5 us, min 27,2, max 62,5
+80% within ±0,36% average 27,56 | 50% within ±0,18% average 27,54
+297,26 MB/s / 10,76 cycles/byte
+
+SHA512_Calc_Reuse 8192
+27,49 us / 36373 per second / 87978 cycles
+Average 27,59 us, Median 27,5 us, min 27,1, max 63,4
+80% within ±0,36% average 27,49 | 50% within ±0,18% average 27,47
+297,96 MB/s / 10,74 cycles/byte
+
+SHA256 8192 9F1DCBC35C350D6027F98BE0F5C8B43B42CA52B7604459C0C42BE3AA88913D47
+SHA512 8192 18790C279E0CA614C2B57A215FECC23A6C3D2D308CE77F314378CB2D1B0F413ACD3A9CD353AA6DA86EC9F51916925C7210F7DFABC0EF726779F8D44F227F03B1
+
+SHA256_Calc 16384
+87,62 us / 11413 per second / 280386 cycles
+Average 88,02 us, Median 87,6 us, min 87, max 135,6
+80% within ±0,34% average 87,62 | 50% within ±0,17% average 87,62
+186,99 MB/s / 17,11 cycles/byte
+
+SHA256_Calc_Reuse 16384
+87,64 us / 11410 per second / 280447 cycles
+Average 88,05 us, Median 87,6 us, min 87, max 136,4
+80% within ±0,34% average 87,64 | 50% within ±0,17% average 87,62
+186,95 MB/s / 17,12 cycles/byte
+
+SHA512_Calc 16384
+54,6 us / 18314 per second / 174731 cycles
+Average 54,84 us, Median 54,6 us, min 54, max 100,3
+80% within ±0,27% average 54,6 | 50% within ±0,18% average 54,59
+300,05 MB/s / 10,66 cycles/byte
+
+SHA512_Calc_Reuse 16384
+54,53 us / 18339 per second / 174490 cycles
+Average 54,74 us, Median 54,5 us, min 53,9, max 94,9
+80% within ±0,37% average 54,53 | 50% within ±0,18% average 54,51
+300,47 MB/s / 10,65 cycles/byte
+
+SHA256 16384 4FE7B59AF6DE3B665B67788CC2F99892AB827EFAE3A467342B3BB4E3BC8E5BFE
+SHA512 16384 6EB7F16CF7AFCABE9BDEA88BDAB0469A7937EB715ADA9DFD8F428D9D38D86133945F5F2F2688DDD96062223A39B5D47F07AFC3C48D9DB1D5EE3F41C8D274DCCF
+
+SHA256_Calc 32768
+175,01 us / 5714 per second / 560022 cycles
+Average 175,71 us, Median 174,8 us, min 173,7, max 226,2
+80% within ±0,86% average 175,01 | 50% within ±0,17% average 174,86
+187,24 MB/s / 17,09 cycles/byte
+
+SHA256_Calc_Reuse 32768
+175,66 us / 5693 per second / 562098 cycles
+Average 177,39 us, Median 175 us, min 174, max 950,6
+80% within ±2,46% average 175,66 | 50% within ±0,37% average 175,02
+186,55 MB/s / 17,15 cycles/byte
+
+SHA512_Calc 32768
+108,91 us / 9182 per second / 348500 cycles
+Average 113,24 us, Median 108,7 us, min 107,6, max 14331,7
+80% within ±2,21% average 108,91 | 50% within ±0,23% average 108,64
+300,88 MB/s / 10,64 cycles/byte
+
+SHA512_Calc_Reuse 32768
+108,52 us / 9215 per second / 347277 cycles
+Average 109,1 us, Median 108,5 us, min 107,5, max 159,2
+80% within ±1,2% average 108,52 | 50% within ±0,28% average 108,53
+301,94 MB/s / 10,6 cycles/byte
+
+SHA256 32768 C35020473AED1B4642CD726CAD727B63FFF2824AD68CEDD7FFB73C7CBD890479
+SHA512 32768 768007E06B0CD9E62D50F458B9435C6DDA0A6D272F0B15550F97C478394B743331C3A9C9236E09AB5B9CB3B423B2320A5D66EB3C7068DB9EA37891CA40E47012
+
+SHA256_Calc 65536
+353,83 us / 2826 per second / 1132256 cycles
+Average 359,21 us, Median 350,4 us, min 348, max 4077,4
+80% within ±3,4% average 353,83 | 50% within ±1,71% average 352,02
+185,22 MB/s / 17,28 cycles/byte
+
+SHA256_Calc_Reuse 65536
+353,66 us / 2828 per second / 1131716 cycles
+Average 356,94 us, Median 350,7 us, min 348,1, max 1876,1
+80% within ±2,97% average 353,66 | 50% within ±1,65% average 352,01
+185,31 MB/s / 17,27 cycles/byte
+
+SHA512_Calc 65536
+219,13 us / 4564 per second / 701205 cycles
+Average 220,71 us, Median 217,2 us, min 214,9, max 1458,8
+80% within ±2,53% average 219,13 | 50% within ±1,15% average 218,22
+299,08 MB/s / 10,7 cycles/byte
+
+SHA512_Calc_Reuse 65536
+218,51 us / 4576 per second / 699246 cycles
+Average 219,93 us, Median 217,2 us, min 214,9, max 851,3
+80% within ±2,05% average 218,51 | 50% within ±0,99% average 217,72
+299,92 MB/s / 10,67 cycles/byte
+
+SHA256 65536 DE2F256064A0AF797747C2B97505DC0B9F3DF0DE4F489EAC731C23AE9CA9CC31
+SHA512 65536 73E4153936DAB198397B74EE9EFC26093DDA721EAAB2F8D92786891153B45B04265A161B169C988EDB0DB2C53124607B6EAAA816559C5CE54F3DBC9FA6A7A4B2
+
+SHA256_Calc 131072
+710,78 us / 1407 per second / 2274484 cycles
+Average 724,76 us, Median 705,4 us, min 696,7, max 5412,5
+80% within ±3,55% average 710,78 | 50% within ±1,76% average 708
+184,41 MB/s / 17,35 cycles/byte
+
+SHA256_Calc_Reuse 131072
+705,71 us / 1417 per second / 2258278 cycles
+Average 709,28 us, Median 703 us, min 697, max 1324
+80% within ±1,55% average 705,71 | 50% within ±0,97% average 704,99
+185,73 MB/s / 17,23 cycles/byte
+
+SHA512_Calc 131072
+445,79 us / 2243 per second / 1426529 cycles
+Average 455,88 us, Median 442,9 us, min 430,3, max 1823,8
+80% within ±4,36% average 445,79 | 50% within ±2,2% average 444,13
+294,02 MB/s / 10,88 cycles/byte
+
+SHA512_Calc_Reuse 131072
+439,27 us / 2276 per second / 1405667 cycles
+Average 439,87 us, Median 440,7 us, min 430,4, max 545,4
+80% within ±1,36% average 439,27 | 50% within ±0,84% average 440,03
+298,39 MB/s / 10,72 cycles/byte
+
+SHA256 131072 FA43239BCEE7B97CA62F007CC68487560A39E19F74F3DDE7486DB3F98DF8E471
+SHA512 131072 4ED83E40C9CF32AC2C59125A01170BC97F20550952C8CA20FFE1B2A59D1B1ED9C8426C515F7629D1BB5E4CDC53DD70FFCF67203D59E70A559492E5FF0E712278
+
+SHA256_Calc 262144
+1415,8 us / 706 per second / 4530559 cycles
+Average 1421,17 us, Median 1416,1 us, min 1393,9, max 2491,5
+80% within ±1,96% average 1415,8 | 50% within ±1,04% average 1414,35
+185,16 MB/s / 17,28 cycles/byte
+
+SHA256_Calc_Reuse 262144
+1425,88 us / 701 per second / 4562809 cycles
+Average 1442,38 us, Median 1425,3 us, min 1394,9, max 5095,6
+80% within ±3,09% average 1425,88 | 50% within ±1,61% average 1422,58
+183,85 MB/s / 17,41 cycles/byte
+
+SHA512_Calc 262144
+877,79 us / 1139 per second / 2808914 cycles
+Average 880,06 us, Median 881,5 us, min 862,2, max 1049,9
+80% within ±1,76% average 877,79 | 50% within ±1,02% average 877,79
+298,64 MB/s / 10,72 cycles/byte
+
+SHA512_Calc_Reuse 262144
+884,42 us / 1131 per second / 2830140 cycles
+Average 886,05 us, Median 884,2 us, min 864,8, max 1478,2
+80% within ±0,4% average 884,42 | 50% within ±0,2% average 884,25
+296,4 MB/s / 10,8 cycles/byte
+
+SHA256 262144 8A39D2ABD3999AB73C34DB2476849CDDF303CE389B35826850F9A700589B4A90
+SHA512 262144 9DD0C30167FBEAF68DFBBAD8E1AF552A7A1FCAE120B6E04F1B41FA76C76D5A78922FF828F5CFFD8C02965CDE57D63DCBFB4C479B3CB49C9D8107A7D5244E9D03
+
+SHA256_Calc 1048576
+5672,9 us / 176 per second / 18153290 cycles
+Average 5675,05 us, Median 5694,9 us, min 5578,1, max 6593,8
+80% within ±1,27% average 5672,9 | 50% within ±0,89% average 5680,9
+184,84 MB/s / 17,31 cycles/byte
+
+SHA256_Calc_Reuse 1048576
+5642,07 us / 177 per second / 18054636 cycles
+Average 5651,42 us, Median 5620 us, min 5580,2, max 6384,3
+80% within ±1,32% average 5642,07 | 50% within ±0,92% average 5634,59
+185,85 MB/s / 17,22 cycles/byte
+
+SHA512_Calc 1048576
+3539,52 us / 283 per second / 11326468 cycles
+Average 3541,49 us, Median 3537,9 us, min 3455,3, max 4198
+80% within ±0,39% average 3539,52 | 50% within ±0,17% average 3538,14
+296,25 MB/s / 10,8 cycles/byte
+
+SHA512_Calc_Reuse 1048576
+3505,24 us / 285 per second / 11216780 cycles
+Average 3510,51 us, Median 3497,7 us, min 3448,6, max 7076,3
+80% within ±1,34% average 3505,24 | 50% within ±1,03% average 3505,2
+299,14 MB/s / 10,7 cycles/byte
+
+SHA256 1048576 30E14955EBF1352266DC2FF8067E68104607E750ABB9D3B36582B8AF909FCB58
+SHA512 1048576 D6292685B380E338E025B3415A90FE8F9D39A46E7BDBA8CB78C50A338CEFCA741F69E4E46411C32DE1AFDEDFB268E579A51F81FF85E56F55B0EE7C33FE8C25C9
+
+SHA256_Calc 2097152
+11271,27 us / 89 per second / 36068055 cycles
+Average 11287,31 us, Median 11218,2 us, min 11160,7, max 14424,4
+80% within ±1,24% average 11271,27 | 50% within ±0,95% average 11253,57
+186,06 MB/s / 17,2 cycles/byte
+
+SHA256_Calc_Reuse 2097152
+11345,3 us / 88 per second / 36304951 cycles
+Average 11352,58 us, Median 11366,5 us, min 11166,2, max 12704,7
+80% within ±1,42% average 11345,3 | 50% within ±1,05% average 11345,25
+184,85 MB/s / 17,31 cycles/byte
+
+SHA512_Calc 2097152
+7043,56 us / 142 per second / 22539385 cycles
+Average 7057,48 us, Median 7056,8 us, min 6896, max 11343,6
+80% within ±1,58% average 7043,56 | 50% within ±0,93% average 7047,24
+297,74 MB/s / 10,75 cycles/byte
+
+SHA512_Calc_Reuse 2097152
+6990,51 us / 143 per second / 22369647 cycles
+Average 7007,2 us, Median 6957,8 us, min 6896, max 10864,7
+80% within ±1,39% average 6990,51 | 50% within ±0,97% average 6980,77
+300 MB/s / 10,67 cycles/byte
+
+SHA256 2097152 5647F05EC18958947D32874EEB788FA396A05D0BAB7C1B71F112CEB7E9B31EEE
+SHA512 2097152 731859029215873FDAC1C9F2F8BD25A334ABF0F3A9E1B057CF2CACC2826D86B0C26A3FA920A936421401C0471F38857CB53BA905489EA46B185209FDFF65B3B6
 
 alexi@Alfheim net7.0 %
