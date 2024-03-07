@@ -77,7 +77,7 @@ namespace Wheel.Crypto.Primitives.QWordVectors
 
             unsafe
             {
-                fixed (UInt128* src = &words[0])
+                fixed (void* src = &words[0])
                 {
                     fixed (void* target = &this)
                     {

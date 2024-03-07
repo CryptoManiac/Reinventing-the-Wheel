@@ -37,7 +37,7 @@ namespace Wheel.Crypto.Primitives.WordVectors
 
             unsafe
             {
-                fixed (ulong* src = &words[0])
+                fixed (void* src = &words[0])
                 {
                     fixed (void* target = &this)
                     {

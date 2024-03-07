@@ -12,32 +12,26 @@ namespace Wheel.Crypto.Primitives.WordVectors
             SetWords(words);
         }
 
-        public void SetWords(WordVec2 wv2)
+        public unsafe void SetWords(WordVec2 wv2)
         {
-            unsafe
+            fixed (void* target = &this)
             {
-                fixed (void* target = &this)
-                {
-                    Buffer.MemoryCopy(&wv2, target, sizeof(uint) * 2, sizeof(uint) * 2);
-                }
+                Buffer.MemoryCopy(&wv2, target, sizeof(uint) * 2, sizeof(uint) * 2);
             }
         }
 
-        public void SetWords(params uint[] words)
+        public unsafe void SetWords(params uint[] words)
         {
             if (words.Length != 2)
             {
                 throw new ArgumentOutOfRangeException(nameof(words), words.Length, "Must provide 2 words exactly");
             }
 
-            unsafe
+            fixed (void* target = &this)
             {
-                fixed (void* target = &this)
+                fixed (void* src = &words[0])
                 {
-                    fixed (uint* src = &words[0])
-                    {
-                        Buffer.MemoryCopy(src, target, sizeof(uint) * 2, sizeof(uint) * 2);
-                    }
+                    Buffer.MemoryCopy(src, target, sizeof(uint) * 2, sizeof(uint) * 2);
                 }
             }
         }
@@ -45,14 +39,11 @@ namespace Wheel.Crypto.Primitives.WordVectors
         /// <summary>
         /// Set to zero
         /// </summary>
-        public void Reset()
+        public unsafe void Reset()
         {
-            unsafe
+            fixed (void* ptr = &w00)
             {
-                fixed (uint* ptr = &w00)
-                {
-                    Unsafe.InitBlockUnaligned(ptr, 0, sizeof(uint) * 2);
-                }
+                Unsafe.InitBlockUnaligned(ptr, 0, sizeof(uint) * 2);
             }
         }
 

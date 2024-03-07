@@ -17,33 +17,27 @@ namespace Wheel.Crypto.Primitives.WordVectors
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetWords(WordVec8 wv8)
+        public unsafe void SetWords(WordVec8 wv8)
         {
-            unsafe
+            fixed (void* target = &this)
             {
-                fixed (void* target = &this)
-                {
-                    Buffer.MemoryCopy(&wv8, target, sizeof(uint) * 8, sizeof(uint) * 8);
-                }
+                Buffer.MemoryCopy(&wv8, target, sizeof(uint) * 8, sizeof(uint) * 8);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetWords(params uint[] words)
+        public unsafe void SetWords(params uint[] words)
         {
             if (words.Length != 8)
             {
                 throw new ArgumentOutOfRangeException(nameof(words), words.Length, "Must provide 8 words exactly");
             }
 
-            unsafe
+            fixed (void* target = &this)
             {
-                fixed (void* target = &this)
+                fixed (void* src = &words[0])
                 {
-                    fixed (uint* src = &words[0])
-                    {
-                        Buffer.MemoryCopy(src, target, sizeof(uint) * 8, sizeof(uint) * 8);
-                    }
+                    Buffer.MemoryCopy(src, target, sizeof(uint) * 8, sizeof(uint) * 8);
                 }
             }
         }
@@ -80,28 +74,22 @@ namespace Wheel.Crypto.Primitives.WordVectors
         /// <summary>
         /// Set to zero
         /// </summary>
-        public void Reset()
+        public unsafe void Reset()
         {
-            unsafe
+            fixed (void* ptr = &this)
             {
-                fixed (void* ptr = &this)
-                {
-                    Unsafe.InitBlockUnaligned(ptr, 0, sizeof(uint) * 8);
-                }
+                Unsafe.InitBlockUnaligned(ptr, 0, sizeof(uint) * 8);
             }
         }
 
         /// <summary>
         /// Reverse byte order for all words
         /// </summary>
-        public void RevertWords()
+        public unsafe void RevertWords()
         {
-            unsafe
+            fixed (uint* ptr = &w00)
             {
-                fixed (uint* ptr = &w00)
-                {
-                    Common.REVERT8(ptr);
-                }
+                Common.REVERT8(ptr);
             }
         }
 
@@ -119,36 +107,30 @@ namespace Wheel.Crypto.Primitives.WordVectors
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly uint GetWord(int index)
+        private unsafe readonly uint GetWord(int index)
         {
             if (index < 0 || index > 7)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 7] range");
             }
 
-            unsafe
+            fixed (uint* src = &w00)
             {
-                fixed (uint* src = &w00)
-                {
-                    return src[index];
-                }
+                return src[index];
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private uint SetWord(int index, uint value)
+        private unsafe uint SetWord(int index, uint value)
         {
             if (index < 0 || index > 7)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 7] range");
             }
 
-            unsafe
+            fixed (uint* target = &w00)
             {
-                fixed (uint* target = &w00)
-                {
-                    return target[index] = value;
-                }
+                return target[index] = value;
             }
         }
 

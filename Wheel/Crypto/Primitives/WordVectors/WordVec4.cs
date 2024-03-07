@@ -12,33 +12,26 @@ namespace Wheel.Crypto.Primitives.WordVectors
             SetWords(words);
         }
 
-        public void SetWords(WordVec4 wv4)
+        public unsafe void SetWords(WordVec4 wv4)
         {
-            unsafe
+            fixed (void* target = &w00)
             {
-                fixed (uint* target = &w00)
-                {
-                    uint* src = &wv4.w00;
-                    Buffer.MemoryCopy(src, target, sizeof(uint) * 4, sizeof(uint) * 4);
-                }
+                Buffer.MemoryCopy(&wv4, target, sizeof(uint) * 4, sizeof(uint) * 4);
             }
         }
 
-        public void SetWords(params uint[] words)
+        public unsafe void SetWords(params uint[] words)
         {
             if (words.Length != 4)
             {
                 throw new ArgumentOutOfRangeException(nameof(words), words.Length, "Must provide 4 words exactly");
             }
 
-            unsafe
+            fixed (void* target = &this)
             {
-                fixed (void* target = &this)
+                fixed (void* src = &words[0])
                 {
-                    fixed (uint* src = &words[0])
-                    {
-                        Buffer.MemoryCopy(src, target, sizeof(uint) * 4, sizeof(uint) * 4);
-                    }
+                    Buffer.MemoryCopy(src, target, sizeof(uint) * 4, sizeof(uint) * 4);
                 }
             }
         }
@@ -46,14 +39,11 @@ namespace Wheel.Crypto.Primitives.WordVectors
         /// <summary>
         /// Set to zero
         /// </summary>
-        public void Reset()
+        public unsafe void Reset()
         {
-            unsafe
+            fixed (void* ptr = &this)
             {
-                fixed (void* ptr = &this)
-                {
-                    Unsafe.InitBlockUnaligned(ptr, 0, sizeof(uint) * 4);
-                }
+                Unsafe.InitBlockUnaligned(ptr, 0, sizeof(uint) * 4);
             }
         }
 
@@ -82,36 +72,30 @@ namespace Wheel.Crypto.Primitives.WordVectors
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly uint GetWord(int index)
+        private unsafe readonly uint GetWord(int index)
         {
             if (index < 0 || index > 3)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 3] range");
             }
 
-            unsafe
+            fixed (uint* src = &w00)
             {
-                fixed (uint* src = &w00)
-                {
-                    return src[index];
-                }
+                return src[index];
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private uint SetWord(int index, uint value)
+        private unsafe uint SetWord(int index, uint value)
         {
             if (index < 0 || index > 3)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 3] range");
             }
 
-            unsafe
+            fixed (uint* target = &w00)
             {
-                fixed (uint* target = &w00)
-                {
-                    return target[index] = value;
-                }
+                return target[index] = value;
             }
         }
 

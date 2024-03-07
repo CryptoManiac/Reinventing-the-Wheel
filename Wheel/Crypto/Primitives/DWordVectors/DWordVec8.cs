@@ -17,32 +17,26 @@ namespace Wheel.Crypto.Primitives.WordVectors
             SetWords(words);
         }
 
-        public void SetWords(DWordVec8 wv8)
+        public unsafe void SetWords(DWordVec8 wv8)
         {
-            unsafe
+            fixed (void* target = &this)
             {
-                fixed (void* target = &this)
-                {
-                    Buffer.MemoryCopy(&wv8, target, sizeof(ulong) * 8, sizeof(ulong) * 8);
-                }
+                Buffer.MemoryCopy(&wv8, target, sizeof(ulong) * 8, sizeof(ulong) * 8);
             }
         }
 
-        public void SetWords(params ulong[] words)
+        public unsafe void SetWords(params ulong[] words)
         {
             if (words.Length != 8)
             {
                 throw new ArgumentOutOfRangeException(nameof(words), words.Length, "Must provide 8 words exactly");
             }
 
-            unsafe
+            fixed (void* src = &words[0])
             {
-                fixed (ulong* src = &words[0])
+                fixed (void* target = &this)
                 {
-                    fixed (void* target = &this)
-                    {
-                        Buffer.MemoryCopy(src, target, sizeof(ulong) * 8, sizeof(ulong) * 8);
-                    }
+                    Buffer.MemoryCopy(src, target, sizeof(ulong) * 8, sizeof(ulong) * 8);
                 }
             }
         }
@@ -79,28 +73,22 @@ namespace Wheel.Crypto.Primitives.WordVectors
         /// <summary>
         /// Set to zero
         /// </summary>
-        public void Reset()
+        public unsafe void Reset()
         {
-            unsafe
+            fixed (ulong* ptr = &w00)
             {
-                fixed (ulong* ptr = &w00)
-                {
-                    Unsafe.InitBlockUnaligned(ptr, 0, sizeof(ulong) * 8);
-                }
+                Unsafe.InitBlockUnaligned(ptr, 0, sizeof(ulong) * 8);
             }
         }
 
         /// <summary>
         /// Reverse byte order for all words
         /// </summary>
-        public void RevertWords()
+        public unsafe void RevertWords()
         {
-            unsafe
+            fixed (ulong* ptr = &w00)
             {
-                fixed (ulong* ptr = &w00)
-                {
-                    Common.REVERT8(ptr);
-                }
+                Common.REVERT8(ptr);
             }
         }
 
@@ -118,36 +106,30 @@ namespace Wheel.Crypto.Primitives.WordVectors
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly ulong GetWord(int index)
+        private unsafe readonly ulong GetWord(int index)
         {
             if (index < 0 || index > 7)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 7] range");
             }
 
-            unsafe
+            fixed (ulong* src = &w00)
             {
-                fixed (ulong* src = &w00)
-                {
-                    return src[index];
-                }
+                return src[index];
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ulong SetWord(int index, ulong value)
+        private unsafe ulong SetWord(int index, ulong value)
         {
             if (index < 0 || index > 7)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 7] range");
             }
 
-            unsafe
+            fixed (ulong* target = &w00)
             {
-                fixed (ulong* target = &w00)
-                {
-                    return target[index] = value;
-                }
+                return target[index] = value;
             }
         }
 

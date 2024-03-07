@@ -17,32 +17,26 @@ namespace Wheel.Crypto.Primitives.WordVectors
             SetWords(words);
         }
 
-        public void SetWords(DWordVec4 wv4)
+        public unsafe void SetWords(DWordVec4 wv4)
         {
-            unsafe
+            fixed (void* target = &this)
             {
-                fixed (void* target = &this)
-                {
-                    Buffer.MemoryCopy(&wv4, target, sizeof(ulong) * 4, sizeof(ulong) * 4);
-                }
+                Buffer.MemoryCopy(&wv4, target, sizeof(ulong) * 4, sizeof(ulong) * 4);
             }
         }
 
-        public void SetWords(params ulong[] words)
+        public unsafe void SetWords(params ulong[] words)
         {
             if (words.Length != 4)
             {
                 throw new ArgumentOutOfRangeException(nameof(words), words.Length, "Must provide 4 words exactly");
             }
 
-            unsafe
+            fixed (void* src = &words[0])
             {
-                fixed (ulong* src = &words[0])
+                fixed (void* target = &this)
                 {
-                    fixed (void* target = &this)
-                    {
-                        Buffer.MemoryCopy(src, target, sizeof(ulong) * 4, sizeof(ulong) * 4);
-                    }
+                    Buffer.MemoryCopy(src, target, sizeof(ulong) * 4, sizeof(ulong) * 4);
                 }
             }
         }
@@ -50,14 +44,11 @@ namespace Wheel.Crypto.Primitives.WordVectors
         /// <summary>
         /// Set to zero
         /// </summary>
-        public void Reset()
+        public unsafe void Reset()
         {
-            unsafe
+            fixed (void* ptr = &this)
             {
-                fixed (void* ptr = &this)
-                {
-                    Unsafe.InitBlockUnaligned(ptr, 0, sizeof(ulong) * 4);
-                }
+                Unsafe.InitBlockUnaligned(ptr, 0, sizeof(ulong) * 4);
             }
         }
 
@@ -91,36 +82,30 @@ namespace Wheel.Crypto.Primitives.WordVectors
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly ulong GetWord(int index)
+        private unsafe readonly ulong GetWord(int index)
         {
             if (index < 0 || index > 3)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 3] range");
             }
 
-            unsafe
+            fixed (ulong* src = &w00)
             {
-                fixed (ulong* src = &w00)
-                {
-                    return src[index];
-                }
+                return src[index];
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ulong SetWord(int index, ulong value)
+        private unsafe ulong SetWord(int index, ulong value)
         {
             if (index < 0 || index > 3)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 3] range");
             }
 
-            unsafe
+            fixed (ulong* target = &w00)
             {
-                fixed (ulong* target = &w00)
-                {
-                    return target[index] = value;
-                }
+                return target[index] = value;
             }
         }
 
