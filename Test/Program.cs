@@ -85,9 +85,10 @@ public static class Test
         ).ToLower();
     }
 
-    public static void Torture_256_1Million_a()
+    public static void Torture_256_1Million_a_once()
     {
-        Console.WriteLine("Torture SHA256 (1M \"a\" characters input)");
+        string expected = "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0";
+        Console.WriteLine("Torture SHA256 (1M \"a\" characters input at once) => {0} ...", expected.Substring(0, 16));
 
         // Input message: one million (1,000,000) repetitions of the character "a" (0x61).
         byte[] input = new byte[1000000];
@@ -96,7 +97,6 @@ public static class Test
         SHA256 hasher = new();
         hasher.Update(input);
 
-        string expected = "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0";
         string hash = Convert.ToHexString(hasher.Digest()).ToLower();
 
         if (hash != expected)
@@ -108,9 +108,64 @@ public static class Test
         Console.WriteLine("Okay");
     }
 
-    public static void Torture_512_1Million_a()
+    public static void Torture_512_1Million_a_once()
     {
-        Console.WriteLine("Torture SHA512 (1M \"a\" characters input)");
+        string expected = "e718483d0ce769644e2e42c7bc15b4638e1f98b13b2044285632a803afa973ebde0ff244877ea60a4cb0432ce577c31beb009c5c2c49aa2e4eadb217ad8cc09b";
+        Console.WriteLine("Torture SHA512 (1M \"a\" characters input at once) => {0} ...", expected.Substring(0, 16));
+
+        // Input message to be repeated: single "a" character
+        byte[] input = new byte[1] { 0x61 };
+
+        SHA512 hasher = new();
+
+        // Update million times
+        for (int i = 0; i < 1000000; ++i)
+        {
+            hasher.Update(input);
+        }
+
+        string hash = Convert.ToHexString(hasher.Digest()).ToLower();
+
+        if (hash != expected)
+        {
+            Console.WriteLine("Calculated: {0}", hash);
+            Console.WriteLine("Expected: {0}", expected);
+            throw new SystemException("Result \"" + hash.Substring(0, 16) + "...\" is not \"" + expected.Substring(0, 16) + "...\"");
+        }
+        Console.WriteLine("Okay");
+    }
+
+    public static void Torture_256_1Million_a_iter()
+    {
+        string expected = "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0";
+        Console.WriteLine("Torture SHA256 (1M \"a\" characters input iteratively) => {0} ...", expected.Substring(0, 16));
+
+        // Input message to be repeated: single "a" character
+        byte[] input = new byte[1] {0x61};
+
+        SHA256 hasher = new();
+
+        // Update million times
+        for (int i = 0; i < 1000000; ++i)
+        {
+            hasher.Update(input);
+        }
+
+        string hash = Convert.ToHexString(hasher.Digest()).ToLower();
+
+        if (hash != expected)
+        {
+            Console.WriteLine("Calculated: {0}", hash);
+            Console.WriteLine("Expected: {0}", expected);
+            throw new SystemException("Result \"" + hash.Substring(0, 16) + "...\" is not \"" + expected.Substring(0, 16) + "...\"");
+        }
+        Console.WriteLine("Okay");
+    }
+
+    public static void Torture_512_1Million_a_iter()
+    {
+        string expected = "e718483d0ce769644e2e42c7bc15b4638e1f98b13b2044285632a803afa973ebde0ff244877ea60a4cb0432ce577c31beb009c5c2c49aa2e4eadb217ad8cc09b";
+        Console.WriteLine("Torture SHA512 (1M \"a\" characters input iteratively) => {0} ...", expected.Substring(0, 16));
 
         byte[] input = new byte[1000000];
         Array.Fill<byte>(input, 0x61);
@@ -118,7 +173,6 @@ public static class Test
         SHA512 hasher = new();
         hasher.Update(input);
 
-        string expected = "e718483d0ce769644e2e42c7bc15b4638e1f98b13b2044285632a803afa973ebde0ff244877ea60a4cb0432ce577c31beb009c5c2c49aa2e4eadb217ad8cc09b";
         string hash = Convert.ToHexString(hasher.Digest()).ToLower();
 
         if (hash != expected)
@@ -221,8 +275,10 @@ public static class Test
         }
 
         // Perverted cases
-        Torture_256_1Million_a();
-        Torture_512_1Million_a();
+        Torture_256_1Million_a_once();
+        Torture_512_1Million_a_once();
+        Torture_256_1Million_a_iter();
+        Torture_512_1Million_a_iter();
         Torture_256_1Gigabyte();
         Torture_512_1Gigabyte();
     }
