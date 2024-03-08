@@ -107,9 +107,9 @@ namespace Wheel.Crypto.Primitives.ByteVectors
                 throw new ArgumentOutOfRangeException(nameof(bytes), bytes.Length, "byte sequence is too long");
             }
 
-            fixed (byte* ptr = &b00)
+            fixed (void* ptr = &this)
             {
-                var target = new Span<byte>(ptr + targetIndex, bytes.Length);
+                var target = new Span<byte>((byte*)ptr + targetIndex, bytes.Length);
                 bytes.CopyTo(target);
             }
         }

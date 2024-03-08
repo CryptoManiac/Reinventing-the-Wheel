@@ -49,7 +49,7 @@ namespace Wheel.Crypto.Primitives.ByteVectors
                 throw new ArgumentOutOfRangeException(nameof(from), from.Length, "Span must be exactly 16 bytes long");
             }
 
-            fixed (byte* target = &b00)
+            fixed (void* target = &this)
             {
                 var to = new Span<byte>(target, 20);
                 from.CopyTo(to);

@@ -74,9 +74,9 @@ namespace Wheel.Crypto.Primitives.ByteVectors
                 throw new ArgumentOutOfRangeException(nameof(sz), sz, "sz must be within [0 .. " + maxSz + "] range");
             }
 
-            fixed (byte* ptr = &b00)
+            fixed (void* ptr = &this)
             {
-                Unsafe.InitBlockUnaligned(ptr + begin, 0, sz);
+                Unsafe.InitBlockUnaligned((byte*)ptr + begin, 0, sz);
             }
         }
 
@@ -102,9 +102,9 @@ namespace Wheel.Crypto.Primitives.ByteVectors
                 throw new ArgumentOutOfRangeException(nameof(bytes), bytes.Length, "byte sequence is too long");
             }
 
-            fixed (byte* ptr = &b00)
+            fixed (void* ptr = &this)
             {
-                Span<byte> target = new(ptr + targetIndex, bytes.Length);
+                Span<byte> target = new((byte*)ptr + targetIndex, bytes.Length);
                 bytes.CopyTo(target);
             }
         }
@@ -121,7 +121,7 @@ namespace Wheel.Crypto.Primitives.ByteVectors
                 throw new ArgumentOutOfRangeException(nameof(from), from.Length, "Span must be exactly 64 bytes long");
             }
 
-            fixed (byte* target = &b00)
+            fixed (void* target = &this)
             {
                 var to = new Span<byte>(target, 64);
                 from.CopyTo(to);
@@ -140,7 +140,7 @@ namespace Wheel.Crypto.Primitives.ByteVectors
                 throw new ArgumentOutOfRangeException(nameof(to), to.Length, "Span must not be longer than 64 bytes");
             }
 
-            fixed (byte* source = &b00)
+            fixed (void* source = &this)
             {
                 var from = new Span<byte>(source, to.Length);
                 from.CopyTo(to);

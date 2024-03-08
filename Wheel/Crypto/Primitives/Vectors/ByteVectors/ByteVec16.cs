@@ -64,7 +64,7 @@ namespace Wheel.Crypto.Primitives.ByteVectors
                 throw new ArgumentOutOfRangeException(nameof(from), from.Length, "Span must be exactly 16 bytes long");
             }
 
-            fixed (byte* target = &b00)
+            fixed (void* target = &this)
             {
                 var to = new Span<byte>(target, 16);
                 from.CopyTo(to);
@@ -83,7 +83,7 @@ namespace Wheel.Crypto.Primitives.ByteVectors
                 throw new ArgumentOutOfRangeException(nameof(to), to.Length, "Span must not be longer than 16 bytes");
             }
 
-            fixed (byte* source = &b00)
+            fixed (void* source = &this)
             {
                 var from = new Span<byte>(source, to.Length);
                 from.CopyTo(to);
