@@ -1,10 +1,10 @@
 ﻿
 using System.Text;
+using Wheel.Crypto.Primitives;
 using Wheel.Crypto.SHA;
 
-static string CalculateSHA224(string input)
+static string CalculateHash(string input, IHasherInterface hasher)
 {
-    SHA224 hasher = new();
     byte[] data = Encoding.ASCII.GetBytes(input);
     hasher.Update(data);
     return Convert.ToHexString(
@@ -12,64 +12,14 @@ static string CalculateSHA224(string input)
     ).ToLower();
 }
 
-static string CalculateSHA256(string input)
+SortedDictionary<string, Func<IHasherInterface>> algorithms = new()
 {
-    SHA256 hasher = new();
-    byte[] data = Encoding.ASCII.GetBytes(input);
-    hasher.Update(data);
-    return Convert.ToHexString(
-        hasher.Digest()
-    ).ToLower();
-}
-
-static string CalculateSHA512(string input)
-{
-    SHA512 hasher = new();
-    byte[] data = Encoding.ASCII.GetBytes(input);
-    hasher.Update(data);
-    return Convert.ToHexString(
-        hasher.Digest()
-    ).ToLower();
-}
-
-static string CalculateSHA384(string input)
-{
-    SHA384 hasher = new();
-    byte[] data = Encoding.ASCII.GetBytes(input);
-    hasher.Update(data);
-    return Convert.ToHexString(
-        hasher.Digest()
-    ).ToLower();
-}
-
-static string CalculateSHA512_256(string input)
-{
-    SHA512_256 hasher = new();
-    byte[] data = Encoding.ASCII.GetBytes(input);
-    hasher.Update(data);
-    return Convert.ToHexString(
-        hasher.Digest()
-    ).ToLower();
-}
-
-static string CalculateSHA512_224(string input)
-{
-    SHA512_224 hasher = new();
-    byte[] data = Encoding.ASCII.GetBytes(input);
-    hasher.Update(data);
-    return Convert.ToHexString(
-        hasher.Digest()
-    ).ToLower();
-}
-
-SortedDictionary<string, Func<string, string>> algorithms = new()
-{
-    { "SHA224", CalculateSHA224 },
-    { "SHA256", CalculateSHA256 },
-    { "SHA512_224", CalculateSHA512_224 },
-    { "SHA512_256", CalculateSHA512_256 },
-    { "SHA384", CalculateSHA384 },
-    { "SHA512", CalculateSHA512 },
+    { "SHA224", () => new SHA224() },
+    { "SHA256", () => new SHA256() },
+    { "SHA512_224", () => new SHA512_224() },
+    { "SHA512_256", () => new SHA512_256() },
+    { "SHA384", () => new SHA384() },
+    { "SHA512", () => new SHA512() },
 };
 
 SortedDictionary<string, SortedDictionary<string, string>> vectors = new()
@@ -136,6 +86,33 @@ SortedDictionary<string, SortedDictionary<string, string>> vectors = new()
     },
 };
 
+static void CompareWithExpected(string expected, string calculated)
+{
+    var oldColour = Console.ForegroundColor;
+
+    if (expected != calculated)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.Write("BAD");
+        Console.ForegroundColor = oldColour;
+        Console.WriteLine(" {0} is not {1}", calculated, expected);
+        return;
+    }
+
+    Console.ForegroundColor = ConsoleColor.Green;
+    Console.Write("OK");
+    Console.ForegroundColor = oldColour;
+    Console.Write(" {0}\n", calculated);
+}
+
+static void PrintUnknown(string calculated)
+{
+    var oldColour = Console.ForegroundColor;
+    Console.ForegroundColor = ConsoleColor.Yellow;
+    Console.Write("???");
+    Console.ForegroundColor = oldColour;
+    Console.Write(" {0}\n", calculated);
+}
 
 // Iterate through vector data to get algorithm
 //  associations and test them
@@ -147,26 +124,15 @@ foreach (var (input, expectations) in vectors)
     {
         Console.Write("{0} ", name);
 
-        string expected = expectations[name];
-        string calculated = algorithm(input);
+        var calculated = CalculateHash(input, algorithm());
 
-        if (expected != calculated)
+        if (expectations.ContainsKey(name))
         {
-            var oldColour = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("BAD");
-            Console.ForegroundColor = oldColour;
-            Console.WriteLine("Expected {0} != {1}", expected, calculated);
-            throw new SystemException("Result \"" + calculated.Substring(0, 16) + "...\" is not \"" + expected.Substring(0, 16) + "...");
+            CompareWithExpected(expectations[name], calculated);
         }
-
+        else
         {
-            var oldColour = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write("OK");
-            Console.ForegroundColor = oldColour;
-            Console.Write(" {0}\n", calculated);
+            PrintUnknown(calculated);
         }
     }
-
 }
