@@ -11,6 +11,12 @@ namespace Wheel.Crypto.Primitives.ByteVectors
     public struct ByteVec16
     {
         /// <summary>
+        /// 128 bit integer value
+        /// </summary>
+        [FieldOffset(0)]
+        public UInt128 value;
+
+        /// <summary>
         /// Same data but as indexed 4 words structure
         /// </summary>
         [FieldOffset(0)]
@@ -41,12 +47,9 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         /// <summary>
         /// Set to zero
         /// </summary>
-        public unsafe void Reset()
+        public void Reset()
         {
-            fixed (void* ptr = &this)
-            {
-                Unsafe.InitBlockUnaligned(ptr, 0, 16);
-            }
+            value = 0;
         }
 
         /// <summary>
