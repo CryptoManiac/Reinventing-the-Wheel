@@ -301,7 +301,7 @@ namespace Wheel.Crypto.RIPEMD
         }
 
         /// <summary>
-        /// First part of compression function
+        /// Second part of compression function
         /// </summary>
         /// <returns>(AAA, BBB, CCC, DDD, EEE)</returns>
         private static Tuple<uint, uint, uint, uint, uint> Compress_II(WordVec5 MDbuf, WordVec16 X)
