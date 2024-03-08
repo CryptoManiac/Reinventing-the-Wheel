@@ -78,8 +78,7 @@ namespace Wheel.Crypto.RIPEMD
             if (i > 0)
             {
                 // First chunk is an odd size
-                Span<byte> blockToWrite = new(input, offset, 64 - (int)i);
-                key.Write(blockToWrite, i);
+                key.Write(input.AsSpan(offset, 64 - (int)i), i);
                 RIPEMD160Misc.Compress(ref iv, key.wv16);
                 offset += 64 - (int)i;
                 len -= 64 - i;
@@ -88,8 +87,7 @@ namespace Wheel.Crypto.RIPEMD
             while (len >= 64)
             {
                 // Process data in 64-byte chunks
-                Span<byte> blockToWrite = new(input, offset, 64);
-                key.Write(blockToWrite, i);
+                key.Write(input.AsSpan(offset, 64), i);
                 RIPEMD160Misc.Compress(ref iv, key.wv16);
                 offset += 64;
                 len -= 64;
@@ -98,8 +96,7 @@ namespace Wheel.Crypto.RIPEMD
             if (len > 0)
             {
                 // Handle any remaining bytes of data.
-                Span<byte> blockToWrite = new(input, offset, (int)len);
-                key.Write(blockToWrite, 0);
+                key.Write(input.AsSpan(offset, (int)len), 0);
             }
         }
     }
