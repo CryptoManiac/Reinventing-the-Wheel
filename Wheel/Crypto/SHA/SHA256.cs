@@ -50,10 +50,14 @@ namespace Wheel.Crypto.SHA
         /// <summary>
         /// Write hash into given byte array
         /// </summary>
-        /// <remarks>This method doesn't perform the truncation for the truncated versions. If you don't want to get a full hashing result then, please, provide the span or array of the required length.</remarks>
         /// <param name="hash">Byte array to write into</param>
         public void Digest(Span<byte> hash)
         {
+            if (hash.Length != GetHashLength())
+            {
+                throw new InvalidOperationException("Target buffer size doesn't match the expected " + GetHashLength() + " bytes");
+            }
+
             Finish();
             state.Store(hash);
             Reset();
