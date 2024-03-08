@@ -1,7 +1,6 @@
 ﻿using Wheel.Crypto.Primitives.ByteVectors;
-using Wheel.Crypto.Primitives.WordVectors;
 using System.Runtime.CompilerServices;
-using Wheel.Crypto.Primitives;
+using Wheel.Crypto.Primitives.DWordVectors;
 
 namespace Wheel.Crypto.Hashing.SHA
 {

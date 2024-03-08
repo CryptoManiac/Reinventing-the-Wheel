@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Wheel.Crypto.Primitives.DWordVectors;
 using Wheel.Crypto.Primitives.QWordVectors;
-using Wheel.Crypto.Primitives.WordVectors;
 
 namespace Wheel.Crypto.Primitives.ByteVectors
 {

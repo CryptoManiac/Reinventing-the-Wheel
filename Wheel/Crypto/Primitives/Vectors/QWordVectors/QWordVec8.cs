@@ -1,8 +1,6 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Wheel.Crypto.Primitives.ByteVectors;
 
 namespace Wheel.Crypto.Primitives.QWordVectors
 {

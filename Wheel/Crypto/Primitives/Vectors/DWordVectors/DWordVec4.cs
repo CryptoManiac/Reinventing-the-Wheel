@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using Wheel.Crypto.Miscellaneous.Support;
 
-namespace Wheel.Crypto.Primitives.WordVectors
+namespace Wheel.Crypto.Primitives.DWordVectors
 {
     [StructLayout(LayoutKind.Explicit)]
     public struct DWordVec4

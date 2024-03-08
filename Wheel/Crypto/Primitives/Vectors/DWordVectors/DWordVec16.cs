@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using Wheel.Crypto.Miscellaneous.Support;
 
-namespace Wheel.Crypto.Primitives.WordVectors
+namespace Wheel.Crypto.Primitives.DWordVectors
 {
     [StructLayout(LayoutKind.Explicit)]
     public struct DWordVec16
@@ -17,11 +17,11 @@ namespace Wheel.Crypto.Primitives.WordVectors
             SetWords(words);
         }
 
-        public unsafe void SetWords(DWordVec16 wv8)
+        public unsafe void SetWords(DWordVec16 wv16)
         {
             fixed (void* target = &this)
             {
-                Buffer.MemoryCopy(&wv8, target, sizeof(ulong) * 16, sizeof(ulong) * 16);
+                Buffer.MemoryCopy(&wv16, target, sizeof(ulong) * 16, sizeof(ulong) * 16);
             }
         }
 

@@ -2,7 +2,6 @@
 using Wheel.Crypto.Primitives.WordVectors;
 using Wheel.Crypto.Miscellaneous.Support;
 using System.Runtime.CompilerServices;
-using Wheel.Crypto.Primitives;
 
 namespace Wheel.Crypto.Hashing.SHA
 {
