@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 using Wheel.Crypto.Primitives;
 using Wheel.Crypto.Primitives.ByteVectors;
 using Wheel.Crypto.Primitives.WordVectors;
@@ -48,6 +48,7 @@ namespace Wheel.Crypto.RIPEMD
             key.Reset();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Update(byte[] input)
         {
             uint len = (uint)input.Length;
@@ -117,71 +118,87 @@ namespace Wheel.Crypto.RIPEMD
         /// <param name="x"></param>
         /// <param name="n"></param>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static uint ROL(uint x, int n) => (((x) << (n)) | ((x) >> (32 - (n))));
 
         // the three basic functions F(), G() and H()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static uint F(uint x, uint y, uint z) => ((x) ^ (y) ^ (z));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static uint G(uint x, uint y, uint z) => (((x) & (y)) | (~(x) & (z)));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static uint H(uint x, uint y, uint z) => (((x) | ~(y)) ^ (z));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static uint I(uint x, uint y, uint z) => (((x) & (z)) | ((y) & ~(z)));
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static uint J(uint x, uint y, uint z) => ((x) ^ ((y) | ~(z)));
 
         // the eight basic operations FF() through III()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void FF(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s) {
             a += F(b, c, d) + x;
             a = ROL(a, s) + e;
             c = ROL(c, 10);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void GG(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s) {
             a += G(b, c, d) + x + 0x5a827999;
             a = ROL(a, s) + e;
             c = ROL(c, 10);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void HH(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s) {
             a += H(b, c, d) + x + 0x6ed9eba1;
             a = ROL(a, s) + e;
 	        c = ROL(c, 10);
 	    }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void II(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s) {
             a += I(b, c, d) + x + 0x8f1bbcdc;
             a = ROL(a, s) + e;
             c = ROL(c, 10);
 	    }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void JJ(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s) {
             a += J(b, c, d) + x + 0xa953fd4e;
             a = ROL(a, s) + e;
             c = ROL(c, 10);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void FFF(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)	{
             a += F(b, c, d) + x;
             a = ROL(a, s) + e;
 	        c = ROL(c, 10);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void GGG(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)	{
             a += G(b, c, d) + x + 0x7a6d76e9;
             a = ROL(a, s) + e;
             c = ROL(c, 10);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void HHH(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s) {
             a += H(b, c, d) + x + 0x6d703ef3;
             a = ROL(a, s) + e;
 	        c = ROL(c, 10);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void III(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s) {
             a += I(b, c, d) + x + 0x5c4dd124;
             a = ROL(a, s) + e;
             c = ROL(c, 10);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static void JJJ(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s) {
             a += J(b, c, d) + x + 0x50a28be6;
             a = ROL(a, s) + e;
@@ -192,6 +209,7 @@ namespace Wheel.Crypto.RIPEMD
         /// The compression function.
         /// Transforms MDbuf using message bytes X[0] through X[15]
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Compress(ref WordVec5 MDbuf, in WordVec16 X)
         {
             uint aa = MDbuf[0];
