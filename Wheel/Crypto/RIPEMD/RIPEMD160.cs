@@ -199,210 +199,256 @@ namespace Wheel.Crypto.RIPEMD
         /// First part of compression function
         /// </summary>
         /// <returns>(AA, BB, CC, DD, EE)</returns>
-        private static Tuple<uint, uint, uint, uint, uint> Compress_I(WordVec5 MDbuf, WordVec16 X)
+        private static void Compress_I(ref WordVec5 st, WordVec16 X)
         {
-            uint aa = MDbuf.w00;
-            uint bb = MDbuf.w01;
-            uint cc = MDbuf.w02;
-            uint dd = MDbuf.w03;
-            uint ee = MDbuf.w04;
+            // Copies of key and state
+            // for quicker lookup
+            uint X0 = X.w00;
+            uint X1 = X.w01;
+            uint X2 = X.w02;
+            uint X3 = X.w03;
+            uint X4 = X.w04;
+            uint X5 = X.w05;
+            uint X6 = X.w06;
+            uint X7 = X.w07;
+            uint X8 = X.w08;
+            uint X9 = X.w09;
+            uint X10 = X.w10;
+            uint X11 = X.w11;
+            uint X12 = X.w12;
+            uint X13 = X.w13;
+            uint X14 = X.w14;
+            uint X15 = X.w15;
+            uint aa = st.w00;
+            uint bb = st.w01;
+            uint cc = st.w02;
+            uint dd = st.w03;
+            uint ee = st.w04;
 
             // round 1
-            FF(ref aa, bb, ref cc, dd, ee, X.w00, 11);
-            FF(ref ee, aa, ref bb, cc, dd, X.w01, 14);
-            FF(ref dd, ee, ref aa, bb, cc, X.w02, 15);
-            FF(ref cc, dd, ref ee, aa, bb, X.w03, 12);
-            FF(ref bb, cc, ref dd, ee, aa, X.w04, 5);
-            FF(ref aa, bb, ref cc, dd, ee, X.w05, 8);
-            FF(ref ee, aa, ref bb, cc, dd, X.w06, 7);
-            FF(ref dd, ee, ref aa, bb, cc, X.w07, 9);
-            FF(ref cc, dd, ref ee, aa, bb, X.w08, 11);
-            FF(ref bb, cc, ref dd, ee, aa, X.w09, 13);
-            FF(ref aa, bb, ref cc, dd, ee, X.w10, 14);
-            FF(ref ee, aa, ref bb, cc, dd, X.w11, 15);
-            FF(ref dd, ee, ref aa, bb, cc, X.w12, 6);
-            FF(ref cc, dd, ref ee, aa, bb, X.w13, 7);
-            FF(ref bb, cc, ref dd, ee, aa, X.w14, 9);
-            FF(ref aa, bb, ref cc, dd, ee, X.w15, 8);
+            FF(ref aa, bb, ref cc, dd, ee, X0, 11);
+            FF(ref ee, aa, ref bb, cc, dd, X1, 14);
+            FF(ref dd, ee, ref aa, bb, cc, X2, 15);
+            FF(ref cc, dd, ref ee, aa, bb, X3, 12);
+            FF(ref bb, cc, ref dd, ee, aa, X4, 5);
+            FF(ref aa, bb, ref cc, dd, ee, X5, 8);
+            FF(ref ee, aa, ref bb, cc, dd, X6, 7);
+            FF(ref dd, ee, ref aa, bb, cc, X7, 9);
+            FF(ref cc, dd, ref ee, aa, bb, X8, 11);
+            FF(ref bb, cc, ref dd, ee, aa, X9, 13);
+            FF(ref aa, bb, ref cc, dd, ee, X10, 14);
+            FF(ref ee, aa, ref bb, cc, dd, X11, 15);
+            FF(ref dd, ee, ref aa, bb, cc, X12, 6);
+            FF(ref cc, dd, ref ee, aa, bb, X13, 7);
+            FF(ref bb, cc, ref dd, ee, aa, X14, 9);
+            FF(ref aa, bb, ref cc, dd, ee, X15, 8);
 
             // round 2
-            GG(ref ee, aa, ref bb, cc, dd, X.w07, 7);
-            GG(ref dd, ee, ref aa, bb, cc, X.w04, 6);
-            GG(ref cc, dd, ref ee, aa, bb, X.w13, 8);
-            GG(ref bb, cc, ref dd, ee, aa, X.w01, 13);
-            GG(ref aa, bb, ref cc, dd, ee, X.w10, 11);
-            GG(ref ee, aa, ref bb, cc, dd, X.w06, 9);
-            GG(ref dd, ee, ref aa, bb, cc, X.w15, 7);
-            GG(ref cc, dd, ref ee, aa, bb, X.w03, 15);
-            GG(ref bb, cc, ref dd, ee, aa, X.w12, 7);
-            GG(ref aa, bb, ref cc, dd, ee, X.w00, 12);
-            GG(ref ee, aa, ref bb, cc, dd, X.w09, 15);
-            GG(ref dd, ee, ref aa, bb, cc, X.w05, 9);
-            GG(ref cc, dd, ref ee, aa, bb, X.w02, 11);
-            GG(ref bb, cc, ref dd, ee, aa, X.w14, 7);
-            GG(ref aa, bb, ref cc, dd, ee, X.w11, 13);
-            GG(ref ee, aa, ref bb, cc, dd, X.w08, 12);
+            GG(ref ee, aa, ref bb, cc, dd, X7, 7);
+            GG(ref dd, ee, ref aa, bb, cc, X4, 6);
+            GG(ref cc, dd, ref ee, aa, bb, X13, 8);
+            GG(ref bb, cc, ref dd, ee, aa, X1, 13);
+            GG(ref aa, bb, ref cc, dd, ee, X10, 11);
+            GG(ref ee, aa, ref bb, cc, dd, X6, 9);
+            GG(ref dd, ee, ref aa, bb, cc, X15, 7);
+            GG(ref cc, dd, ref ee, aa, bb, X3, 15);
+            GG(ref bb, cc, ref dd, ee, aa, X12, 7);
+            GG(ref aa, bb, ref cc, dd, ee, X0, 12);
+            GG(ref ee, aa, ref bb, cc, dd, X9, 15);
+            GG(ref dd, ee, ref aa, bb, cc, X5, 9);
+            GG(ref cc, dd, ref ee, aa, bb, X2, 11);
+            GG(ref bb, cc, ref dd, ee, aa, X14, 7);
+            GG(ref aa, bb, ref cc, dd, ee, X11, 13);
+            GG(ref ee, aa, ref bb, cc, dd, X8, 12);
 
             // round 3
-            HH(ref dd, ee, ref aa, bb, cc, X.w03, 11);
-            HH(ref cc, dd, ref ee, aa, bb, X.w10, 13);
-            HH(ref bb, cc, ref dd, ee, aa, X.w14, 6);
-            HH(ref aa, bb, ref cc, dd, ee, X.w04, 7);
-            HH(ref ee, aa, ref bb, cc, dd, X.w09, 14);
-            HH(ref dd, ee, ref aa, bb, cc, X.w15, 9);
-            HH(ref cc, dd, ref ee, aa, bb, X.w08, 13);
-            HH(ref bb, cc, ref dd, ee, aa, X.w01, 15);
-            HH(ref aa, bb, ref cc, dd, ee, X.w02, 14);
-            HH(ref ee, aa, ref bb, cc, dd, X.w07, 8);
-            HH(ref dd, ee, ref aa, bb, cc, X.w00, 13);
-            HH(ref cc, dd, ref ee, aa, bb, X.w06, 6);
-            HH(ref bb, cc, ref dd, ee, aa, X.w13, 5);
-            HH(ref aa, bb, ref cc, dd, ee, X.w11, 12);
-            HH(ref ee, aa, ref bb, cc, dd, X.w05, 7);
-            HH(ref dd, ee, ref aa, bb, cc, X.w12, 5);
+            HH(ref dd, ee, ref aa, bb, cc, X3, 11);
+            HH(ref cc, dd, ref ee, aa, bb, X10, 13);
+            HH(ref bb, cc, ref dd, ee, aa, X14, 6);
+            HH(ref aa, bb, ref cc, dd, ee, X4, 7);
+            HH(ref ee, aa, ref bb, cc, dd, X9, 14);
+            HH(ref dd, ee, ref aa, bb, cc, X15, 9);
+            HH(ref cc, dd, ref ee, aa, bb, X8, 13);
+            HH(ref bb, cc, ref dd, ee, aa, X1, 15);
+            HH(ref aa, bb, ref cc, dd, ee, X2, 14);
+            HH(ref ee, aa, ref bb, cc, dd, X7, 8);
+            HH(ref dd, ee, ref aa, bb, cc, X0, 13);
+            HH(ref cc, dd, ref ee, aa, bb, X6, 6);
+            HH(ref bb, cc, ref dd, ee, aa, X13, 5);
+            HH(ref aa, bb, ref cc, dd, ee, X11, 12);
+            HH(ref ee, aa, ref bb, cc, dd, X5, 7);
+            HH(ref dd, ee, ref aa, bb, cc, X12, 5);
 
             // round 4
-            II(ref cc, dd, ref ee, aa, bb, X.w01, 11);
-            II(ref bb, cc, ref dd, ee, aa, X.w09, 12);
-            II(ref aa, bb, ref cc, dd, ee, X.w11, 14);
-            II(ref ee, aa, ref bb, cc, dd, X.w10, 15);
-            II(ref dd, ee, ref aa, bb, cc, X.w00, 14);
-            II(ref cc, dd, ref ee, aa, bb, X.w08, 15);
-            II(ref bb, cc, ref dd, ee, aa, X.w12, 9);
-            II(ref aa, bb, ref cc, dd, ee, X.w04, 8);
-            II(ref ee, aa, ref bb, cc, dd, X.w13, 9);
-            II(ref dd, ee, ref aa, bb, cc, X.w03, 14);
-            II(ref cc, dd, ref ee, aa, bb, X.w07, 5);
-            II(ref bb, cc, ref dd, ee, aa, X.w15, 6);
-            II(ref aa, bb, ref cc, dd, ee, X.w14, 8);
-            II(ref ee, aa, ref bb, cc, dd, X.w05, 6);
-            II(ref dd, ee, ref aa, bb, cc, X.w06, 5);
-            II(ref cc, dd, ref ee, aa, bb, X.w02, 12);
+            II(ref cc, dd, ref ee, aa, bb, X1, 11);
+            II(ref bb, cc, ref dd, ee, aa, X9, 12);
+            II(ref aa, bb, ref cc, dd, ee, X11, 14);
+            II(ref ee, aa, ref bb, cc, dd, X10, 15);
+            II(ref dd, ee, ref aa, bb, cc, X0, 14);
+            II(ref cc, dd, ref ee, aa, bb, X8, 15);
+            II(ref bb, cc, ref dd, ee, aa, X12, 9);
+            II(ref aa, bb, ref cc, dd, ee, X4, 8);
+            II(ref ee, aa, ref bb, cc, dd, X13, 9);
+            II(ref dd, ee, ref aa, bb, cc, X3, 14);
+            II(ref cc, dd, ref ee, aa, bb, X7, 5);
+            II(ref bb, cc, ref dd, ee, aa, X15, 6);
+            II(ref aa, bb, ref cc, dd, ee, X14, 8);
+            II(ref ee, aa, ref bb, cc, dd, X5, 6);
+            II(ref dd, ee, ref aa, bb, cc, X6, 5);
+            II(ref cc, dd, ref ee, aa, bb, X2, 12);
 
             // round 5
-            JJ(ref bb, cc, ref dd, ee, aa, X.w04, 9);
-            JJ(ref aa, bb, ref cc, dd, ee, X.w00, 15);
-            JJ(ref ee, aa, ref bb, cc, dd, X.w05, 5);
-            JJ(ref dd, ee, ref aa, bb, cc, X.w09, 11);
-            JJ(ref cc, dd, ref ee, aa, bb, X.w07, 6);
-            JJ(ref bb, cc, ref dd, ee, aa, X.w12, 8);
-            JJ(ref aa, bb, ref cc, dd, ee, X.w02, 13);
-            JJ(ref ee, aa, ref bb, cc, dd, X.w10, 12);
-            JJ(ref dd, ee, ref aa, bb, cc, X.w14, 5);
-            JJ(ref cc, dd, ref ee, aa, bb, X.w01, 12);
-            JJ(ref bb, cc, ref dd, ee, aa, X.w03, 13);
-            JJ(ref aa, bb, ref cc, dd, ee, X.w08, 14);
-            JJ(ref ee, aa, ref bb, cc, dd, X.w11, 11);
-            JJ(ref dd, ee, ref aa, bb, cc, X.w06, 8);
-            JJ(ref cc, dd, ref ee, aa, bb, X.w15, 5);
-            JJ(ref bb, cc, ref dd, ee, aa, X.w13, 6);
+            JJ(ref bb, cc, ref dd, ee, aa, X4, 9);
+            JJ(ref aa, bb, ref cc, dd, ee, X0, 15);
+            JJ(ref ee, aa, ref bb, cc, dd, X5, 5);
+            JJ(ref dd, ee, ref aa, bb, cc, X9, 11);
+            JJ(ref cc, dd, ref ee, aa, bb, X7, 6);
+            JJ(ref bb, cc, ref dd, ee, aa, X12, 8);
+            JJ(ref aa, bb, ref cc, dd, ee, X2, 13);
+            JJ(ref ee, aa, ref bb, cc, dd, X10, 12);
+            JJ(ref dd, ee, ref aa, bb, cc, X14, 5);
+            JJ(ref cc, dd, ref ee, aa, bb, X1, 12);
+            JJ(ref bb, cc, ref dd, ee, aa, X3, 13);
+            JJ(ref aa, bb, ref cc, dd, ee, X8, 14);
+            JJ(ref ee, aa, ref bb, cc, dd, X11, 11);
+            JJ(ref dd, ee, ref aa, bb, cc, X6, 8);
+            JJ(ref cc, dd, ref ee, aa, bb, X15, 5);
+            JJ(ref bb, cc, ref dd, ee, aa, X13, 6);
 
-            return new(aa, bb, cc, dd, ee);
+            // Results
+            st.w00 = aa;
+            st.w01 = bb;
+            st.w02 = cc;
+            st.w03 = dd;
+            st.w04 = ee;
         }
 
         /// <summary>
         /// Second part of compression function
         /// </summary>
-        /// <returns>(AAA, BBB, CCC, DDD, EEE)</returns>
-        private static Tuple<uint, uint, uint, uint, uint> Compress_II(WordVec5 MDbuf, WordVec16 X)
+        private static void Compress_II(ref WordVec5 st, WordVec16 X)
         {
-            uint aaa = MDbuf.w00;
-            uint bbb = MDbuf.w01;
-            uint ccc = MDbuf.w02;
-            uint ddd = MDbuf.w03;
-            uint eee = MDbuf.w04;
+            // Copies of key and state
+            // for quicker lookup
+            uint X0 = X.w00;
+            uint X1 = X.w01;
+            uint X2 = X.w02;
+            uint X3 = X.w03;
+            uint X4 = X.w04;
+            uint X5 = X.w05;
+            uint X6 = X.w06;
+            uint X7 = X.w07;
+            uint X8 = X.w08;
+            uint X9 = X.w09;
+            uint X10 = X.w10;
+            uint X11 = X.w11;
+            uint X12 = X.w12;
+            uint X13 = X.w13;
+            uint X14 = X.w14;
+            uint X15 = X.w15;
+
+            uint aaa = st.w00;
+            uint bbb = st.w01;
+            uint ccc = st.w02;
+            uint ddd = st.w03;
+            uint eee = st.w04;
 
             // parallel round 1
-            JJJ(ref aaa, bbb, ref ccc, ddd, eee, X.w05, 8);
-            JJJ(ref eee, aaa, ref bbb, ccc, ddd, X.w14, 9);
-            JJJ(ref ddd, eee, ref aaa, bbb, ccc, X.w07, 9);
-            JJJ(ref ccc, ddd, ref eee, aaa, bbb, X.w00, 11);
-            JJJ(ref bbb, ccc, ref ddd, eee, aaa, X.w09, 13);
-            JJJ(ref aaa, bbb, ref ccc, ddd, eee, X.w02, 15);
-            JJJ(ref eee, aaa, ref bbb, ccc, ddd, X.w11, 15);
-            JJJ(ref ddd, eee, ref aaa, bbb, ccc, X.w04, 5);
-            JJJ(ref ccc, ddd, ref eee, aaa, bbb, X.w13, 7);
-            JJJ(ref bbb, ccc, ref ddd, eee, aaa, X.w06, 7);
-            JJJ(ref aaa, bbb, ref ccc, ddd, eee, X.w15, 8);
-            JJJ(ref eee, aaa, ref bbb, ccc, ddd, X.w08, 11);
-            JJJ(ref ddd, eee, ref aaa, bbb, ccc, X.w01, 14);
-            JJJ(ref ccc, ddd, ref eee, aaa, bbb, X.w10, 14);
-            JJJ(ref bbb, ccc, ref ddd, eee, aaa, X.w03, 12);
-            JJJ(ref aaa, bbb, ref ccc, ddd, eee, X.w12, 6);
+            JJJ(ref aaa, bbb, ref ccc, ddd, eee, X5, 8);
+            JJJ(ref eee, aaa, ref bbb, ccc, ddd, X14, 9);
+            JJJ(ref ddd, eee, ref aaa, bbb, ccc, X7, 9);
+            JJJ(ref ccc, ddd, ref eee, aaa, bbb, X0, 11);
+            JJJ(ref bbb, ccc, ref ddd, eee, aaa, X9, 13);
+            JJJ(ref aaa, bbb, ref ccc, ddd, eee, X2, 15);
+            JJJ(ref eee, aaa, ref bbb, ccc, ddd, X11, 15);
+            JJJ(ref ddd, eee, ref aaa, bbb, ccc, X4, 5);
+            JJJ(ref ccc, ddd, ref eee, aaa, bbb, X13, 7);
+            JJJ(ref bbb, ccc, ref ddd, eee, aaa, X6, 7);
+            JJJ(ref aaa, bbb, ref ccc, ddd, eee, X15, 8);
+            JJJ(ref eee, aaa, ref bbb, ccc, ddd, X8, 11);
+            JJJ(ref ddd, eee, ref aaa, bbb, ccc, X1, 14);
+            JJJ(ref ccc, ddd, ref eee, aaa, bbb, X10, 14);
+            JJJ(ref bbb, ccc, ref ddd, eee, aaa, X3, 12);
+            JJJ(ref aaa, bbb, ref ccc, ddd, eee, X12, 6);
 
             // parallel round 2
-            III(ref eee, aaa, ref bbb, ccc, ddd, X.w06, 9);
-            III(ref ddd, eee, ref aaa, bbb, ccc, X.w11, 13);
-            III(ref ccc, ddd, ref eee, aaa, bbb, X.w03, 15);
-            III(ref bbb, ccc, ref ddd, eee, aaa, X.w07, 7);
-            III(ref aaa, bbb, ref ccc, ddd, eee, X.w00, 12);
-            III(ref eee, aaa, ref bbb, ccc, ddd, X.w13, 8);
-            III(ref ddd, eee, ref aaa, bbb, ccc, X.w05, 9);
-            III(ref ccc, ddd, ref eee, aaa, bbb, X.w10, 11);
-            III(ref bbb, ccc, ref ddd, eee, aaa, X.w14, 7);
-            III(ref aaa, bbb, ref ccc, ddd, eee, X.w15, 7);
-            III(ref eee, aaa, ref bbb, ccc, ddd, X.w08, 12);
-            III(ref ddd, eee, ref aaa, bbb, ccc, X.w12, 7);
-            III(ref ccc, ddd, ref eee, aaa, bbb, X.w04, 6);
-            III(ref bbb, ccc, ref ddd, eee, aaa, X.w09, 15);
-            III(ref aaa, bbb, ref ccc, ddd, eee, X.w01, 13);
-            III(ref eee, aaa, ref bbb, ccc, ddd, X.w02, 11);
+            III(ref eee, aaa, ref bbb, ccc, ddd, X6, 9);
+            III(ref ddd, eee, ref aaa, bbb, ccc, X11, 13);
+            III(ref ccc, ddd, ref eee, aaa, bbb, X3, 15);
+            III(ref bbb, ccc, ref ddd, eee, aaa, X7, 7);
+            III(ref aaa, bbb, ref ccc, ddd, eee, X0, 12);
+            III(ref eee, aaa, ref bbb, ccc, ddd, X13, 8);
+            III(ref ddd, eee, ref aaa, bbb, ccc, X5, 9);
+            III(ref ccc, ddd, ref eee, aaa, bbb, X10, 11);
+            III(ref bbb, ccc, ref ddd, eee, aaa, X14, 7);
+            III(ref aaa, bbb, ref ccc, ddd, eee, X15, 7);
+            III(ref eee, aaa, ref bbb, ccc, ddd, X8, 12);
+            III(ref ddd, eee, ref aaa, bbb, ccc, X12, 7);
+            III(ref ccc, ddd, ref eee, aaa, bbb, X4, 6);
+            III(ref bbb, ccc, ref ddd, eee, aaa, X9, 15);
+            III(ref aaa, bbb, ref ccc, ddd, eee, X1, 13);
+            III(ref eee, aaa, ref bbb, ccc, ddd, X2, 11);
 
             // parallel round 3
-            HHH(ref ddd, eee, ref aaa, bbb, ccc, X.w15, 9);
-            HHH(ref ccc, ddd, ref eee, aaa, bbb, X.w05, 7);
-            HHH(ref bbb, ccc, ref ddd, eee, aaa, X.w01, 15);
-            HHH(ref aaa, bbb, ref ccc, ddd, eee, X.w03, 11);
-            HHH(ref eee, aaa, ref bbb, ccc, ddd, X.w07, 8);
-            HHH(ref ddd, eee, ref aaa, bbb, ccc, X.w14, 6);
-            HHH(ref ccc, ddd, ref eee, aaa, bbb, X.w06, 6);
-            HHH(ref bbb, ccc, ref ddd, eee, aaa, X.w09, 14);
-            HHH(ref aaa, bbb, ref ccc, ddd, eee, X.w11, 12);
-            HHH(ref eee, aaa, ref bbb, ccc, ddd, X.w08, 13);
-            HHH(ref ddd, eee, ref aaa, bbb, ccc, X.w12, 5);
-            HHH(ref ccc, ddd, ref eee, aaa, bbb, X.w02, 14);
-            HHH(ref bbb, ccc, ref ddd, eee, aaa, X.w10, 13);
-            HHH(ref aaa, bbb, ref ccc, ddd, eee, X.w00, 13);
-            HHH(ref eee, aaa, ref bbb, ccc, ddd, X.w04, 7);
-            HHH(ref ddd, eee, ref aaa, bbb, ccc, X.w13, 5);
+            HHH(ref ddd, eee, ref aaa, bbb, ccc, X15, 9);
+            HHH(ref ccc, ddd, ref eee, aaa, bbb, X5, 7);
+            HHH(ref bbb, ccc, ref ddd, eee, aaa, X1, 15);
+            HHH(ref aaa, bbb, ref ccc, ddd, eee, X3, 11);
+            HHH(ref eee, aaa, ref bbb, ccc, ddd, X7, 8);
+            HHH(ref ddd, eee, ref aaa, bbb, ccc, X14, 6);
+            HHH(ref ccc, ddd, ref eee, aaa, bbb, X6, 6);
+            HHH(ref bbb, ccc, ref ddd, eee, aaa, X9, 14);
+            HHH(ref aaa, bbb, ref ccc, ddd, eee, X11, 12);
+            HHH(ref eee, aaa, ref bbb, ccc, ddd, X8, 13);
+            HHH(ref ddd, eee, ref aaa, bbb, ccc, X12, 5);
+            HHH(ref ccc, ddd, ref eee, aaa, bbb, X2, 14);
+            HHH(ref bbb, ccc, ref ddd, eee, aaa, X10, 13);
+            HHH(ref aaa, bbb, ref ccc, ddd, eee, X0, 13);
+            HHH(ref eee, aaa, ref bbb, ccc, ddd, X4, 7);
+            HHH(ref ddd, eee, ref aaa, bbb, ccc, X13, 5);
 
             // parallel round 4
-            GGG(ref ccc, ddd, ref eee, aaa, bbb, X.w08, 15);
-            GGG(ref bbb, ccc, ref ddd, eee, aaa, X.w06, 5);
-            GGG(ref aaa, bbb, ref ccc, ddd, eee, X.w04, 8);
-            GGG(ref eee, aaa, ref bbb, ccc, ddd, X.w01, 11);
-            GGG(ref ddd, eee, ref aaa, bbb, ccc, X.w03, 14);
-            GGG(ref ccc, ddd, ref eee, aaa, bbb, X.w11, 14);
-            GGG(ref bbb, ccc, ref ddd, eee, aaa, X.w15, 6);
-            GGG(ref aaa, bbb, ref ccc, ddd, eee, X.w00, 14);
-            GGG(ref eee, aaa, ref bbb, ccc, ddd, X.w05, 6);
-            GGG(ref ddd, eee, ref aaa, bbb, ccc, X.w12, 9);
-            GGG(ref ccc, ddd, ref eee, aaa, bbb, X.w02, 12);
-            GGG(ref bbb, ccc, ref ddd, eee, aaa, X.w13, 9);
-            GGG(ref aaa, bbb, ref ccc, ddd, eee, X.w09, 12);
-            GGG(ref eee, aaa, ref bbb, ccc, ddd, X.w07, 5);
-            GGG(ref ddd, eee, ref aaa, bbb, ccc, X.w10, 15);
-            GGG(ref ccc, ddd, ref eee, aaa, bbb, X.w14, 8);
+            GGG(ref ccc, ddd, ref eee, aaa, bbb, X8, 15);
+            GGG(ref bbb, ccc, ref ddd, eee, aaa, X6, 5);
+            GGG(ref aaa, bbb, ref ccc, ddd, eee, X4, 8);
+            GGG(ref eee, aaa, ref bbb, ccc, ddd, X1, 11);
+            GGG(ref ddd, eee, ref aaa, bbb, ccc, X3, 14);
+            GGG(ref ccc, ddd, ref eee, aaa, bbb, X11, 14);
+            GGG(ref bbb, ccc, ref ddd, eee, aaa, X15, 6);
+            GGG(ref aaa, bbb, ref ccc, ddd, eee, X0, 14);
+            GGG(ref eee, aaa, ref bbb, ccc, ddd, X5, 6);
+            GGG(ref ddd, eee, ref aaa, bbb, ccc, X12, 9);
+            GGG(ref ccc, ddd, ref eee, aaa, bbb, X2, 12);
+            GGG(ref bbb, ccc, ref ddd, eee, aaa, X13, 9);
+            GGG(ref aaa, bbb, ref ccc, ddd, eee, X9, 12);
+            GGG(ref eee, aaa, ref bbb, ccc, ddd, X7, 5);
+            GGG(ref ddd, eee, ref aaa, bbb, ccc, X10, 15);
+            GGG(ref ccc, ddd, ref eee, aaa, bbb, X14, 8);
 
             // parallel round 5
-            FFF(ref bbb, ccc, ref ddd, eee, aaa, X.w12, 8);
-            FFF(ref aaa, bbb, ref ccc, ddd, eee, X.w15, 5);
-            FFF(ref eee, aaa, ref bbb, ccc, ddd, X.w10, 12);
-            FFF(ref ddd, eee, ref aaa, bbb, ccc, X.w04, 9);
-            FFF(ref ccc, ddd, ref eee, aaa, bbb, X.w01, 12);
-            FFF(ref bbb, ccc, ref ddd, eee, aaa, X.w05, 5);
-            FFF(ref aaa, bbb, ref ccc, ddd, eee, X.w08, 14);
-            FFF(ref eee, aaa, ref bbb, ccc, ddd, X.w07, 6);
-            FFF(ref ddd, eee, ref aaa, bbb, ccc, X.w06, 8);
-            FFF(ref ccc, ddd, ref eee, aaa, bbb, X.w02, 13);
-            FFF(ref bbb, ccc, ref ddd, eee, aaa, X.w13, 6);
-            FFF(ref aaa, bbb, ref ccc, ddd, eee, X.w14, 5);
-            FFF(ref eee, aaa, ref bbb, ccc, ddd, X.w00, 15);
-            FFF(ref ddd, eee, ref aaa, bbb, ccc, X.w03, 13);
-            FFF(ref ccc, ddd, ref eee, aaa, bbb, X.w09, 11);
-            FFF(ref bbb, ccc, ref ddd, eee, aaa, X.w11, 11);
+            FFF(ref bbb, ccc, ref ddd, eee, aaa, X12, 8);
+            FFF(ref aaa, bbb, ref ccc, ddd, eee, X15, 5);
+            FFF(ref eee, aaa, ref bbb, ccc, ddd, X10, 12);
+            FFF(ref ddd, eee, ref aaa, bbb, ccc, X4, 9);
+            FFF(ref ccc, ddd, ref eee, aaa, bbb, X1, 12);
+            FFF(ref bbb, ccc, ref ddd, eee, aaa, X5, 5);
+            FFF(ref aaa, bbb, ref ccc, ddd, eee, X8, 14);
+            FFF(ref eee, aaa, ref bbb, ccc, ddd, X7, 6);
+            FFF(ref ddd, eee, ref aaa, bbb, ccc, X6, 8);
+            FFF(ref ccc, ddd, ref eee, aaa, bbb, X2, 13);
+            FFF(ref bbb, ccc, ref ddd, eee, aaa, X13, 6);
+            FFF(ref aaa, bbb, ref ccc, ddd, eee, X14, 5);
+            FFF(ref eee, aaa, ref bbb, ccc, ddd, X0, 15);
+            FFF(ref ddd, eee, ref aaa, bbb, ccc, X3, 13);
+            FFF(ref ccc, ddd, ref eee, aaa, bbb, X9, 11);
+            FFF(ref bbb, ccc, ref ddd, eee, aaa, X11, 11);
 
-            return new(aaa, bbb, ccc, ddd, eee);
+            // Results
+            st.w00 = aaa;
+            st.w01 = bbb;
+            st.w02 = ccc;
+            st.w03 = ddd;
+            st.w04 = eee;
         }
 
         /// <summary>
@@ -411,18 +457,21 @@ namespace Wheel.Crypto.RIPEMD
         /// </summary>
         public static void Compress(ref WordVec5 MDbuf, in WordVec16 X)
         {
-            var (aa, bb, cc, dd, ee) = Compress_I(MDbuf, X);
-            var (aaa, bbb, ccc, ddd, eee) = Compress_II(MDbuf, X);
+            WordVec5 s1 = MDbuf;
+            WordVec5 s2 = MDbuf;
+
+            Compress_I(ref s1, X);
+            Compress_II(ref s2, X);
 
             // combine results
-            ddd += cc + MDbuf.w01;
+            s2.w03 += s1.w02 + MDbuf.w01;
 
             // final result for MDbuf[0]
-            MDbuf.w01 = MDbuf.w02 + dd + eee;
-            MDbuf.w02 = MDbuf.w03 + ee + aaa;
-            MDbuf.w03 = MDbuf.w04 + aa + bbb;
-            MDbuf.w04 = MDbuf.w00 + bb + ccc;
-            MDbuf.w00 = ddd;
+            MDbuf.w01 = MDbuf.w02 + s1.w03 + s2.w04;
+            MDbuf.w02 = MDbuf.w03 + s1.w04 + s2.w00;
+            MDbuf.w03 = MDbuf.w04 + s1.w00 + s2.w01;
+            MDbuf.w04 = MDbuf.w00 + s1.w01 + s2.w02;
+            MDbuf.w00 = s2.w03;
         }
 
         /// <summary>
