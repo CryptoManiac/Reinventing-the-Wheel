@@ -194,6 +194,21 @@ namespace Wheel.Crypto.SHA
         {
             state.dwv8.SetWords(SHA512Misc.init_state_512);
         }
+
+        public static byte[] Hash(byte[] input)
+        {
+            SHA512 hasher = new();
+            hasher.Update(input);
+            return hasher.Digest();
+        }
+
+        public static void Hash(Span<byte> digest, byte[] input)
+        {
+            SHA512 hasher = new();
+            hasher.Update(input);
+            hasher.Digest(digest);
+        }
+
     }
 
     public class SHA384 : SHA512Base
@@ -209,6 +224,20 @@ namespace Wheel.Crypto.SHA
         {
             state.dwv8.SetWords(SHA512Misc.init_state_384);
         }
+
+        public static byte[] Hash(byte[] input)
+        {
+            SHA384 hasher = new();
+            hasher.Update(input);
+            return hasher.Digest();
+        }
+
+        public static void Hash(Span<byte> digest, byte[] input)
+        {
+            SHA384 hasher = new();
+            hasher.Update(input);
+            hasher.Digest(digest);
+        }
     }
 
     public class SHA512_256 : SHA512Base
@@ -222,6 +251,20 @@ namespace Wheel.Crypto.SHA
         protected override void SetInitState()
         {
             state.dwv8.SetWords(SHA512Misc.init_state_256);
+        }
+
+        public static byte[] Hash(byte[] input)
+        {
+            SHA512_256 hasher = new();
+            hasher.Update(input);
+            return hasher.Digest();
+        }
+
+        public static void Hash(Span<byte> digest, byte[] input)
+        {
+            SHA512_256 hasher = new();
+            hasher.Update(input);
+            hasher.Digest(digest);
         }
     }
 
@@ -237,6 +280,20 @@ namespace Wheel.Crypto.SHA
         protected override void SetInitState()
         {
             state.dwv8.SetWords(SHA512Misc.init_state_224);
+        }
+
+        public static byte[] Hash(byte[] input)
+        {
+            SHA512_224 hasher = new();
+            hasher.Update(input);
+            return hasher.Digest();
+        }
+
+        public static void Hash(Span<byte> digest, byte[] input)
+        {
+            SHA512_224 hasher = new();
+            hasher.Update(input);
+            hasher.Digest(digest);
         }
     }
 

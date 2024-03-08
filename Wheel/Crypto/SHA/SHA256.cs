@@ -197,6 +197,20 @@ namespace Wheel.Crypto.SHA
         {
             state.wv8.SetWords(SHA256Misc.init_state_256);
         }
+
+        public static byte[] Hash(byte[] input)
+        {
+            SHA256 hasher = new();
+            hasher.Update(input);
+            return hasher.Digest();
+        }
+
+        public static void Hash(Span<byte> digest, byte[] input)
+        {
+            SHA256 hasher = new();
+            hasher.Update(input);
+            hasher.Digest(digest);
+        }
     }
 
     public class SHA224 : SHA256Base
@@ -214,6 +228,20 @@ namespace Wheel.Crypto.SHA
         protected override void SetInitState()
         {
             state.wv8.SetWords(SHA256Misc.init_state_224);
+        }
+
+        public static byte[] Hash(byte[] input)
+        {
+            SHA224 hasher = new();
+            hasher.Update(input);
+            return hasher.Digest();
+        }
+
+        public static void Hash(Span<byte> digest, byte[] input)
+        {
+            SHA224 hasher = new();
+            hasher.Update(input);
+            hasher.Digest(digest);
         }
     }
 
