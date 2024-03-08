@@ -87,7 +87,7 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         public unsafe void Write(Span<byte> bytes, uint targetIndex)
         {
             // Target index must have a sane value
-            if (targetIndex > 64)
+            if (targetIndex > 63)
             {
                 throw new ArgumentOutOfRangeException(nameof(targetIndex), targetIndex, "targetIndex index must be within [0 .. 64) range");
             }
