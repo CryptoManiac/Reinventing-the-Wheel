@@ -28,18 +28,6 @@ namespace Wheel.Crypto.RIPEMD
         {
             RIPEMD160Misc.Finish(ref iv.wv5, ref key, bytesLo, bytesHi);
             iv.Store(digest);
-
-
-            /*
-            for (int i = 0; i < 5; ++i)
-            {
-                uint t = iv.wv5[(uint)i];
-                digest[i * 4 + 0] = (byte)t;
-                digest[i * 4 + 1] = (byte)(t >> 8);
-                digest[i * 4 + 2] = (byte)(t >> 16);
-                digest[i * 4 + 3] = (byte)(t >> 24);
-            }*/
-
             Reset(); // In case it's sensitive
         }
 
