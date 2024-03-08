@@ -44,6 +44,14 @@ namespace Wheel.Crypto.Primitives.DWordVectors
             }
         }
 
+        public unsafe void GetWords(Span<ulong> to)
+        {
+            fixed (void* ptr = &this)
+            {
+                new Span<ulong>(ptr, sizeof(ulong) * 80).CopyTo(to);
+            }
+        }
+
         /// <summary>
         /// Set first 16 words from the provided container
         /// </summary>

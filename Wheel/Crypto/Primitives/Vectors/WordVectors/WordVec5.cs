@@ -47,6 +47,14 @@ namespace Wheel.Crypto.Primitives.WordVectors
             }
         }
 
+        public unsafe void GetWords(Span<uint> to)
+        {
+            fixed (void* ptr = &this)
+            {
+                new Span<uint>(ptr, sizeof(uint) * 5).CopyTo(to);
+            }
+        }
+
         /// <summary>
         /// Reverse byte order for all words
         /// </summary>

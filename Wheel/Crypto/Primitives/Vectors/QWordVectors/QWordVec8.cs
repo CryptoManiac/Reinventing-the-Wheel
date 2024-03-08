@@ -79,11 +79,13 @@ namespace Wheel.Crypto.Primitives.QWordVectors
             }
         }
 
-        public readonly UInt128[] GetWords()
+        public unsafe void GetWords(Span<UInt128> to)
         {
-            return new UInt128[] { w00, w01, w02, w03, w04, w05, w06, w07 };
+            fixed (void* ptr = &this)
+            {
+                new Span<UInt128>(ptr, sizeof(UInt128) * 8).CopyTo(to);
+            }
         }
-
         /// <summary>
         /// Set to zero
         /// </summary>

@@ -36,6 +36,14 @@ namespace Wheel.Crypto.Primitives.WordVectors
             }
         }
 
+        public unsafe void GetWords(Span<uint> to)
+        {
+            fixed (void* ptr = &this)
+            {
+                new Span<uint>(ptr, sizeof(uint) * 2).CopyTo(to);
+            }
+        }
+
         /// <summary>
         /// Set to zero
         /// </summary>

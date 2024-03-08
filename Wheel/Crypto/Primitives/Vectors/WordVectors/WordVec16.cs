@@ -36,9 +36,12 @@ namespace Wheel.Crypto.Primitives.WordVectors
             }
         }
 
-        public uint[] GetWords()
+        public unsafe void GetWords(Span<uint> to)
         {
-            return new uint[16] { w00, w01, w02, w03, w04, w05, w06, w07, w08, w09, w10, w11, w12, w13, w14, w15 };
+            fixed(void* ptr = &this)
+            {
+                new Span<uint>(ptr, sizeof(uint) * 16).CopyTo(to);
+            }
         }
 
         /// <summary>

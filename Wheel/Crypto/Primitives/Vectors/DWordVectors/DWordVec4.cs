@@ -41,6 +41,14 @@ namespace Wheel.Crypto.Primitives.DWordVectors
             }
         }
 
+        public unsafe void GetWords(Span<ulong> to)
+        {
+            fixed (void* ptr = &this)
+            {
+                new Span<ulong>(ptr, sizeof(ulong) * 4).CopyTo(to);
+            }
+        }
+
         /// <summary>
         /// Set to zero
         /// </summary>
@@ -61,11 +69,6 @@ namespace Wheel.Crypto.Primitives.DWordVectors
             w01 = Common.REVERT(w01);
             w02 = Common.REVERT(w02);
             w03 = Common.REVERT(w03);
-        }
-
-        public readonly ulong[] GetWords()
-        {
-            return new ulong[] { w00, w01, w02, w03 };
         }
 
         /// <summary>

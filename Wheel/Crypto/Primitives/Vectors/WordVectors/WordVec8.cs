@@ -42,9 +42,12 @@ namespace Wheel.Crypto.Primitives.WordVectors
             }
         }
 
-        public readonly uint[] GetWords()
+        public unsafe void GetWords(Span<uint> to)
         {
-            return new uint[] { w00, w01, w02, w03, w04, w05, w06, w07 };
+            fixed (void* ptr = &this)
+            {
+                new Span<uint>(ptr, sizeof(uint) * 8).CopyTo(to);
+            }
         }
 
         public void AddWords(WordVec8 wv8)

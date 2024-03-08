@@ -41,6 +41,14 @@ namespace Wheel.Crypto.Primitives.DWordVectors
             }
         }
 
+        public unsafe void GetWords(Span<ulong> to)
+        {
+            fixed (void* ptr = &this)
+            {
+                new Span<ulong>(ptr, sizeof(ulong) * 16).CopyTo(to);
+            }
+        }
+
         public void AddWords(DWordVec16 wv8)
         {
             this.w00 += wv8.w00;
@@ -71,11 +79,6 @@ namespace Wheel.Crypto.Primitives.DWordVectors
             this.w13 += w13;
             this.w14 += w14;
             this.w15 += w15;
-        }
-
-        public readonly ulong[] GetWords()
-        {
-            return new ulong[] { w00, w01, w02, w03, w04, w05, w06, w07, w08, w09, w10, w11, w12, w13, w14, w15 };
         }
 
         /// <summary>
