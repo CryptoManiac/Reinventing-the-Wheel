@@ -45,18 +45,31 @@ namespace Wheel.Crypto.SHA
         }
 
         protected abstract void SetInitState();
-
-        public abstract byte[] Digest();
+        protected abstract int GetHashLength();
 
         /// <summary>
-        /// Write SHA256/SHA224 hash into given byte array
+        /// Write hash into given byte array
         /// </summary>
+        /// <remarks>This method doesn't perform the truncation for the truncated versions. If you don't want to get a full hashing result then, please, provide the span or array of the required length.</remarks>
         /// <param name="hash">Byte array to write into</param>
         public void Digest(Span<byte> hash)
         {
             Finish();
             state.Store(hash);
             Reset();
+        }
+
+        /// <summary>
+        /// Get SHA256 hash as a new byte array
+        /// </summary>
+        /// <returns></returns>
+        public byte[] Digest()
+        {
+            Finish();
+            byte[] hash = new byte[GetHashLength()];
+            state.Store(hash);
+            Reset();
+            return hash;
         }
 
         /// <summary>
@@ -166,48 +179,37 @@ namespace Wheel.Crypto.SHA
 
     public class SHA256 : SHA256Base
 	{
-        /// <summary>
-        /// Set SHA256 constants
-        /// </summary>
-        protected override void SetInitState()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected override int GetHashLength()
         {
-            state.wv8.SetWords(SHA256Misc.init_state_256);
+            return 32;
         }
 
         /// <summary>
-        /// Get SHA256 hash as a new byte array
+        /// Set SHA256 constants
         /// </summary>
-        /// <returns></returns>
-        public override byte[] Digest()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected override void SetInitState()
         {
-            Finish();
-            byte[] hash = state.GetBytes();
-            Reset();
-            return hash;
+            state.wv8.SetWords(SHA256Misc.init_state_256);
         }
     }
 
     public class SHA224 : SHA256Base
     {
-        /// <summary>
-        /// Set SHA224 constants
-        /// </summary>
-        protected override void SetInitState()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected override int GetHashLength()
         {
-            state.wv8.SetWords(SHA256Misc.init_state_224);
+            return 28;
         }
 
         /// <summary>
-        /// Get SHA224 hash as a new byte array
+        /// Set SHA224 constants
         /// </summary>
-        /// <returns></returns>
-        public override byte[] Digest()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected override void SetInitState()
         {
-            byte[] hash = new byte[28];
-            Finish();
-            state.Store(hash);
-            Reset();
-            return hash;
+            state.wv8.SetWords(SHA256Misc.init_state_224);
         }
     }
 

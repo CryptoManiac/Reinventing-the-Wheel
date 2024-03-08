@@ -44,6 +44,7 @@ namespace Wheel.Crypto.SHA
         }
 
         protected abstract void SetInitState();
+        protected abstract int GetHashLength();
 
         /// <summary>
         /// Update hasher with new data bytes
@@ -80,17 +81,29 @@ namespace Wheel.Crypto.SHA
             }
         }
 
-        public abstract byte[] Digest();
-
         /// <summary>
-        /// Write SHA512/SHA384/SHA512_256/SHA512_224 hash into given span
+        /// Write hash into given byte array
         /// </summary>
-        /// <param name="hash">Span to write into</param>
+        /// <remarks>This method doesn't perform the truncation for the truncated versions. If you don't want to get a full hashing result then, please, provide the span or array of the required length.</remarks>
+        /// <param name="hash">Byte array to write into</param>
         public void Digest(Span<byte> hash)
         {
             Finish();
             state.Store(hash);
             Reset();
+        }
+
+        /// <summary>
+        /// Get hash as a new byte array
+        /// </summary>
+        /// <returns></returns>
+        public byte[] Digest()
+        {
+            Finish();
+            byte[] hash = new byte[GetHashLength()];
+            state.Store(hash);
+            Reset();
+            return hash;
         }
 
         protected void Transform()
@@ -166,85 +179,60 @@ namespace Wheel.Crypto.SHA
 
     public class SHA512 : SHA512Base
 	{
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected override int GetHashLength()
+        {
+            return 64;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected override void SetInitState()
         {
             state.dwv8.SetWords(SHA512Misc.init_state_512);
-        }
-
-        /// <summary>
-        /// Get SHA512 hash as a new byte array
-        /// </summary>
-        /// <returns></returns>
-        public override byte[] Digest()
-        {
-            Finish();
-            byte[] hash = new byte[64];
-            state.Store(hash);
-            Reset();
-            return hash;
         }
     }
 
     public class SHA384 : SHA512Base
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected override int GetHashLength()
+        {
+            return 48;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected override void SetInitState()
         {
             state.dwv8.SetWords(SHA512Misc.init_state_384);
-        }
-
-        /// <summary>
-        /// Get SHA384 hash as a new byte array
-        /// </summary>
-        /// <returns></returns>
-        public override byte[] Digest()
-        {
-            Finish();
-            byte[] hash = new byte[48];
-            state.Store(hash);
-            Reset();
-            return hash;
         }
     }
 
     public class SHA512_256 : SHA512Base
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected override int GetHashLength()
+        {
+            return 32;
+        }
+
         protected override void SetInitState()
         {
             state.dwv8.SetWords(SHA512Misc.init_state_256);
-        }
-
-        /// <summary>
-        /// Get SHA512_256 hash as a new byte array
-        /// </summary>
-        /// <returns></returns>
-        public override byte[] Digest()
-        {
-            Finish();
-            byte[] hash = new byte[32];
-            state.Store(hash);
-            Reset();
-            return hash;
         }
     }
 
     public class SHA512_224 : SHA512Base
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected override int GetHashLength()
+        {
+            return 28;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected override void SetInitState()
         {
             state.dwv8.SetWords(SHA512Misc.init_state_224);
-        }
-
-        /// <summary>
-        /// Get SHA512_224 hash as a new byte array
-        /// </summary>
-        /// <returns></returns>
-        public override byte[] Digest()
-        {
-            Finish();
-            byte[] hash = new byte[28];
-            state.Store(hash);
-            Reset();
-            return hash;
         }
     }
 
