@@ -9,7 +9,7 @@ namespace Wheel.Crypto.RIPEMD
 	public class RIPEMD160 : IHasherInterface
 	{
         private uint bytesLo, bytesHi;
-        private WordVec5 iv = new();
+        private ByteVec20 iv = new();
         private ByteVec64 key = new();
 
 		public RIPEMD160()
@@ -26,16 +26,19 @@ namespace Wheel.Crypto.RIPEMD
 
         public void Digest(Span<byte> digest)
         {
-            RIPEMD160Misc.Finish(ref iv, ref key, bytesLo, bytesHi);
+            RIPEMD160Misc.Finish(ref iv.wv5, ref key, bytesLo, bytesHi);
+            iv.Store(digest);
 
+
+            /*
             for (int i = 0; i < 5; ++i)
             {
-                uint t = iv[(uint)i];
+                uint t = iv.wv5[(uint)i];
                 digest[i * 4 + 0] = (byte)t;
                 digest[i * 4 + 1] = (byte)(t >> 8);
                 digest[i * 4 + 2] = (byte)(t >> 16);
                 digest[i * 4 + 3] = (byte)(t >> 24);
-            }
+            }*/
 
             Reset(); // In case it's sensitive
         }
@@ -44,7 +47,7 @@ namespace Wheel.Crypto.RIPEMD
         {
             bytesLo = 0;
             bytesHi = 0;
-            iv.SetWords(RIPEMD160Misc.ripemd_init_state);
+            iv.wv5.SetWords(RIPEMD160Misc.ripemd_init_state);
             key.Reset();
         }
 
@@ -78,7 +81,7 @@ namespace Wheel.Crypto.RIPEMD
             {
                 // First chunk is an odd size
                 key.Write(input.AsSpan(offset, 64 - (int)i), i);
-                RIPEMD160Misc.Compress(ref iv, key.wv16);
+                RIPEMD160Misc.Compress(ref iv.wv5, key.wv16);
                 offset += 64 - (int)i;
                 len -= 64 - i;
             }
@@ -87,7 +90,7 @@ namespace Wheel.Crypto.RIPEMD
             {
                 // Process data in 64-byte chunks
                 key.Write(input.AsSpan(offset, 64), i);
-                RIPEMD160Misc.Compress(ref iv, key.wv16);
+                RIPEMD160Misc.Compress(ref iv.wv5, key.wv16);
                 offset += 64;
                 len -= 64;
             }
@@ -199,7 +202,7 @@ namespace Wheel.Crypto.RIPEMD
         /// First part of compression function
         /// </summary>
         /// <returns>(AA, BB, CC, DD, EE)</returns>
-        private static void Compress_I(ref WordVec5 st, WordVec16 X)
+        private static void Compress_I(ref WordVec5 st, in WordVec16 X)
         {
             // Copies of key and state
             // for quicker lookup
@@ -326,7 +329,7 @@ namespace Wheel.Crypto.RIPEMD
         /// <summary>
         /// Second part of compression function
         /// </summary>
-        private static void Compress_II(ref WordVec5 st, WordVec16 X)
+        private static void Compress_II(ref WordVec5 st, in WordVec16 X)
         {
             // Copies of key and state
             // for quicker lookup
