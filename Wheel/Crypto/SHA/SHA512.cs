@@ -5,7 +5,7 @@ using Wheel.Crypto.Primitives;
 
 namespace Wheel.Crypto.SHA
 {
-    public abstract class SHA512Base : IHasherInterface
+    public abstract class SHA512Base : IHasher
     {
         /// <summary>
         /// Current data block length in bytes

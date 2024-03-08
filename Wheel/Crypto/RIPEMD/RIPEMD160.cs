@@ -6,7 +6,7 @@ using Wheel.Crypto.Primitives.WordVectors;
 
 namespace Wheel.Crypto.RIPEMD
 {
-	public class RIPEMD160 : IHasherInterface
+	public class RIPEMD160 : IHasher
 	{
         private uint bytesLo, bytesHi;
         private ByteVec20 iv = new();

@@ -4,7 +4,7 @@ using Wheel.Crypto.Primitives;
 using Wheel.Crypto.RIPEMD;
 using Wheel.Crypto.SHA;
 
-static string CalculateHash(string input, IHasherInterface hasher)
+static string CalculateHash(string input, IHasher hasher)
 {
     byte[] data = Encoding.ASCII.GetBytes(input);
     hasher.Update(data);
@@ -13,7 +13,7 @@ static string CalculateHash(string input, IHasherInterface hasher)
     ).ToLower();
 }
 
-SortedDictionary<string, Func<IHasherInterface>> algorithms = new()
+SortedDictionary<string, Func<IHasher>> algorithms = new()
 {
     { "RIPEMD160", () => new RIPEMD160() },
     { "SHA224", () => new SHA224() },

@@ -4,7 +4,7 @@ using Wheel.Crypto.RIPEMD;
 using Wheel.Crypto.SHA;
 
 // Perverted tests
-SortedDictionary<string, KeyValuePair<Func<IHasherInterface>, Tuple<string, string>>> tortureScript = new()
+SortedDictionary<string, KeyValuePair<Func<IHasher>, Tuple<string, string>>> tortureScript = new()
 {
     {
         "RIPEMD160", new (
@@ -71,7 +71,7 @@ SortedDictionary<string, KeyValuePair<Func<IHasherInterface>, Tuple<string, stri
     }
 };
 
-static void WriteRepeatedly(IHasherInterface hasher, byte[] input, int iterations)
+static void WriteRepeatedly(IHasher hasher, byte[] input, int iterations)
 {
     for (int i = 0; i < iterations; ++i)
     {
@@ -79,7 +79,7 @@ static void WriteRepeatedly(IHasherInterface hasher, byte[] input, int iteration
     }
 }
 
-static void FinalizeAndCompare(IHasherInterface hasher, string expected)
+static void FinalizeAndCompare(IHasher hasher, string expected)
 {
     string hash = Convert.ToHexString(hasher.Digest()).ToLower();
 
@@ -92,9 +92,9 @@ static void FinalizeAndCompare(IHasherInterface hasher, string expected)
     Console.WriteLine("Okay");
 }
 
-static void Torture_1Mill(string algoName, Func<IHasherInterface> algorithm, bool once, string expected)
+static void Torture_1Mill(string algoName, Func<IHasher> algorithm, bool once, string expected)
 {
-    IHasherInterface hasher = algorithm();
+    IHasher hasher = algorithm();
 
     Console.Write("Torture {0} ", algoName);
 
@@ -117,13 +117,13 @@ static void Torture_1Mill(string algoName, Func<IHasherInterface> algorithm, boo
     FinalizeAndCompare(hasher, expected);
 }
 
-static void Torture_1Gig(string algoName, Func<IHasherInterface> algorithm, string expected)
+static void Torture_1Gig(string algoName, Func<IHasher> algorithm, string expected)
 {
     string pattern = "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmno";
 
     Console.WriteLine("Torture {0} (1G \"{1}\" repeated characters input) => {2} ...", algoName, pattern, expected[..16]);
 
-    IHasherInterface hasher = algorithm();
+    IHasher hasher = algorithm();
 
     // Input message: pattern to be repeated
     byte[] input = Encoding.ASCII.GetBytes(pattern);
