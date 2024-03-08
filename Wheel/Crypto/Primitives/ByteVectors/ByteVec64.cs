@@ -87,14 +87,14 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         public unsafe void Write(Span<byte> bytes, uint targetIndex)
         {
             // Target index must have a sane value
-            if (targetIndex > 127)
+            if (targetIndex > 64)
             {
-                throw new ArgumentOutOfRangeException(nameof(targetIndex), targetIndex, "targetIndex index must be within [0 .. 128) range");
+                throw new ArgumentOutOfRangeException(nameof(targetIndex), targetIndex, "targetIndex index must be within [0 .. 64) range");
             }
 
             // Maximum size is a distance between the
             //  beginning and the vector size
-            uint limit = 128 - targetIndex;
+            uint limit = 64 - targetIndex;
 
             if (bytes.Length > limit)
             {
