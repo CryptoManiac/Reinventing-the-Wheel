@@ -101,5 +101,4 @@ foreach (var (name, (algorithm, (oneMillion, oneGig))) in tortureScript) {
     Torture_1Mill(name, algorithm, true, oneMillion);
     Torture_1Mill(name, algorithm, false, oneMillion);
     Torture_1Gig(name, algorithm, oneGig);
-    Torture_1Gig(name, algorithm, oneGig);
 }
