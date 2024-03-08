@@ -1,10 +1,20 @@
 ﻿using System.Text;
 using Wheel.Crypto.Primitives;
+using Wheel.Crypto.RIPEMD;
 using Wheel.Crypto.SHA;
 
 // Perverted tests
 SortedDictionary<string, KeyValuePair<Func<IHasherInterface>, Tuple<string, string>>> tortureScript = new()
 {
+    {
+        "RIPEMD160", new (
+            () => new RIPEMD160(),
+            new (
+                "52783243c1697bdbe16d37f97f68f08325dc1528",
+                "29b6df855772aa9a95442bf83b282b495f9f6541"
+            )
+        )
+    },
     {
         "SHA224", new (
             () => new SHA224(),

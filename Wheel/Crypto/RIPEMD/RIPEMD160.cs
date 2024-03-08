@@ -8,7 +8,7 @@ namespace Wheel.Crypto.RIPEMD
 {
 	public class RIPEMD160 : IHasherInterface
 	{
-        private int bytesLo, bytesHi;
+        private uint bytesLo, bytesHi;
         private WordVec5 iv = new();
         private ByteVec64 key = new();
 
@@ -50,26 +50,23 @@ namespace Wheel.Crypto.RIPEMD
 
         public void Update(byte[] input)
         {
-            int len = input.Length;
+            uint len = (uint)input.Length;
 
             // Update bitcount
-            int t = bytesLo;
-
-            bytesLo += len;
-
-            if (bytesLo < t)
+            uint t = bytesLo;
+            if ((bytesLo = t + len) < t)
             {
                 // Carry from low to high
                 ++bytesHi;
             }
 
             // Bytes already in key
-            int i = t % 64;
+            uint i = t % 64;
 
             // i is always less than block size
             if (64 - i > len)
             {
-                key.Write(input, (uint)i);
+                key.Write(input, i);
                 return;
             }
 
@@ -79,24 +76,19 @@ namespace Wheel.Crypto.RIPEMD
 
             if (i > 0)
             {
-                // Have to cast for Span constructor here
-                int chunkLen = 64 - i;
-
                 // First chunk is an odd size
-                Span<byte> blockToWrite = new(input, offset, chunkLen);
-                key.Write(blockToWrite, (uint)i);
-                key.wv16.RevertWords();
+                Span<byte> blockToWrite = new(input, offset, 64 - (int)i);
+                key.Write(blockToWrite, i);
                 RIPEMD160Misc.Compress(ref iv, key.wv16);
-                offset += chunkLen;
-                len -= chunkLen;
+                offset += 64 - (int)i;
+                len -= 64 - i;
             }
 
             while (len >= 64)
             {
                 // Process data in 64-byte chunks
                 Span<byte> blockToWrite = new(input, offset, 64);
-                key.Write(blockToWrite, (uint)i);
-                key.wv16.RevertWords();
+                key.Write(blockToWrite, i);
                 RIPEMD160Misc.Compress(ref iv, key.wv16);
                 offset += 64;
                 len -= 64;
@@ -105,7 +97,7 @@ namespace Wheel.Crypto.RIPEMD
             if (len > 0)
             {
                 // Handle any remaining bytes of data.
-                Span<byte> blockToWrite = new(input, offset, len);
+                Span<byte> blockToWrite = new(input, offset, (int)len);
                 key.Write(blockToWrite, 0);
             }
         }
@@ -415,7 +407,7 @@ namespace Wheel.Crypto.RIPEMD
         /// <param name="block"></param>
         /// <param name="lswlen"></param>
         /// <param name="mswlen"></param>
-        public static void Finish(ref WordVec5 MDbuf, ref ByteVec64 block, int lswlen, int mswlen)
+        public static void Finish(ref WordVec5 MDbuf, ref ByteVec64 block, uint lswlen, uint mswlen)
         {
             WordVec16 X = new();
 
@@ -427,7 +419,7 @@ namespace Wheel.Crypto.RIPEMD
             }
 
             // append the bit m_n == 1
-            X[((uint)lswlen >> 2) & 15] ^= (uint)1 << (8 * (lswlen & 3) + 7);
+            X[(lswlen >> 2) & 15] ^= (uint)1 << (8 * ((int)lswlen & 3) + 7);
 
             if ((lswlen & 63) > 55)
             {
@@ -437,8 +429,8 @@ namespace Wheel.Crypto.RIPEMD
             }
 
             // append length in bits
-            X[14] = (uint) lswlen << 3;
-            X[15] = ((uint)lswlen >> 29) | ((uint)mswlen << 3);
+            X[14] = lswlen << 3;
+            X[15] = (lswlen >> 29) | (mswlen << 3);
             Compress(ref MDbuf, X);
         }
     }
