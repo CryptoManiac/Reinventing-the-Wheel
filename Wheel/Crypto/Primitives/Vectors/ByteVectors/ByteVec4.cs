@@ -42,12 +42,9 @@ namespace Wheel.Crypto.Primitives.ByteVectors
         /// <summary>
         /// Set to zero
         /// </summary>
-        public unsafe void Reset()
+        public void Reset()
         {
-            fixed (void* ptr = &this)
-            {
-                Unsafe.InitBlockUnaligned(ptr, 0, 4);
-            }
+            value = 0;
         }
 
         /// <summary>
