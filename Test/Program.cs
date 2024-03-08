@@ -1,6 +1,7 @@
 ﻿
 using System.Text;
 using Wheel.Crypto.Primitives;
+using Wheel.Crypto.RIPEMD;
 using Wheel.Crypto.SHA;
 
 static string CalculateHash(string input, IHasherInterface hasher)
@@ -14,6 +15,7 @@ static string CalculateHash(string input, IHasherInterface hasher)
 
 SortedDictionary<string, Func<IHasherInterface>> algorithms = new()
 {
+    { "RIPEMD160", () => new RIPEMD160() },
     { "SHA224", () => new SHA224() },
     { "SHA256", () => new SHA256() },
     { "SHA512_224", () => new SHA512_224() },
@@ -26,6 +28,7 @@ SortedDictionary<string, SortedDictionary<string, string>> vectors = new()
 {
     {
         "", new(){
+            { "RIPEMD160", "9c1185a5c5e9fc54612808977ee8f548b2258d31" },
             { "SHA224", "d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f" },
             { "SHA256", "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" },
             { "SHA512_224", "6ed0dd02806fa89e25de060c19d3ac86cabb87d6a0ddd05c333b84f4" },
@@ -36,6 +39,7 @@ SortedDictionary<string, SortedDictionary<string, string>> vectors = new()
     },
     {
         "abc", new(){
+            { "RIPEMD160", "8eb208f7e05d987a9b044a8e98c6b087f15a0bfc" },
             { "SHA224", "23097d223405d8228642a477bda255b32aadbce4bda0b3f7e36c9da7" },
             { "SHA256", "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad" },
             { "SHA512_224", "4634270f707b6a54daae7530460842e20e37ed265ceee9a43e8924aa" },
@@ -46,6 +50,7 @@ SortedDictionary<string, SortedDictionary<string, string>> vectors = new()
     },
     {
         "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq", new(){
+            { "RIPEMD160", "12a053384a9c0c88e405a06c27dcf49ada62eb2b" },
             { "SHA224", "75388b16512776cc5dba5da1fd890150b0c6455cb4f58b1952522525" },
             { "SHA256", "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1" },
             { "SHA512_224", "e5302d6d54bb242275d1e7622d68df6eb02dedd13f564c13dbda2174" },
@@ -56,6 +61,7 @@ SortedDictionary<string, SortedDictionary<string, string>> vectors = new()
     },
     {
         "The quick brown fox jumps over the lazy dog", new(){
+            { "RIPEMD160", "37f332f68db77bd9d7edd4969571ad671cf9dd3b" },
             { "SHA224", "730e109bd7a8a32b1cb9d9a09aa2325d2430587ddbc0c38bad911525" },
             { "SHA256", "d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592" },
             { "SHA512_224", "944cd2847fb54558d4775db0485a50003111c8e5daa63fe722c6aa37" },
@@ -66,6 +72,7 @@ SortedDictionary<string, SortedDictionary<string, string>> vectors = new()
     },
     {
         "The quick brown fox jumps over the lazy cog", new(){
+            { "RIPEMD160", "132072df690933835eb8b6ad0b77e7b6f14acad7" },
             { "SHA224", "fee755f44a55f20fb3362cdc3c493615b3cb574ed95ce610ee5b1e9b" },
             { "SHA256", "e4c4d8f3bf76b692de791a173e05321150f7a345b46484fe427f6acc7ecc81be" },
             { "SHA512_224", "2b9d6565a7e40f780ba8ab7c8dcf41e3ed3b77997f4c55aa987eede5" },
@@ -76,6 +83,7 @@ SortedDictionary<string, SortedDictionary<string, string>> vectors = new()
     },
     {
         "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu", new(){
+            { "RIPEMD160", "6f3fa39b6b503c384f919a49a7aa5c2c08bdfb45" }, // FIXME: Fails
             { "SHA224", "c97ca9a559850ce97a04a96def6d99a9e0e0e2ab14e6b8df265fc0b3" },
             { "SHA256", "cf5b16a778af8380036ce59e7b0492370b249b11e8f07a51afac45037afee9d1" },
             { "SHA512_224", "23fec5bb94d60b23308192640b0c453335d664734fe40e7268674af9" },

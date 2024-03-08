@@ -5,40 +5,35 @@ using Wheel.Crypto.Miscellaneous.Support;
 namespace Wheel.Crypto.Primitives.WordVectors
 {
     [StructLayout(LayoutKind.Explicit)]
-    public struct WordVec16
+    public struct WordVec5
 	{
-        public WordVec16(params uint[] words)
+        public WordVec5(params uint[] words)
         {
             SetWords(words);
         }
 
-        public unsafe void SetWords(WordVec16 wv16)
+        public unsafe void SetWords(WordVec5 wv5)
         {
-            fixed (void* target = &this)
+            fixed (void* target = &w00)
             {
-                Buffer.MemoryCopy(&wv16, target, sizeof(uint) * 16, sizeof(uint) * 16);
+                Buffer.MemoryCopy(&wv5, target, sizeof(uint) * 5, sizeof(uint) * 5);
             }
         }
 
         public unsafe void SetWords(params uint[] words)
         {
-            if (words.Length != 16)
+            if (words.Length != 5)
             {
-                throw new ArgumentOutOfRangeException(nameof(words), words.Length, "Must provide 16 words exactly");
+                throw new ArgumentOutOfRangeException(nameof(words), words.Length, "Must provide 5 words exactly");
             }
 
             fixed (void* target = &this)
             {
                 fixed (void* src = &words[0])
                 {
-                    Buffer.MemoryCopy(src, target, sizeof(uint) * 16, sizeof(uint) * 16);
+                    Buffer.MemoryCopy(src, target, sizeof(uint) * 5, sizeof(uint) * 5);
                 }
             }
-        }
-
-        public uint[] GetWords()
-        {
-            return new uint[16] { w00, w01, w02, w03, w04, w05, w06, w07, w08, w09, w10, w11, w12, w13, w14, w15 };
         }
 
         /// <summary>
@@ -48,7 +43,7 @@ namespace Wheel.Crypto.Primitives.WordVectors
         {
             fixed (void* ptr = &this)
             {
-                Unsafe.InitBlockUnaligned(ptr, 0, sizeof(uint) * 16);
+                Unsafe.InitBlockUnaligned(ptr, 0, sizeof(uint) * 5);
             }
         }
 
@@ -62,23 +57,12 @@ namespace Wheel.Crypto.Primitives.WordVectors
             w02 = Common.REVERT(w02);
             w03 = Common.REVERT(w03);
             w04 = Common.REVERT(w04);
-            w05 = Common.REVERT(w05);
-            w06 = Common.REVERT(w06);
-            w07 = Common.REVERT(w07);
-            w08 = Common.REVERT(w08);
-            w09 = Common.REVERT(w09);
-            w10 = Common.REVERT(w10);
-            w11 = Common.REVERT(w11);
-            w12 = Common.REVERT(w12);
-            w13 = Common.REVERT(w13);
-            w14 = Common.REVERT(w14);
-            w15 = Common.REVERT(w15);
         }
 
         /// <summary>
         /// Index access to individual word fields
         /// </summary>
-        /// <param name="key">Byte field index [0 .. 15]</param>
+        /// <param name="key">Byte field index [0 .. 3]</param>
         /// <returns>Word value</returns>
         public uint this[uint key]
         {
@@ -91,9 +75,9 @@ namespace Wheel.Crypto.Primitives.WordVectors
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe readonly uint GetWord(uint index)
         {
-            if (index > 15)
+            if (index > 4)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 15] range");
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 4] range");
             }
 
             fixed (uint* src = &w00)
@@ -105,9 +89,9 @@ namespace Wheel.Crypto.Primitives.WordVectors
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe uint SetWord(uint index, uint value)
         {
-            if (index > 15)
+            if (index > 4)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 15] range");
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. 4] range");
             }
 
             fixed (uint* target = &w00)
@@ -121,15 +105,15 @@ namespace Wheel.Crypto.Primitives.WordVectors
         /// </summary>
         public static void Test()
         {
-            WordVec16 wv = new();
-            for (uint i = 0; i < 16; i++)
+            WordVec5 wv = new();
+            for (uint i = 0; i < 5; i++)
             {
                 wv[i] = i;
             }
 
-            for (uint i = 0; i < 16; i++)
+            for (uint i = 0; i < 5; i++)
             {
-                if (i != wv[i]) throw new InvalidDataException("WordVec16 fail");
+                if (i != wv[i]) throw new InvalidDataException("WordVec5 fail");
             }
         }
 
@@ -142,33 +126,8 @@ namespace Wheel.Crypto.Primitives.WordVectors
         public uint w02 = 0;
         [FieldOffset(3 * sizeof(uint))]
         public uint w03 = 0;
-
         [FieldOffset(4 * sizeof(uint))]
         public uint w04 = 0;
-        [FieldOffset(5 * sizeof(uint))]
-        public uint w05 = 0;
-        [FieldOffset(6 * sizeof(uint))]
-        public uint w06 = 0;
-        [FieldOffset(7 * sizeof(uint))]
-        public uint w07 = 0;
-
-        [FieldOffset(8 * sizeof(uint))]
-        public uint w08 = 0;
-        [FieldOffset(9 * sizeof(uint))]
-        public uint w09 = 0;
-        [FieldOffset(10 * sizeof(uint))]
-        public uint w10 = 0;
-        [FieldOffset(11 * sizeof(uint))]
-        public uint w11 = 0;
-
-        [FieldOffset(12 * sizeof(uint))]
-        public uint w12 = 0;
-        [FieldOffset(13 * sizeof(uint))]
-        public uint w13 = 0;
-        [FieldOffset(14 * sizeof(uint))]
-        public uint w14 = 0;
-        [FieldOffset(15 * sizeof(uint))]
-        public uint w15 = 0;
         #endregion
     }
 }

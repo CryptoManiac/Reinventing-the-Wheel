@@ -27,6 +27,7 @@
     <None Remove="Crypto\Primitives\DWordVectors\" />
     <None Remove="Crypto\Primitives\Miscellaneous\" />
     <None Remove="Crypto\Primitives\QWordVectors\" />
+    <None Remove="Crypto\RIPEMD\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Crypto\" />
@@ -37,5 +38,6 @@
     <Folder Include="Crypto\Primitives\DWordVectors\" />
     <Folder Include="Crypto\Primitives\Miscellaneous\" />
     <Folder Include="Crypto\Primitives\QWordVectors\" />
+    <Folder Include="Crypto\RIPEMD\" />
   </ItemGroup>
 </Project>
