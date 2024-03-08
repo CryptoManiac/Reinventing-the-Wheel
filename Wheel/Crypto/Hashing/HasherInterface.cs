@@ -1,4 +1,4 @@
-﻿namespace Wheel.Crypto.Primitives
+﻿namespace Wheel.Crypto.Hashing
 {
 	public interface IHasher
 	{

@@ -3,7 +3,7 @@ using Wheel.Crypto.Primitives.WordVectors;
 using System.Runtime.CompilerServices;
 using Wheel.Crypto.Primitives;
 
-namespace Wheel.Crypto.SHA
+namespace Wheel.Crypto.Hashing.SHA
 {
     public abstract class SHA512Base : IHasher
     {

@@ -4,7 +4,7 @@ using Wheel.Crypto.Miscellaneous.Support;
 using System.Runtime.CompilerServices;
 using Wheel.Crypto.Primitives;
 
-namespace Wheel.Crypto.SHA
+namespace Wheel.Crypto.Hashing.SHA
 {
     public abstract class SHA256Base : IHasher
     {

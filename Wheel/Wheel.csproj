@@ -23,21 +23,23 @@
     <None Remove="Crypto\Primitives\" />
     <None Remove="Crypto\Primitives\WordVectors\" />
     <None Remove="Crypto\Primitives\ByteVectors\" />
-    <None Remove="Crypto\SHA\" />
     <None Remove="Crypto\Primitives\DWordVectors\" />
     <None Remove="Crypto\Primitives\Miscellaneous\" />
     <None Remove="Crypto\Primitives\QWordVectors\" />
-    <None Remove="Crypto\RIPEMD\" />
+    <None Remove="Crypto\Hashing\" />
+    <None Remove="Crypto\Hashing\RIPEMD\" />
+    <None Remove="Crypto\Hashing\SHA\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Crypto\" />
     <Folder Include="Crypto\Primitives\" />
     <Folder Include="Crypto\Primitives\WordVectors\" />
     <Folder Include="Crypto\Primitives\ByteVectors\" />
-    <Folder Include="Crypto\SHA\" />
     <Folder Include="Crypto\Primitives\DWordVectors\" />
     <Folder Include="Crypto\Primitives\Miscellaneous\" />
     <Folder Include="Crypto\Primitives\QWordVectors\" />
-    <Folder Include="Crypto\RIPEMD\" />
+    <Folder Include="Crypto\Hashing\" />
+    <Folder Include="Crypto\Hashing\RIPEMD\" />
+    <Folder Include="Crypto\Hashing\SHA\" />
   </ItemGroup>
 </Project>

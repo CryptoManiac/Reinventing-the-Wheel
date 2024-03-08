@@ -1,8 +1,9 @@
 ﻿
 using System.Text;
 using Wheel.Crypto.Primitives;
-using Wheel.Crypto.RIPEMD;
-using Wheel.Crypto.SHA;
+using Wheel.Crypto.Hashing.RIPEMD;
+using Wheel.Crypto.Hashing.SHA;
+using Wheel.Crypto.Hashing;
 
 static string CalculateHash(string input, IHasher hasher)
 {

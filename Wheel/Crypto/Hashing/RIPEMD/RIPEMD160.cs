@@ -4,7 +4,7 @@ using Wheel.Crypto.Primitives;
 using Wheel.Crypto.Primitives.ByteVectors;
 using Wheel.Crypto.Primitives.WordVectors;
 
-namespace Wheel.Crypto.RIPEMD
+namespace Wheel.Crypto.Hashing.RIPEMD
 {
 	public class RIPEMD160 : IHasher
 	{
