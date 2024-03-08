@@ -21,25 +21,27 @@
   <ItemGroup>
     <None Remove="Crypto\" />
     <None Remove="Crypto\Primitives\" />
-    <None Remove="Crypto\Primitives\WordVectors\" />
-    <None Remove="Crypto\Primitives\ByteVectors\" />
-    <None Remove="Crypto\Primitives\DWordVectors\" />
-    <None Remove="Crypto\Primitives\Miscellaneous\" />
-    <None Remove="Crypto\Primitives\QWordVectors\" />
     <None Remove="Crypto\Hashing\" />
     <None Remove="Crypto\Hashing\RIPEMD\" />
     <None Remove="Crypto\Hashing\SHA\" />
+    <None Remove="Crypto\Primitives\Vectors\" />
+    <None Remove="Crypto\Primitives\Vectors\ByteVectors\" />
+    <None Remove="Crypto\Primitives\Vectors\DWordVectors\" />
+    <None Remove="Crypto\Primitives\Vectors\QWordVectors\" />
+    <None Remove="Crypto\Primitives\Vectors\WordVectors\" />
+    <None Remove="Crypto\Primitives\Miscellaneous\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Crypto\" />
     <Folder Include="Crypto\Primitives\" />
-    <Folder Include="Crypto\Primitives\WordVectors\" />
-    <Folder Include="Crypto\Primitives\ByteVectors\" />
-    <Folder Include="Crypto\Primitives\DWordVectors\" />
-    <Folder Include="Crypto\Primitives\Miscellaneous\" />
-    <Folder Include="Crypto\Primitives\QWordVectors\" />
     <Folder Include="Crypto\Hashing\" />
     <Folder Include="Crypto\Hashing\RIPEMD\" />
     <Folder Include="Crypto\Hashing\SHA\" />
+    <Folder Include="Crypto\Primitives\Vectors\" />
+    <Folder Include="Crypto\Primitives\Vectors\ByteVectors\" />
+    <Folder Include="Crypto\Primitives\Vectors\DWordVectors\" />
+    <Folder Include="Crypto\Primitives\Vectors\QWordVectors\" />
+    <Folder Include="Crypto\Primitives\Vectors\WordVectors\" />
+    <Folder Include="Crypto\Primitives\Miscellaneous\" />
   </ItemGroup>
 </Project>

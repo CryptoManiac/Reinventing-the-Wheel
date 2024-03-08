@@ -17,7 +17,7 @@ namespace Wheel.Crypto.Primitives.WordVectors
             SetWords(words);
         }
 
-        public unsafe void SetWords(DWordVec8 wv8)
+        public unsafe void SetWords(DWordVec16 wv8)
         {
             fixed (void* target = &this)
             {
