@@ -40,7 +40,7 @@ namespace Wheel.Crypto.Primitives.WordVectors
         {
             fixed (void* ptr = &this)
             {
-                new Span<uint>(ptr, sizeof(uint) * 4).CopyTo(to);
+                new Span<uint>(ptr, 4).CopyTo(to);
             }
         }
 

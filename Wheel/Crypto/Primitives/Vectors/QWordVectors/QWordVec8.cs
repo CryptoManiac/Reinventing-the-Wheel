@@ -83,7 +83,7 @@ namespace Wheel.Crypto.Primitives.QWordVectors
         {
             fixed (void* ptr = &this)
             {
-                new Span<UInt128>(ptr, sizeof(UInt128) * 8).CopyTo(to);
+                new Span<UInt128>(ptr, 8).CopyTo(to);
             }
         }
         /// <summary>

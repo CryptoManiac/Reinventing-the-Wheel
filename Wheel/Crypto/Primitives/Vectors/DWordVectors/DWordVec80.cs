@@ -48,7 +48,7 @@ namespace Wheel.Crypto.Primitives.DWordVectors
         {
             fixed (void* ptr = &this)
             {
-                new Span<ulong>(ptr, sizeof(ulong) * 80).CopyTo(to);
+                new Span<ulong>(ptr, 80).CopyTo(to);
             }
         }
 
