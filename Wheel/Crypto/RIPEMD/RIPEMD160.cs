@@ -196,22 +196,16 @@ namespace Wheel.Crypto.RIPEMD
         }
 
         /// <summary>
-        /// The compression function.
-        /// Transforms MDbuf using message bytes X[0] through X[15]
+        /// First part of compression function
         /// </summary>
-        public static void Compress(ref WordVec5 MDbuf, in WordVec16 X)
+        /// <returns>(AA, BB, CC, DD, EE)</returns>
+        private static Tuple<uint, uint, uint, uint, uint> Compress_I(WordVec5 MDbuf, WordVec16 X)
         {
             uint aa = MDbuf.w00;
             uint bb = MDbuf.w01;
             uint cc = MDbuf.w02;
             uint dd = MDbuf.w03;
             uint ee = MDbuf.w04;
-
-            uint aaa = MDbuf.w00;
-            uint bbb = MDbuf.w01;
-            uint ccc = MDbuf.w02;
-            uint ddd = MDbuf.w03;
-            uint eee = MDbuf.w04;
 
             // round 1
             FF(ref aa, bb, ref cc, dd, ee, X.w00, 11);
@@ -303,6 +297,21 @@ namespace Wheel.Crypto.RIPEMD
             JJ(ref cc, dd, ref ee, aa, bb, X.w15, 5);
             JJ(ref bb, cc, ref dd, ee, aa, X.w13, 6);
 
+            return new(aa, bb, cc, dd, ee);
+        }
+
+        /// <summary>
+        /// First part of compression function
+        /// </summary>
+        /// <returns>(AAA, BBB, CCC, DDD, EEE)</returns>
+        private static Tuple<uint, uint, uint, uint, uint> Compress_II(WordVec5 MDbuf, WordVec16 X)
+        {
+            uint aaa = MDbuf.w00;
+            uint bbb = MDbuf.w01;
+            uint ccc = MDbuf.w02;
+            uint ddd = MDbuf.w03;
+            uint eee = MDbuf.w04;
+
             // parallel round 1
             JJJ(ref aaa, bbb, ref ccc, ddd, eee, X.w05, 8);
             JJJ(ref eee, aaa, ref bbb, ccc, ddd, X.w14, 9);
@@ -392,6 +401,18 @@ namespace Wheel.Crypto.RIPEMD
             FFF(ref ddd, eee, ref aaa, bbb, ccc, X.w03, 13);
             FFF(ref ccc, ddd, ref eee, aaa, bbb, X.w09, 11);
             FFF(ref bbb, ccc, ref ddd, eee, aaa, X.w11, 11);
+
+            return new(aaa, bbb, ccc, ddd, eee);
+        }
+
+        /// <summary>
+        /// The compression function.
+        /// Transforms MDbuf using message bytes X[0] through X[15]
+        /// </summary>
+        public static void Compress(ref WordVec5 MDbuf, in WordVec16 X)
+        {
+            var (aa, bb, cc, dd, ee) = Compress_I(MDbuf, X);
+            var (aaa, bbb, ccc, ddd, eee) = Compress_II(MDbuf, X);
 
             // combine results
             ddd += cc + MDbuf.w01;
