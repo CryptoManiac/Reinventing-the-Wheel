@@ -34,11 +34,38 @@ SortedDictionary<string, KeyValuePair<Func<IHasherInterface>, Tuple<string, stri
         )
     },
     {
+        "SHA384", new (
+            () => new SHA384(),
+            new (
+                "9d0e1809716474cb086e834e310a4a1ced149e9c00f248527972cec5704c2a5b07b8b3dc38ecc4ebae97ddd87f3d8985",
+                "5441235cc0235341ed806a64fb354742b5e5c02a3c5cb71b5f63fb793458d8fdae599c8cd8884943c04f11b31b89f023"
+            )
+        )
+    },
+    {
         "SHA512", new (
             () => new SHA512(),
             new (
                 "e718483d0ce769644e2e42c7bc15b4638e1f98b13b2044285632a803afa973ebde0ff244877ea60a4cb0432ce577c31beb009c5c2c49aa2e4eadb217ad8cc09b",
                 "b47c933421ea2db149ad6e10fce6c7f93d0752380180ffd7f4629a712134831d77be6091b819ed352c2967a2e2d4fa5050723c9630691f1a05a7281dbe6c1086"
+            )
+        )
+    },
+    {
+        "SHA512_256", new (
+            () => new SHA512_256(),
+            new (
+                "9a59a052930187a97038cae692f30708aa6491923ef5194394dc68d56c74fb21",
+                "b5855a6179802ce567cbf43888284c6ac7c3f6c48b08c5bc1e8ad75d12782c9e"
+            )
+        )
+    },
+    {
+        "SHA512_224", new (
+            () => new SHA512_224(),
+            new (
+                "37ab331d76f0d36de422bd0edeb22a28accd487b7a8453ae965dd287",
+                "9a7f86727c3be1403d6702617646b15589b8c5a92c70f1703cd25b52"
             )
         )
     }
