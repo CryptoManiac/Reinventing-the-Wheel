@@ -97,6 +97,7 @@ namespace Wheel.Crypto.RIPEMD
                 Span<byte> blockToWrite = new(input, offset, 64);
                 key.Write(blockToWrite, (uint)i);
                 key.wv16.RevertWords();
+                RIPEMD160Misc.Compress(ref iv, key.wv16);
                 offset += 64;
                 len -= 64;
             }
