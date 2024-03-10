@@ -111,14 +111,9 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
 
         protected unsafe void Transform()
         {
-            // Block mixing is done here
-            InternalSHA512Round wordPad = new();
-
-            // Split data in 64 bit blocks for the first 16 words
-            wordPad.SetBlock(pendingBlock);
-
-            // SHA uses big endian byte ordering
-            wordPad.RevertBlock();
+            // Initialize with first 16 words filled from the
+            // pending block and reverted to big endian
+            InternalSHA512Round wordPad = new(pendingBlock);
 
             // Remaining blocks
             for (uint i = 16; i < 80; ++i)

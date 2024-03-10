@@ -146,7 +146,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         /// <summary>
         /// Size of structure in memory when treated as a collection of ulong values
         /// </summary>
-        static public readonly int TypeUlongSz = sizeof(InternalSHA512State) / sizeof(ulong);
+        static public readonly int TypeUlongSz = sizeof(InternalSHA512State) / 8;
 
         /// <summary>
         /// Size of structure in memory when treated as a collection of bytes

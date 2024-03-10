@@ -73,10 +73,10 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
 
             // now work in full words directly from input
 
-            int words = len / sizeof(ulong);
-            int tail = len - words * sizeof(ulong);
+            int words = len / 8;
+            int tail = len - words * 8;
 
-            for (int i = 0; i < words; i++, buf += sizeof(ulong))
+            for (int i = 0; i < words; i++, buf += 8)
             {
                 ctx.s[ctx.wordIndex] ^= (buf[0]) |
                         ((ulong)buf[1] << 8 * 1) |
@@ -156,8 +156,6 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
             Digest(hash);
             return hash;
         }
-
-        
 
         public bool IsKeccak
         {

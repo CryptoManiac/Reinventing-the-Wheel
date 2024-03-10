@@ -63,27 +63,6 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
 	public unsafe struct InternalSHA512Block
 	{
         /// <summary>
-        /// Instantiate from array or a variable number of arguments
-        /// </summary>
-        /// <param name="ulongs"></param>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public unsafe InternalSHA512Block(params ulong[] ulongs)
-        {
-            if (ulongs.Length != TypeUlongSz)
-            {
-                throw new ArgumentOutOfRangeException(nameof(ulongs), ulongs.Length, "Must provide " + TypeUlongSz + " arguments exactly");
-            }
-
-            fixed (void* source = &ulongs[0])
-            {
-                fixed (void* target = &this)
-                {
-                    new Span<byte>(source, TypeByteSz).CopyTo(new Span<byte>(target, TypeByteSz));
-                }
-            }
-        }
-
-        /// <summary>
         /// Instantiate as a copy of the other block
         /// </summary>
         /// <param name="round">Other block</param>
@@ -222,7 +201,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         /// <summary>
         /// Size of structure in memory when treated as a collection of ulong values
         /// </summary>
-        static public readonly int TypeUlongSz = sizeof(InternalSHA512Block) / sizeof(ulong);
+        static public readonly int TypeUlongSz = sizeof(InternalSHA512Block) / 8;
 
         /// <summary>
         /// Size of structure in memory when treated as a collection of bytes

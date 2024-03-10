@@ -47,6 +47,16 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         }
 
         /// <summary>
+        /// Initialize first 16 registers from the provided block and revert them
+        /// </summary>
+        /// <param name="block">A context to provide 16 registers</param>
+        public InternalSHA512Round(in InternalSHA512Block block)
+        {
+            SetBlock(block);
+            RevertBlock();
+        }
+
+        /// <summary>
         /// Index access to individual registers
         /// </summary>
         /// <param name="key">Field index [0 .. 79]</param>
@@ -87,7 +97,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         /// Set first 16 registers from the provided container
         /// </summary>
         /// <param name="block">A context to provide 16 registers</param>
-        public unsafe void SetBlock(in InternalSHA512Block block)
+        private unsafe void SetBlock(in InternalSHA512Block block)
         {
             fixed (void* source = &block)
             {
@@ -101,7 +111,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         /// <summary>
         /// Revert the byte order for the first 16 state registers
         /// </summary>
-        public void RevertBlock()
+        private void RevertBlock()
         {
             for (int i = 0; i < InternalSHA512Block.TypeUlongSz; ++i)
             {
@@ -134,7 +144,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         /// <summary>
         /// Size of structure in memory when treated as a collection of ulong values
         /// </summary>
-        static public readonly int TypeUlongSz = sizeof(InternalSHA512Round) / sizeof(ulong);
+        static public readonly int TypeUlongSz = sizeof(InternalSHA512Round) / 8;
 
         /// <summary>
         /// Size of structure in memory when treated as a collection of bytes

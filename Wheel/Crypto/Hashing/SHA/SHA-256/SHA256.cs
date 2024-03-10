@@ -110,14 +110,9 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
 
         protected unsafe void Transform()
         {
-            // Block mixing is done here
-            InternalSHA256Round wordPad = new();
-
-            // Split data in 32 bit blocks for the first 16 words
-            wordPad.SetBlock(pendingBlock);
-
-            // SHA uses big endian byte ordering
-            wordPad.RevertBlock();
+            // Initialize with first 16 words filled from the
+            // pending block and reverted to big endian
+            InternalSHA256Round wordPad = new(pendingBlock);
 
             // Remaining 48 blocks
             for (uint i = 16; i < 64; ++i)

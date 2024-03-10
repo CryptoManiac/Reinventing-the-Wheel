@@ -146,7 +146,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         /// <summary>
         /// Size of structure in memory when treated as a collection of uint values
         /// </summary>
-        static public readonly int TypeUintSz = sizeof(InternalSHA256State) / sizeof(uint);
+        static public readonly int TypeUintSz = sizeof(InternalSHA256State) / 4;
 
         /// <summary>
         /// Size of structure in memory when treated as a collection of bytes

@@ -84,15 +84,6 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
         }
 
         /// <summary>
-        /// Instantiate as a copy of the other state
-        /// </summary>
-        /// <param name="round">Other block</param>
-        public unsafe InternalRIPEMDState(in InternalRIPEMDState state)
-        {
-            Set(state);
-        }
-
-        /// <summary>
         /// Set to a copy of the other state
         /// </summary>
         /// <param name="round">Other block</param>
@@ -168,7 +159,7 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
         /// <summary>
         /// Size of structure in memory when treated as a collection of uint values
         /// </summary>
-        static public readonly int TypeUintSz = sizeof(InternalRIPEMDState) / sizeof(uint);
+        static public readonly int TypeUintSz = sizeof(InternalRIPEMDState) / 4;
 
         /// <summary>
         /// Size of structure in memory when treated as a collection of bytes
@@ -190,15 +181,15 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
 
         #region Individual word public access
         [FieldOffset(0)]
-        public uint X00 = 0;
-        [FieldOffset(1 * sizeof(uint))]
-        public uint X01 = 0;
-        [FieldOffset(2 * sizeof(uint))]
-        public uint X02 = 0;
-        [FieldOffset(3 * sizeof(uint))]
-        public uint X03 = 0;
-        [FieldOffset(4 * sizeof(uint))]
-        public uint X04 = 0;
+        public uint X00;
+        [FieldOffset(4)]
+        public uint X01;
+        [FieldOffset(8)]
+        public uint X02;
+        [FieldOffset(12)]
+        public uint X03;
+        [FieldOffset(16)]
+        public uint X04;
         #endregion
     }
 }

@@ -63,27 +63,6 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
 	public unsafe struct InternalSHA256Block
 	{
         /// <summary>
-        /// Instantiate from array or a variable number of arguments
-        /// </summary>
-        /// <param name="uints"></param>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public unsafe InternalSHA256Block(params uint[] uints)
-        {
-            if (uints.Length != TypeUintSz)
-            {
-                throw new ArgumentOutOfRangeException(nameof(uints), uints.Length, "Must provide " + TypeUintSz + " arguments exactly");
-            }
-
-            fixed (void* source = &uints[0])
-            {
-                fixed (void* target = &this)
-                {
-                    new Span<byte>(source, TypeByteSz).CopyTo(new Span<byte>(target, TypeByteSz));
-                }
-            }
-        }
-
-        /// <summary>
         /// Instantiate as a copy of the other block
         /// </summary>
         /// <param name="round">Other block</param>
@@ -222,7 +201,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         /// <summary>
         /// Size of structure in memory when treated as a collection of uint values
         /// </summary>
-        static public readonly int TypeUintSz = sizeof(InternalSHA256Block) / sizeof(uint);
+        static public readonly int TypeUintSz = sizeof(InternalSHA256Block) / 4;
 
         /// <summary>
         /// Size of structure in memory when treated as a collection of bytes

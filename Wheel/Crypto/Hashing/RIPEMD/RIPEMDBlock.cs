@@ -63,42 +63,6 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
     public unsafe struct InternalRIPEMDBlock
     {
         /// <summary>
-        /// Instantiate from array or a variable number of arguments
-        /// </summary>
-        /// <param name="uints"></param>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public unsafe InternalRIPEMDBlock(params uint[] uints)
-        {
-            if (uints.Length != TypeUintSz)
-            {
-                throw new ArgumentOutOfRangeException(nameof(uints), uints.Length, "Must provide " + TypeUintSz + " arguments exactly");
-            }
-
-            fixed (void* source = &uints[0])
-            {
-                fixed (void* target = &this)
-                {
-                    new Span<byte>(source, TypeByteSz).CopyTo(new Span<byte>(target, TypeByteSz));
-                }
-            }
-        }
-
-        /// <summary>
-        /// Instantiate as a copy of the other block
-        /// </summary>
-        /// <param name="round">Other block</param>
-        public unsafe InternalRIPEMDBlock(in InternalRIPEMDBlock block)
-        {
-            fixed (void* source = &block)
-            {
-                fixed (void* target = &this)
-                {
-                    new Span<byte>(source, TypeByteSz).CopyTo(new Span<byte>(target, TypeByteSz));
-                }
-            }
-        }
-
-        /// <summary>
         /// Overwrite the part of value with a sequence of bytes
         /// </summary>
         /// <param name="bytes">Bytes to write</param>
@@ -180,7 +144,7 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
         /// <summary>
         /// Size of structure in memory when treated as a collection of uint values
         /// </summary>
-        static public readonly int TypeUintSz = sizeof(InternalRIPEMDBlock) / sizeof(uint);
+        static public readonly int TypeUintSz = sizeof(InternalRIPEMDBlock) / 4;
 
         /// <summary>
         /// Size of structure in memory when treated as a collection of bytes
@@ -202,40 +166,40 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
 
         #region Individual word public access
         [FieldOffset(0)]
-        public uint X00 = 0;
-        [FieldOffset(1 * sizeof(uint))]
-        public uint X01 = 0;
-        [FieldOffset(2 * sizeof(uint))]
-        public uint X02 = 0;
-        [FieldOffset(3 * sizeof(uint))]
-        public uint X03 = 0;
+        public uint X00;
+        [FieldOffset(4)]
+        public uint X01;
+        [FieldOffset(8)]
+        public uint X02;
+        [FieldOffset(12)]
+        public uint X03;
 
-        [FieldOffset(4 * sizeof(uint))]
-        public uint X04 = 0;
-        [FieldOffset(5 * sizeof(uint))]
-        public uint X05 = 0;
-        [FieldOffset(6 * sizeof(uint))]
-        public uint X06 = 0;
-        [FieldOffset(7 * sizeof(uint))]
-        public uint X07 = 0;
+        [FieldOffset(16)]
+        public uint X04;
+        [FieldOffset(20)]
+        public uint X05;
+        [FieldOffset(24)]
+        public uint X06;
+        [FieldOffset(28)]
+        public uint X07;
 
-        [FieldOffset(8 * sizeof(uint))]
-        public uint X08 = 0;
-        [FieldOffset(9 * sizeof(uint))]
-        public uint X09 = 0;
-        [FieldOffset(10 * sizeof(uint))]
-        public uint X10 = 0;
-        [FieldOffset(11 * sizeof(uint))]
-        public uint X11 = 0;
+        [FieldOffset(32)]
+        public uint X08;
+        [FieldOffset(36)]
+        public uint X09;
+        [FieldOffset(40)]
+        public uint X10;
+        [FieldOffset(44)]
+        public uint X11;
 
-        [FieldOffset(12 * sizeof(uint))]
-        public uint X12 = 0;
-        [FieldOffset(13 * sizeof(uint))]
-        public uint X13 = 0;
-        [FieldOffset(14 * sizeof(uint))]
-        public uint X14 = 0;
-        [FieldOffset(15 * sizeof(uint))]
-        public uint X15 = 0;
+        [FieldOffset(48)]
+        public uint X12;
+        [FieldOffset(52)]
+        public uint X13;
+        [FieldOffset(56)]
+        public uint X14;
+        [FieldOffset(60)]
+        public uint X15;
         #endregion
     }
 }

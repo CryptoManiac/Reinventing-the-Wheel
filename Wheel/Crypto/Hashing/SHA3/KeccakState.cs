@@ -51,7 +51,7 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
 
         public int HashSz
         {
-            get { return (int)capacityWords * sizeof(ulong) / 2; }
+            get { return (int)capacityWords * 4; }
         }
 
         public InternalKeccakState(int bitSize, bool useKeccak)
@@ -66,7 +66,7 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
                 new Span<byte>(ptr, sizeof(InternalKeccakState)).Clear();
             }
 
-            capacityWords = 2 * (uint)bitSize / (8 * sizeof(ulong));
+            capacityWords = (uint)bitSize / 32;
 
             if (useKeccak)
             {

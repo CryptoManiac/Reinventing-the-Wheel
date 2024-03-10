@@ -32,18 +32,13 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         }
 
         /// <summary>
-        /// Instantiate as a copy of the other round context
+        /// Initialize first 16 registers from the provided block and revert them
         /// </summary>
-        /// <param name="round">Other round context</param>
-        public unsafe InternalSHA256Round(in InternalSHA256Round round)
+        /// <param name="block">A context to provide 16 registers</param>
+        public InternalSHA256Round(in InternalSHA256Block block)
         {
-            fixed (void* source = &round)
-            {
-                fixed (void* target = &this)
-                {
-                    new Span<byte>(source, TypeByteSz).CopyTo(new Span<byte>(target, TypeByteSz));
-                }
-            }
+            SetBlock(block);
+            RevertBlock();
         }
 
         /// <summary>
@@ -87,7 +82,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         /// Set first 16 registers from the provided container
         /// </summary>
         /// <param name="block">A context to provide 16 registers</param>
-        public unsafe void SetBlock(in InternalSHA256Block block)
+        private unsafe void SetBlock(in InternalSHA256Block block)
         {
             fixed (void* source = &block)
             {
@@ -101,7 +96,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         /// <summary>
         /// Revert the byte order for the first 16 state registers
         /// </summary>
-        public void RevertBlock()
+        private void RevertBlock()
         {
             for (int i = 0; i < InternalSHA256Block.TypeUintSz; ++i)
             {
@@ -134,7 +129,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         /// <summary>
         /// Size of structure in memory when treated as a collection of uint values
         /// </summary>
-        static public readonly int TypeUintSz = sizeof(InternalSHA256Round) / sizeof(uint);
+        static public readonly int TypeUintSz = sizeof(InternalSHA256Round) / 4;
 
         // <summary>
         /// Size of structure in memory when treated as a collection of bytes
