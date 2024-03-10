@@ -5,14 +5,14 @@
         public static ulong SHA3_ROTL64(ulong x, int y) => (x << y) | (x >> ((sizeof(ulong) * 8) - y));
         public static uint SHA3_CW(uint x) => x & (~KeccakConstants.SHA3_USE_KECCAK_FLAG);
 
-        public static unsafe void keccakf(ulong* s)
+        public static void keccakf(Span<ulong> s)
         {
-            ulong* bc = stackalloc ulong[5];
+            Span<ulong> bc = stackalloc ulong[5];
 
             int i, j, round;
             ulong t;
 
-            for (round = 0; round < KeccakConstants.KECCAK_ROUNDS; round++)
+            for (round = 0; round < KeccakConstants.SHA3_ROUNDS; round++)
             {
 
                 /* Theta */

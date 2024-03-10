@@ -10,14 +10,14 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
         /// (starts from 0; 0--none are buffered)
         /// </summary>
         [FieldOffset(0)]
-        public uint byteIndex;
+        public int byteIndex;
 
         /// <summary>
         /// 0..24--the next word to integrate input
         /// (starts from 0)
         /// </summary>
         [FieldOffset(4)]
-        public uint wordIndex;
+        public int wordIndex;
 
         /// <summary>
         /// the double size of the hash output in
@@ -36,15 +36,25 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
         /// Overlapping Keccak state data field
         /// </summary>
         [FieldOffset(20)]
-        public fixed ulong s[(int)KeccakConstants.SHA3_KECCAK_SPONGE_WORDS];
+        public fixed ulong s[KeccakConstants.SHA3_SPONGE_WORDS];
 
         /// <summary>
         /// Overlapping Keccak state data field
         /// </summary>
         [FieldOffset(20)]
-        public fixed byte sb[(int)KeccakConstants.SHA3_KECCAK_SPONGE_WORDS * 8];
+        public fixed byte sb[KeccakConstants.SHA3_SPONGE_WORDS * 8];
 
-        public InternalKeccakState(int bitSize)
+        public bool IsKeccak
+        {
+            get { return 0 != (capacityWords & KeccakConstants.SHA3_USE_KECCAK_FLAG); }
+        }
+
+        public int HashSz
+        {
+            get { return (int)capacityWords * sizeof(ulong) / 2; }
+        }
+
+        public InternalKeccakState(int bitSize, bool useKeccak)
         {
             if (bitSize != 256 && bitSize != 384 && bitSize != 512)
             {
@@ -57,6 +67,11 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
             }
 
             capacityWords = 2 * (uint)bitSize / (8 * sizeof(ulong));
+
+            if (useKeccak)
+            {
+                capacityWords |= KeccakConstants.SHA3_USE_KECCAK_FLAG;
+            }
         }
 
         /// <summary>
