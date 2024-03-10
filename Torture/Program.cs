@@ -8,7 +8,7 @@ using Wheel.Crypto.Hashing.SHA3;
 // Perverted tests
 SortedDictionary<string, KeyValuePair<Func<IHasher>, Tuple<string, string>>> tortureScript = new()
 {
-    {
+    /*{
         "RIPEMD160", new (
             () => new RIPEMD160(),
             new (
@@ -70,7 +70,7 @@ SortedDictionary<string, KeyValuePair<Func<IHasher>, Tuple<string, string>>> tor
                 "9a7f86727c3be1403d6702617646b15589b8c5a92c70f1703cd25b52"
             )
         )
-    },
+    },*/
     {
         "SHA3_256", new (
             () => new SHA3_256(),

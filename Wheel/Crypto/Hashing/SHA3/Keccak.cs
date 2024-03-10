@@ -18,89 +18,80 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
 
         public void Update(byte[] input)
         {
-            // Do nothing if buffer is empty
-            if (input.Length != 0)
+            // 0...7 -- how much is needed to have a word
+            int offset = WriteTail(input);
+
+            int words = (input.Length - offset) / 8;
+            int tail = input.Length - offset - words * 8;
+
+            // For calm of my ming
+            var spounge = ctx.spounge;
+
+            // now work in full words directly from input
+            for (int i = 0; i < words; i++, offset += 8)
             {
-                unsafe
+                spounge[ctx.wordIndex] ^= (input[offset]) |
+                        ((ulong)input[offset + 1] << 8 * 1) |
+                        ((ulong)input[offset + 2] << 8 * 2) |
+                        ((ulong)input[offset + 3] << 8 * 3) |
+                        ((ulong)input[offset + 4] << 8 * 4) |
+                        ((ulong)input[offset + 5] << 8 * 5) |
+                        ((ulong)input[offset + 6] << 8 * 6) |
+                        ((ulong)input[offset + 7] << 8 * 7);
+
+                if (++ctx.wordIndex == (KeccakConstants.SHA3_SPONGE_WORDS - KeccakFunctions.SHA3_CW(ctx.capacityWords)))
                 {
-                    fixed (byte* ptr = &input[0])
-                    {
-                        Update(ptr, input.Length);
-                    }
+                    KeccakFunctions.keccakf(spounge);
+                    ctx.wordIndex = 0;
                 }
+            }
+
+            // Add remaining odd bytes
+            while (tail-- > 0)
+            {
+                ctx.saved |= (ulong)input[offset++] << (ctx.byteIndex++ * 8);
             }
         }
 
-        private unsafe void Update(byte* buf, int len)
+        private int WriteTail(byte[] input)
         {
             // 0...7 -- how much is needed to have a word
             int old_tail = (8 - ctx.byteIndex) & 7;
 
-            if (len < old_tail)
+            if (input.Length < old_tail)
             {
                 // have no complete word or haven't started
                 // the word yet
-                while (len-- > 0)
+                foreach(var b in input)
                 {
-                    ctx.saved |= (ulong)*buf++ << (ctx.byteIndex++ * 8);
+                    ctx.saved |= (ulong)b << (ctx.byteIndex++ * 8);
                 }
-                return;
+                return input.Length;
             }
 
             if (old_tail > 0)
             {
-                len -= old_tail;
-                while (old_tail-- > 0)
+                for (int i = 0; i < old_tail; ++i)
                 {
-                    ctx.saved |= (ulong)*buf++ << (ctx.byteIndex++ * 8);
+                    ctx.saved |= (ulong)input[i] << (ctx.byteIndex++ * 8);
                 }
 
                 // now ready to add saved to the sponge
-                ctx.s[ctx.wordIndex] ^= ctx.saved;
+                ctx.spounge[ctx.wordIndex] ^= ctx.saved;
                 ctx.byteIndex = 0;
                 ctx.saved = 0;
 
                 if (++ctx.wordIndex == (KeccakConstants.SHA3_SPONGE_WORDS - KeccakFunctions.SHA3_CW(ctx.capacityWords)))
                 {
-                    fixed (ulong* s = &ctx.s[0])
-                    {
-                        KeccakFunctions.keccakf(new Span<ulong>(s, KeccakConstants.SHA3_SPONGE_WORDS));
-                    }
-
+                    KeccakFunctions.keccakf(ctx.spounge);
                     ctx.wordIndex = 0;
                 }
+
+                return old_tail;
             }
 
-            // now work in full words directly from input
-
-            int words = len / 8;
-            int tail = len - words * 8;
-
-            for (int i = 0; i < words; i++, buf += 8)
-            {
-                ctx.s[ctx.wordIndex] ^= (buf[0]) |
-                        ((ulong)buf[1] << 8 * 1) |
-                        ((ulong)buf[2] << 8 * 2) |
-                        ((ulong)buf[3] << 8 * 3) |
-                        ((ulong)buf[4] << 8 * 4) |
-                        ((ulong)buf[5] << 8 * 5) |
-                        ((ulong)buf[6] << 8 * 6) |
-                        ((ulong)buf[7] << 8 * 7);
-
-                if (++ctx.wordIndex == (KeccakConstants.SHA3_SPONGE_WORDS - KeccakFunctions.SHA3_CW(ctx.capacityWords)))
-                {
-                    fixed (ulong* s = &ctx.s[0])
-                    {
-                        KeccakFunctions.keccakf(new Span<ulong>(s, KeccakConstants.SHA3_SPONGE_WORDS));
-                    }
-                    ctx.wordIndex = 0;
-                }
-            }
-
-            while (tail-- > 0)
-            {
-                ctx.saved |= (ulong)*buf++ << (ctx.byteIndex++ * 8);
-            }
+            // No offset
+            return 0;
         }
 
         /// <summary>
@@ -133,21 +124,10 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
                 t = ((ulong)(0x02 | (1 << 2))) << (ctx.byteIndex * 8);
             }
 
-            unsafe
-            {
-                ctx.s[ctx.wordIndex] ^= ctx.saved ^ t;
-                ctx.s[KeccakConstants.SHA3_SPONGE_WORDS - KeccakFunctions.SHA3_CW(ctx.capacityWords) - 1] ^= 0x8000000000000000UL;
-
-                fixed (ulong* s = &ctx.s[0])
-                {
-                    KeccakFunctions.keccakf(new Span<ulong>(s, KeccakConstants.SHA3_SPONGE_WORDS));
-                }
-
-                fixed (byte* ptr = &ctx.sb[0])
-                {
-                    new Span<byte>(ptr, ctx.HashSz).CopyTo(hash);
-                }
-            }
+            ctx.spounge[ctx.wordIndex] ^= ctx.saved ^ t;
+            ctx.spounge[KeccakConstants.SHA3_SPONGE_WORDS - (int)KeccakFunctions.SHA3_CW(ctx.capacityWords) - 1] ^= 0x8000000000000000UL;
+            KeccakFunctions.keccakf(ctx.spounge);
+            ctx.spoungeBytes.AsSpan(0, ctx.HashSz).CopyTo(hash);
 
             // Reset hasher state
             Reset();
