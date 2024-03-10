@@ -100,23 +100,21 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe readonly ulong GetRegisterUlong(int index)
         {
-            ThrowOrPassUlong(index);
+            if (0 > index || index >= KeccakConstants.SHA3_SPONGE_WORDS)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + KeccakConstants.SHA3_SPONGE_WORDS + ") range");
+            }
             return registers[index];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe void SetRegisterUlong(int index, ulong value)
         {
-            ThrowOrPassUlong(index);
-            registers[index] = value;
-        }
-
-        static void ThrowOrPassUlong(int index)
-        {
             if (0 > index || index >= KeccakConstants.SHA3_SPONGE_WORDS)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + KeccakConstants.SHA3_SPONGE_WORDS + ") range");
             }
+            registers[index] = value;
         }
         #endregion
 
