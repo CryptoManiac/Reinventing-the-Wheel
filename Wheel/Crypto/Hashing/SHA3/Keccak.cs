@@ -1,19 +1,70 @@
 ﻿using System.Runtime.InteropServices;
+using Wheel.Crypto.Miscellaneous.Support;
 
 namespace Wheel.Crypto.Hashing.SHA3.Internal
 {
     public class Keccak : IHasher
     {
-        private InternalKeccakState ctx;
+        /// <summary>
+        /// 0..7--the next byte after the set one
+        /// (starts from 0; 0--none are buffered)
+        /// </summary>
+        public int byteIndex;
+
+        /// <summary>
+        /// 0..24--the next word to integrate input
+        /// (starts from 0)
+        /// </summary>
+        public int wordIndex;
+
+        /// <summary>
+        /// the double size of the hash output in
+        /// words (e.g. 16 for Keccak 512)
+        /// </summary>
+        public readonly uint capacityWords;
+
+        /// <summary>
+        /// the portion of the input message that we didn't consume yet
+        /// </summary>
+        public ulong saved;
+
+        /// <summary>
+        /// Keccak data mixer
+        /// </summary>
+        private KeccakSpounge spounge;
+
+        public bool IsKeccak
+        {
+            get { return 0 != (capacityWords & KeccakConstants.SHA3_USE_KECCAK_FLAG); }
+        }
+
+        public int HashSz
+        {
+            get { return (int)capacityWords * 4; }
+        }
 
         public Keccak(int bitSize, bool isKeccak)
         {
-            ctx = new(bitSize, isKeccak);
+            if (bitSize != 256 && bitSize != 384 && bitSize != 512)
+            {
+                throw new InvalidOperationException("Valid bitSize values are: 256, 384 or 512");
+            }
+
+            capacityWords = (uint)bitSize / 32;
+
+            if (isKeccak)
+            {
+                capacityWords |= KeccakConstants.SHA3_USE_KECCAK_FLAG;
+            }
+
         }
 
         public void Reset()
         {
-            ctx.Reset();
+            spounge.Reset();
+            wordIndex = 0;
+            byteIndex = 0;
+            saved = 0;
         }
 
         public void Update(byte[] input)
@@ -24,13 +75,10 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
             int words = (input.Length - offset) / 8;
             int tail = input.Length - offset - words * 8;
 
-            // For calm of my ming
-            var spounge = ctx.spounge;
-
             // now work in full words directly from input
             for (int i = 0; i < words; i++, offset += 8)
             {
-                spounge[ctx.wordIndex] ^= (input[offset]) |
+                spounge[wordIndex] ^= (input[offset]) |
                         ((ulong)input[offset + 1] << 8 * 1) |
                         ((ulong)input[offset + 2] << 8 * 2) |
                         ((ulong)input[offset + 3] << 8 * 3) |
@@ -39,24 +87,24 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
                         ((ulong)input[offset + 6] << 8 * 6) |
                         ((ulong)input[offset + 7] << 8 * 7);
 
-                if (++ctx.wordIndex == (KeccakConstants.SHA3_SPONGE_WORDS - KeccakFunctions.SHA3_CW(ctx.capacityWords)))
+                if (++wordIndex == (KeccakConstants.SHA3_SPONGE_WORDS - KeccakFunctions.SHA3_CW(capacityWords)))
                 {
-                    KeccakFunctions.keccakf(spounge);
-                    ctx.wordIndex = 0;
+                    KeccakFunctions.keccakf(ref spounge);
+                    wordIndex = 0;
                 }
             }
 
             // Add remaining odd bytes
             while (tail-- > 0)
             {
-                ctx.saved |= (ulong)input[offset++] << (ctx.byteIndex++ * 8);
+                saved |= (ulong)input[offset++] << (byteIndex++ * 8);
             }
         }
 
         private int WriteTail(byte[] input)
         {
             // 0...7 -- how much is needed to have a word
-            int old_tail = (8 - ctx.byteIndex) & 7;
+            int old_tail = (8 - byteIndex) & 7;
 
             if (input.Length < old_tail)
             {
@@ -64,7 +112,7 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
                 // the word yet
                 foreach(var b in input)
                 {
-                    ctx.saved |= (ulong)b << (ctx.byteIndex++ * 8);
+                    saved |= (ulong)b << (byteIndex++ * 8);
                 }
                 return input.Length;
             }
@@ -73,18 +121,18 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
             {
                 for (int i = 0; i < old_tail; ++i)
                 {
-                    ctx.saved |= (ulong)input[i] << (ctx.byteIndex++ * 8);
+                    saved |= (ulong)input[i] << (byteIndex++ * 8);
                 }
 
                 // now ready to add saved to the sponge
-                ctx.spounge[ctx.wordIndex] ^= ctx.saved;
-                ctx.byteIndex = 0;
-                ctx.saved = 0;
+                spounge[wordIndex] ^= saved;
+                byteIndex = 0;
+                saved = 0;
 
-                if (++ctx.wordIndex == (KeccakConstants.SHA3_SPONGE_WORDS - KeccakFunctions.SHA3_CW(ctx.capacityWords)))
+                if (++wordIndex == (KeccakConstants.SHA3_SPONGE_WORDS - KeccakFunctions.SHA3_CW(capacityWords)))
                 {
-                    KeccakFunctions.keccakf(ctx.spounge);
-                    ctx.wordIndex = 0;
+                    KeccakFunctions.keccakf(ref spounge);
+                    wordIndex = 0;
                 }
 
                 return old_tail;
@@ -101,9 +149,9 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
         /// </summary>
         public void Digest(Span<byte> hash)
         {
-            if (hash.Length < ctx.HashSz)
+            if (hash.Length < HashSz)
             {
-                throw new ArgumentOutOfRangeException(nameof(hash), hash.Length, "Hash buffer must be at least " + ctx.HashSz + " bytes long");
+                throw new ArgumentOutOfRangeException(nameof(hash), hash.Length, "Hash buffer must be at least " + HashSz + " bytes long");
             }
 
             // Append 2-bit suffix 01, per SHA-3 spec. Instead of 1 for padding we
@@ -113,21 +161,32 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
 
             ulong t;
 
-            if (ctx.IsKeccak)
+            if (IsKeccak)
             {
                 // Keccak version
-                t = ((ulong)1) << (ctx.byteIndex * 8);
+                t = ((ulong)1) << (byteIndex * 8);
             }
             else
             {
                 // SHA3 version
-                t = ((ulong)(0x02 | (1 << 2))) << (ctx.byteIndex * 8);
+                t = ((ulong)(0x02 | (1 << 2))) << (byteIndex * 8);
             }
 
-            ctx.spounge[ctx.wordIndex] ^= ctx.saved ^ t;
-            ctx.spounge[KeccakConstants.SHA3_SPONGE_WORDS - (int)KeccakFunctions.SHA3_CW(ctx.capacityWords) - 1] ^= 0x8000000000000000UL;
-            KeccakFunctions.keccakf(ctx.spounge);
-            ctx.spoungeBytes.AsSpan(0, ctx.HashSz).CopyTo(hash);
+            spounge[wordIndex] ^= saved ^ t;
+            spounge[KeccakConstants.SHA3_SPONGE_WORDS - (int)KeccakFunctions.SHA3_CW(capacityWords) - 1] ^= 0x8000000000000000UL;
+            KeccakFunctions.keccakf(ref spounge);
+
+            // Revert byte order on BE machines
+            //  Considering that Itanium is dead, this is unlikely to ever be useful
+            if (!BitConverter.IsLittleEndian)
+            {
+                for (int i = 0; i < KeccakConstants.SHA3_SPONGE_WORDS; i++)
+                {
+                    spounge[i] = Common.REVERT(spounge[i]);
+                }
+            }
+
+            spounge.bytes.Store(hash);
 
             // Reset hasher state
             Reset();
@@ -135,17 +194,9 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
 
         public byte[] Digest()
         {
-            byte[] hash = new byte[ctx.HashSz];
+            byte[] hash = new byte[HashSz];
             Digest(hash);
             return hash;
-        }
-
-        public bool IsKeccak
-        {
-            get
-            {
-                return ctx.IsKeccak;
-            }
         }
     }
 }

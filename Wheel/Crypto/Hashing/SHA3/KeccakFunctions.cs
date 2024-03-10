@@ -5,7 +5,7 @@
         public static ulong SHA3_ROTL64(ulong x, int y) => (x << y) | (x >> (64 - y));
         public static uint SHA3_CW(uint x) => x & (~KeccakConstants.SHA3_USE_KECCAK_FLAG);
 
-        public static void keccakf(Span<ulong> s)
+        public static void keccakf(ref KeccakSpounge s)
         {
             Span<ulong> bc = stackalloc ulong[5];
 
