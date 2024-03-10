@@ -78,7 +78,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe void SetRegisterUlong(uint index, ulong value)
+        private void SetRegisterUlong(uint index, ulong value)
         {
             ThrowOrPassUlong(index);
             registers[index] = value;

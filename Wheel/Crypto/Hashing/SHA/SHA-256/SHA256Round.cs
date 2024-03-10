@@ -56,14 +56,14 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
 
         #region Register access logic
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe readonly uint GetRegisterUint(uint index)
+        private readonly uint GetRegisterUint(uint index)
         {
             ThrowOrPassUint(index);
             return registers[index];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe void SetRegisterUint(uint index, uint value)
+        private void SetRegisterUint(uint index, uint value)
         {
             ThrowOrPassUint(index);
             registers[index] = value;

@@ -25,14 +25,14 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
 
         #region Byte access logic
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe readonly byte GetRegisterByte(uint index)
+        private readonly byte GetRegisterByte(uint index)
         {
             ThrowOrPassByte(index);
             return data[index];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe void SetRegisterByte(uint index, byte value)
+        private void SetRegisterByte(uint index, byte value)
         {
             ThrowOrPassByte(index);
             data[index] = value;
@@ -154,14 +154,14 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
 
         #region Register access logic
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe readonly uint GetRegisterUint(uint index)
+        private readonly uint GetRegisterUint(uint index)
         {
             ThrowOrPassUint(index);
             return registers[index];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe void SetRegisterUint(uint index, uint value)
+        private void SetRegisterUint(uint index, uint value)
         {
             ThrowOrPassUint(index);
             registers[index] = value;

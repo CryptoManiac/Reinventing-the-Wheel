@@ -51,7 +51,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
             }
         }
 
-        public unsafe void Add(in InternalSHA512State state)
+        public void Add(in InternalSHA512State state)
         {
             a += state.a;
             b += state.b;
@@ -106,7 +106,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe void SetRegisterUlong(uint index, ulong value)
+        private void SetRegisterUlong(uint index, ulong value)
         {
             ThrowOrPassUlong(index);
             registers[index] = value;
