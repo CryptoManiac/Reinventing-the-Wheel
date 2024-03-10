@@ -71,9 +71,7 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
         {
             // 0...7 -- how much is needed to have a word
             int offset = WriteTail(input);
-
             int words = (input.Length - offset) / 8;
-            int tail = input.Length - offset - words * 8;
 
             // now work in full words directly from input
             for (int i = 0; i < words; i++, offset += 8)
@@ -95,7 +93,7 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
             }
 
             // Add remaining odd bytes
-            while (tail-- > 0)
+            while (offset < input.Length)
             {
                 saved |= (ulong)input[offset++] << (byteIndex++ * 8);
             }
