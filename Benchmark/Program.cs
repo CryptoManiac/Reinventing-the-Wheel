@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
-using Wheel.Crypto.Hashing.SHA;
+using Wheel.Crypto.Hashing.SHA.SHA256;
+using Wheel.Crypto.Hashing.SHA.SHA512;
 
 public class BenchmarkProgram
 {
