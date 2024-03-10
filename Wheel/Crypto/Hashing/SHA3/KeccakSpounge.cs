@@ -15,7 +15,7 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
         /// </summary>
         /// <param name="key">Byte field index</param>
         /// <returns>Byte value</returns>
-        public byte this[int key]
+        public byte this[uint key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => GetRegisterByte(key);
@@ -25,7 +25,7 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
 
         #region Byte access logic
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly byte GetRegisterByte(int index)
+        private readonly byte GetRegisterByte(uint index)
         {
             int byteSz = KeccakConstants.SHA3_SPONGE_WORDS * 8;
             if (0 > index || index >= byteSz)
@@ -36,7 +36,7 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SetRegisterByte(int index, byte value)
+        private void SetRegisterByte(uint index, byte value)
         {
             int byteSz = KeccakConstants.SHA3_SPONGE_WORDS * 8;
             if (0 > index || index >= byteSz)
@@ -87,7 +87,7 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
         /// </summary>
         /// <param name="key">Field index</param>
         /// <returns>Word value</returns>
-        public ulong this[int key]
+        public ulong this[uint key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => GetRegisterUlong(key);
@@ -97,9 +97,9 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
 
         #region Register access logic
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe readonly ulong GetRegisterUlong(int index)
+        private unsafe readonly ulong GetRegisterUlong(uint index)
         {
-            if (0 > index || index >= KeccakConstants.SHA3_SPONGE_WORDS)
+            if (index >= KeccakConstants.SHA3_SPONGE_WORDS)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + KeccakConstants.SHA3_SPONGE_WORDS + ") range");
             }
@@ -107,9 +107,9 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe void SetRegisterUlong(int index, ulong value)
+        private unsafe void SetRegisterUlong(uint index, ulong value)
         {
-            if (0 > index || index >= KeccakConstants.SHA3_SPONGE_WORDS)
+            if (index >= KeccakConstants.SHA3_SPONGE_WORDS)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + KeccakConstants.SHA3_SPONGE_WORDS + ") range");
             }

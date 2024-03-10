@@ -9,7 +9,7 @@
         {
             Span<ulong> bc = stackalloc ulong[5];
 
-            int i, j, round;
+            uint i, j, round;
             ulong t;
 
             for (round = 0; round < KeccakConstants.SHA3_ROUNDS; round++)
@@ -18,12 +18,12 @@
                 /* Theta */
                 for (i = 0; i < 5; i++)
                 {
-                    bc[i] = s[i] ^ s[i + 5] ^ s[i + 10] ^ s[i + 15] ^ s[i + 20];
+                    bc[(int)i] = s[i] ^ s[i + 5] ^ s[i + 10] ^ s[i + 15] ^ s[i + 20];
                 }
 
                 for (i = 0; i < 5; i++)
                 {
-                    t = bc[(i + 4) % 5] ^ SHA3_ROTL64(bc[(i + 1) % 5], 1);
+                    t = bc[(int)(i + 4) % 5] ^ SHA3_ROTL64(bc[(int)(i + 1) % 5], 1);
                     for (j = 0; j < 25; j += 5)
                     {
                         s[j + i] ^= t;
@@ -36,7 +36,7 @@
                 {
                     j = KeccakConstants.keccakf_piln[i];
                     bc[0] = s[j];
-                    s[j] = SHA3_ROTL64(t, KeccakConstants.keccakf_rotc[i]);
+                    s[j] = SHA3_ROTL64(t, (int)KeccakConstants.keccakf_rotc[i]);
                     t = bc[0];
                 }
 
@@ -45,12 +45,12 @@
                 {
                     for (i = 0; i < 5; i++)
                     {
-                        bc[i] = s[j + i];
+                        bc[(int)i] = s[j + i];
                     }
 
                     for (i = 0; i < 5; i++)
                     {
-                        s[j + i] ^= (~bc[(i + 1) % 5]) & bc[(i + 2) % 5];
+                        s[j + i] ^= (~bc[(int)(i + 1) % 5]) & bc[(int)(i + 2) % 5];
                     }
                 }
 

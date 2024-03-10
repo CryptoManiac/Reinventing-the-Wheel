@@ -15,7 +15,7 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
         /// 0..24--the next word to integrate input
         /// (starts from 0)
         /// </summary>
-        public int wordIndex;
+        public uint wordIndex;
 
         /// <summary>
         /// the double size of the hash output in
@@ -171,14 +171,14 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
             }
 
             spounge[wordIndex] ^= saved ^ t;
-            spounge[KeccakConstants.SHA3_SPONGE_WORDS - (int)KeccakFunctions.SHA3_CW(capacityWords) - 1] ^= 0x8000000000000000UL;
+            spounge[KeccakConstants.SHA3_SPONGE_WORDS - KeccakFunctions.SHA3_CW(capacityWords) - 1] ^= 0x8000000000000000UL;
             KeccakFunctions.keccakf(ref spounge);
 
             // Revert byte order on BE machines
             //  Considering that Itanium is dead, this is unlikely to ever be useful
             if (!BitConverter.IsLittleEndian)
             {
-                for (int i = 0; i < KeccakConstants.SHA3_SPONGE_WORDS; i++)
+                for (uint i = 0; i < KeccakConstants.SHA3_SPONGE_WORDS; i++)
                 {
                     spounge[i] = Common.REVERT(spounge[i]);
                 }
