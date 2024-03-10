@@ -27,24 +27,23 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly byte GetRegisterByte(int index)
         {
-            ThrowOrPassByte(index);
+            int byteSz = KeccakConstants.SHA3_SPONGE_WORDS * 8;
+            if (0 > index || index >= byteSz)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + byteSz * 8 + ") range");
+            }
             return data[index];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SetRegisterByte(int index, byte value)
         {
-            ThrowOrPassByte(index);
-            data[index] = value;
-        }
-
-        static void ThrowOrPassByte(int index)
-        {
             int byteSz = KeccakConstants.SHA3_SPONGE_WORDS * 8;
             if (0 > index || index >= byteSz)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + byteSz * 8 + ") range");
             }
+            data[index] = value;
         }
         #endregion
 
