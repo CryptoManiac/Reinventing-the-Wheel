@@ -105,17 +105,6 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         }
 
         /// <summary>
-        /// Revert the byte order for the state registers
-        /// </summary>
-        public void Revert()
-        {
-            for (int i = 0; i < TypeUintSz; ++i)
-            {
-                registers[i] = Common.REVERT(registers[i]);
-            }
-        }
-
-        /// <summary>
         /// Set to zero
         /// </summary>
         public unsafe void Reset()
@@ -136,11 +125,10 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         /// </summary>
         static public readonly int TypeByteSz = sizeof(InternalSHA256Round);
 
-        #region Fixed size buffers for actual storage
-        [FieldOffset(0)]
-        private fixed byte data[256];
+        /// <summary>
+        /// Fixed size buffer for registers
+        /// </summary>
         [FieldOffset(0)]
         private fixed uint registers[64];
-        #endregion
     }
 }

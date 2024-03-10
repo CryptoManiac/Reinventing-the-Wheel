@@ -177,17 +177,6 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         #endregion
 
         /// <summary>
-        /// Revert the byte order for the block registers
-        /// </summary>
-        public void Revert()
-        {
-            for (int i = 0; i < TypeUlongSz; ++i)
-            {
-                registers[i] = Common.REVERT(registers[i]);
-            }
-        }
-
-        /// <summary>
         /// Set to zero
         /// </summary>
         public unsafe void Reset()
@@ -208,12 +197,11 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         /// </summary>
         static public readonly int TypeByteSz = sizeof(InternalSHA512Block);
 
-        #region Fixed size buffers for actual storage
-        [FieldOffset(0)]
-        private fixed byte data[128];
+        /// <summary>
+        /// Fixed size buffers for actual storage
+        /// </summary>
         [FieldOffset(0)]
         private fixed ulong registers[16];
-        #endregion
 
         /// <summary>
         /// Public indexed access to the individual block bytes

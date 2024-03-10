@@ -85,43 +85,6 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         }
 
         /// <summary>
-        /// Index access to individual registers
-        /// </summary>
-        /// <param name="key">Field index [0 .. 7]</param>
-        /// <returns>Word value</returns>
-        public ulong this[uint key]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            readonly get => GetRegisterUlong(key);
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => SetRegisterUlong(key, value);
-        }
-
-        #region Register access logic
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly ulong GetRegisterUlong(uint index)
-        {
-            ThrowOrPassUlong(index);
-            return registers[index];
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SetRegisterUlong(uint index, ulong value)
-        {
-            ThrowOrPassUlong(index);
-            registers[index] = value;
-        }
-
-        static void ThrowOrPassUlong(uint index)
-        {
-            if (index >= TypeUlongSz)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeUlongSz + ") range");
-            }
-        }
-        #endregion
-
-        /// <summary>
         /// Revert the byte order for the block registers
         /// </summary>
         public void Revert()
@@ -129,17 +92,6 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
             for (int i = 0; i < TypeUlongSz; ++i)
             {
                 registers[i] = Common.REVERT(registers[i]);
-            }
-        }
-
-        /// <summary>
-        /// Set to zero
-        /// </summary>
-        public unsafe void Reset()
-        {
-            fixed (void* ptr = &this)
-            {
-                new Span<byte>(ptr, TypeByteSz).Clear();
             }
         }
 
@@ -153,12 +105,11 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         /// </summary>
         static public readonly int TypeByteSz = sizeof(InternalSHA512State);
 
-        #region Fixed size buffers for actual storage
-        [FieldOffset(0)]
-        private fixed byte data[64];
+        /// <summary>
+        /// Fixed size buffers for registers
+        /// </summary>
         [FieldOffset(0)]
         private fixed ulong registers[8];
-        #endregion
 
         #region Public access to named register fields
         [FieldOffset(0)]

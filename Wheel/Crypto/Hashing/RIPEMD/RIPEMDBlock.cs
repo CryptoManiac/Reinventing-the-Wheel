@@ -151,9 +151,7 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
         /// </summary>
         static public readonly int TypeByteSz = sizeof(InternalRIPEMDBlock);
 
-        #region Fixed size buffers for actual storage
-        [FieldOffset(0)]
-        private fixed byte data[64];
+        #region Fixed size buffer for registers
         [FieldOffset(0)]
         private fixed uint registers[16];
         #endregion

@@ -1,60 +1,7 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 namespace Wheel.Crypto.Hashing.RIPEMD.Internal
 {
-    /// <summary>
-    /// Access to individual block bytes through index operator
-    /// </summary>
-    [StructLayout(LayoutKind.Explicit)]
-    public unsafe struct InternalRIPEMDStateBytes
-    {
-        /// <summary>
-        /// Index access to individual registers
-        /// </summary>
-        /// <param name="key">Byte field index [0 .. 63]</param>
-        /// <returns>Word value</returns>
-        public byte this[uint key]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            readonly get => GetRegisterByte(key);
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => SetRegisterByte(key, value);
-        }
-
-        #region Byte access logic
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly byte GetRegisterByte(uint index)
-        {
-            ThrowOrPassByte(index);
-            return data[index];
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SetRegisterByte(uint index, byte value)
-        {
-            ThrowOrPassByte(index);
-            data[index] = value;
-        }
-
-        static void ThrowOrPassByte(uint index)
-        {
-            if (index >= TypeByteSz)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeByteSz + ") range");
-            }
-        }
-        #endregion
-
-        /// <summary>
-        /// Size of structure in memory when treated as a collection of bytes
-        /// </summary>
-        static public readonly int TypeByteSz = sizeof(InternalRIPEMDStateBytes);
-
-        [FieldOffset(0)]
-        private fixed byte data[20];
-    }
-
     /// <summary>
     /// Represents the block data for the RIPEMD-160
     /// Note: Mostly identical to that of SHA-256
@@ -119,42 +66,6 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
             }
         }
 
-        /// <summary>
-        /// Index access to individual registers
-        /// </summary>
-        /// <param name="key">Field index [0 .. 7]</param>
-        /// <returns>Word value</returns>
-        public uint this[uint key]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            readonly get => GetRegisterUint(key);
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => SetRegisterUint(key, value);
-        }
-
-        #region Register access logic
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly uint GetRegisterUint(uint index)
-        {
-            ThrowOrPassUint(index);
-            return registers[index];
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SetRegisterUint(uint index, uint value)
-        {
-            ThrowOrPassUint(index);
-            registers[index] = value;
-        }
-
-        static void ThrowOrPassUint(uint index)
-        {
-            if (index >= TypeUintSz)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeUintSz + ") range");
-            }
-        }
-        #endregion
 
         /// <summary>
         /// Size of structure in memory when treated as a collection of uint values
@@ -166,20 +77,7 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
         /// </summary>
         static public readonly int TypeByteSz = sizeof(InternalRIPEMDState);
 
-        #region Fixed size buffers for actual storage
-        [FieldOffset(0)]
-        private fixed byte data[20];
-        [FieldOffset(0)]
-        private fixed uint registers[5];
-        #endregion
-
-        /// <summary>
-        /// Public access to the individual block bytes
-        /// </summary>
-        [FieldOffset(0)]
-        public InternalRIPEMDStateBytes bytes;
-
-        #region Individual word public access
+        #region Individual word registers
         [FieldOffset(0)]
         public uint X00;
         [FieldOffset(4)]

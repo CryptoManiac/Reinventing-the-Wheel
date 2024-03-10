@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Wheel.Crypto.Miscellaneous.Support;
 
 namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
 {
@@ -177,17 +176,6 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         #endregion
 
         /// <summary>
-        /// Revert the byte order for the block registers
-        /// </summary>
-        public void Revert()
-        {
-            for (int i = 0; i < TypeUintSz; ++i)
-            {
-                registers[i] = Common.REVERT(registers[i]);
-            }
-        }
-
-        /// <summary>
         /// Set to zero
         /// </summary>
         public unsafe void Reset()
@@ -208,12 +196,11 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         /// </summary>
         static public readonly int TypeByteSz = sizeof(InternalSHA256Block);
 
-        #region Fixed size buffers for actual storage
-        [FieldOffset(0)]
-        private fixed byte data[64];
+        /// <summary>
+        /// Fixed size buffer for registers
+        /// </summary>
         [FieldOffset(0)]
         private fixed uint registers[16];
-        #endregion
 
         /// <summary>
         /// Public indexed access to the individual block bytes
