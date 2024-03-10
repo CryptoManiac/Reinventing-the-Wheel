@@ -4,14 +4,9 @@ namespace Wheel.Crypto.Hashing.RIPEMD
 {
 	public class RIPEMD160 : IHasher
 	{
-        private uint bytesLo, bytesHi;
-        private InternalRIPEMDState iv = new();
-        private InternalRIPEMDBlock key = new();
-
-		public RIPEMD160()
-		{
-            Reset();
-		}
+        private uint bytesLo = 0, bytesHi = 0;
+        private InternalRIPEMDState state = new(InternalRIPEMDConstants.ripemd_init_state);
+        private InternalRIPEMDBlock block = new();
 
         public byte[] Digest()
         {
@@ -22,8 +17,8 @@ namespace Wheel.Crypto.Hashing.RIPEMD
 
         public void Digest(Span<byte> digest)
         {
-            InternalRIPEMDOps.Finish(ref iv, ref key, bytesLo, bytesHi);
-            iv.Store(digest);
+            InternalRIPEMDOps.Finish(ref state, ref block, bytesLo, bytesHi);
+            state.Store(digest);
             Reset(); // In case it's sensitive
         }
 
@@ -31,8 +26,8 @@ namespace Wheel.Crypto.Hashing.RIPEMD
         {
             bytesLo = 0;
             bytesHi = 0;
-            iv.Set(InternalRIPEMDConstants.ripemd_init_state);
-            key.Reset();
+            state.Set(InternalRIPEMDConstants.ripemd_init_state);
+            block.Reset();
         }
 
         public void Update(byte[] input)
@@ -53,7 +48,7 @@ namespace Wheel.Crypto.Hashing.RIPEMD
             // i is always less than block size
             if (64 - i > len)
             {
-                key.Write(input, i);
+                block.Write(input, i);
                 return;
             }
 
@@ -64,8 +59,8 @@ namespace Wheel.Crypto.Hashing.RIPEMD
             if (i > 0)
             {
                 // First chunk is an odd size
-                key.Write(input.AsSpan(offset, 64 - (int)i), i);
-                InternalRIPEMDOps.Compress(ref iv, key);
+                block.Write(input.AsSpan(offset, 64 - (int)i), i);
+                InternalRIPEMDOps.Compress(ref state, block);
                 offset += 64 - (int)i;
                 len -= 64 - i;
             }
@@ -73,8 +68,8 @@ namespace Wheel.Crypto.Hashing.RIPEMD
             while (len >= 64)
             {
                 // Process data in 64-byte chunks
-                key.Write(input.AsSpan(offset, 64), i);
-                InternalRIPEMDOps.Compress(ref iv, key);
+                block.Write(input.AsSpan(offset, 64), i);
+                InternalRIPEMDOps.Compress(ref state, block);
                 offset += 64;
                 len -= 64;
             }
@@ -82,7 +77,7 @@ namespace Wheel.Crypto.Hashing.RIPEMD
             if (len > 0)
             {
                 // Handle any remaining bytes of data.
-                key.Write(input.AsSpan(offset, (int)len), 0);
+                block.Write(input.AsSpan(offset, (int)len), 0);
             }
         }
     }

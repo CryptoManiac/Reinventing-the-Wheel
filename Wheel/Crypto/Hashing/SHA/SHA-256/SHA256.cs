@@ -26,8 +26,20 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         /// </summary>
         protected InternalSHA256State state = new();
 
-        public SHA256Base()
+        /// <summary>
+        /// Initial state to be used by Reset()
+        /// </summary>
+        private InternalSHA256State initState;
+
+        /// <summary>
+        /// Output length
+        /// </summary>
+        private int digestSz;
+
+        public SHA256Base(InternalSHA256State constants, int outSz)
         {
+            initState = new(constants);
+            digestSz = outSz;
             Reset();
         }
 
@@ -39,11 +51,8 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
             blockLen = 0;
             bitLen = 0;
             pendingBlock.Reset();
-            SetInitState();
+            state.Set(initState);
         }
-
-        protected abstract void SetInitState();
-        protected abstract int GetHashLength();
 
         /// <summary>
         /// Write hash into given byte array
@@ -51,9 +60,9 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         /// <param name="hash">Byte array to write into</param>
         public void Digest(Span<byte> hash)
         {
-            if (hash.Length != GetHashLength())
+            if (hash.Length != digestSz)
             {
-                throw new InvalidOperationException("Target buffer size doesn't match the expected " + GetHashLength() + " bytes");
+                throw new InvalidOperationException("Target buffer size doesn't match the expected " + digestSz + " bytes");
             }
 
             Finish();
@@ -68,7 +77,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         public byte[] Digest()
         {
             Finish();
-            byte[] hash = new byte[GetHashLength()];
+            byte[] hash = new byte[digestSz];
             state.Store(hash);
             Reset();
             return hash;
@@ -108,7 +117,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
             }
         }
 
-        protected unsafe void Transform()
+        protected void Transform()
         {
             // Initialize with first 16 words filled from the
             // pending block and reverted to big endian
@@ -169,19 +178,8 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
 
     public class SHA256 : SHA256Base
 	{
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override int GetHashLength()
+        public SHA256() : base(InternalSHA256Constants.init_state_256, 32)
         {
-            return 32;
-        }
-
-        /// <summary>
-        /// Set SHA256 constants
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void SetInitState()
-        {
-            state.Set(InternalSHA256Constants.init_state_256);
         }
 
         public static byte[] Hash(byte[] input)
@@ -201,19 +199,8 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
 
     public class SHA224 : SHA256Base
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override int GetHashLength()
+        public SHA224() : base(InternalSHA256Constants.init_state_224, 28)
         {
-            return 28;
-        }
-
-        /// <summary>
-        /// Set SHA224 constants
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void SetInitState()
-        {
-            state.Set(InternalSHA256Constants.init_state_224);
         }
 
         public static byte[] Hash(byte[] input)

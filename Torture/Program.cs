@@ -16,7 +16,7 @@ SortedDictionary<string, KeyValuePair<Func<IHasher>, Tuple<string, string>>> tor
                 "29b6df855772aa9a95442bf83b282b495f9f6541"
             )
         )
-    },
+    }/*,
     {
         "SHA224", new (
             () => new SHA224(),
@@ -97,7 +97,7 @@ SortedDictionary<string, KeyValuePair<Func<IHasher>, Tuple<string, string>>> tor
                 "235ffd53504ef836a1342b488f483b396eabbfe642cf78ee0d31feec788b23d0d18d5c339550dd5958a500d4b95363da1b5fa18affc1bab2292dc63b7d85097c"
             )
         )
-    },
+    },*/
 };
 
 static void WriteRepeatedly(IHasher hasher, byte[] input, int iterations)

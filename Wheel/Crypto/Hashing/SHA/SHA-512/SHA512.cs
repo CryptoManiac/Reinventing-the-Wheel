@@ -26,8 +26,21 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         /// </summary>
         protected InternalSHA512State state = new();
 
-        public SHA512Base()
+        /// <summary>
+        /// Initial state to be used by Reset()
+        /// </summary>
+        private InternalSHA512State initState;
+
+        /// <summary>
+        /// Output length
+        /// </summary>
+        private int digestSz;
+
+
+        public SHA512Base(InternalSHA512State constants, int outSz)
         {
+            initState = new(constants);
+            digestSz = outSz;
             Reset();
         }
 
@@ -39,11 +52,8 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
             blockLen = 0;
             bitLen = 0;
             pendingBlock.Reset();
-            SetInitState();
+            state.Set(initState);
         }
-
-        protected abstract void SetInitState();
-        protected abstract int GetHashLength();
 
         /// <summary>
         /// Update hasher with new data bytes
@@ -86,9 +96,9 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         /// <param name="hash">Byte array to write into</param>
         public void Digest(Span<byte> hash)
         {
-            if (hash.Length != GetHashLength())
+            if (hash.Length != digestSz)
             {
-                throw new InvalidOperationException("Target buffer size doesn't match the expected " + GetHashLength() + " bytes");
+                throw new InvalidOperationException("Target buffer size doesn't match the expected " + digestSz + " bytes");
             }
 
             Finish();
@@ -103,13 +113,13 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         public byte[] Digest()
         {
             Finish();
-            byte[] hash = new byte[GetHashLength()];
+            byte[] hash = new byte[digestSz];
             state.Store(hash);
             Reset();
             return hash;
         }
 
-        protected unsafe void Transform()
+        protected void Transform()
         {
             // Initialize with first 16 words filled from the
             // pending block and reverted to big endian
@@ -170,16 +180,8 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
 
     public class SHA512 : SHA512Base
 	{
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override int GetHashLength()
+        public SHA512() : base(InternalSHA512Constants.init_state_512, 64)
         {
-            return 64;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void SetInitState()
-        {
-            state.Set(InternalSHA512Constants.init_state_512);
         }
 
         public static byte[] Hash(byte[] input)
@@ -200,16 +202,8 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
 
     public class SHA384 : SHA512Base
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override int GetHashLength()
+        public SHA384() : base(InternalSHA512Constants.init_state_384, 48)
         {
-            return 48;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void SetInitState()
-        {
-            state.Set(InternalSHA512Constants.init_state_384);
         }
 
         public static byte[] Hash(byte[] input)
@@ -229,15 +223,8 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
 
     public class SHA512_256 : SHA512Base
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override int GetHashLength()
+        public SHA512_256() : base(InternalSHA512Constants.init_state_256, 32)
         {
-            return 32;
-        }
-
-        protected override void SetInitState()
-        {
-            state.Set(InternalSHA512Constants.init_state_256);
         }
 
         public static byte[] Hash(byte[] input)
@@ -257,16 +244,8 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
 
     public class SHA512_224 : SHA512Base
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override int GetHashLength()
+        public SHA512_224() : base(InternalSHA512Constants.init_state_224, 28)
         {
-            return 28;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void SetInitState()
-        {
-            state.Set(InternalSHA512Constants.init_state_224);
         }
 
         public static byte[] Hash(byte[] input)

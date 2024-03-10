@@ -31,6 +31,22 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
         }
 
         /// <summary>
+        /// Instantiate from array or a variable number of arguments
+        /// </summary>
+        /// <param name="uints"></param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public unsafe InternalRIPEMDState(in InternalRIPEMDState state)
+        {
+            fixed (void* source = &state)
+            {
+                fixed (void* target = &this)
+                {
+                    new Span<byte>(source, TypeByteSz).CopyTo(new Span<byte>(target, TypeByteSz));
+                }
+            }
+        }
+
+        /// <summary>
         /// Set to a copy of the other state
         /// </summary>
         /// <param name="round">Other block</param>

@@ -94,13 +94,13 @@
         /// First part of compression function
         /// </summary>
         /// <returns>(AA, BB, CC, DD, EE)</returns>
-        private static void Compress_I(ref InternalRIPEMDState st, in InternalRIPEMDBlock X)
+        private static void Compress_I(ref InternalRIPEMDState state, in InternalRIPEMDBlock X)
         {
-            uint aa = st.X00;
-            uint bb = st.X01;
-            uint cc = st.X02;
-            uint dd = st.X03;
-            uint ee = st.X04;
+            uint aa = state.X00;
+            uint bb = state.X01;
+            uint cc = state.X02;
+            uint dd = state.X03;
+            uint ee = state.X04;
 
             // round 1
             FF(ref aa, bb, ref cc, dd, ee, X.X00, 11);
@@ -193,23 +193,23 @@
             JJ(ref bb, cc, ref dd, ee, aa, X.X13, 6);
 
             // Results
-            st.X00 = aa;
-            st.X01 = bb;
-            st.X02 = cc;
-            st.X03 = dd;
-            st.X04 = ee;
+            state.X00 = aa;
+            state.X01 = bb;
+            state.X02 = cc;
+            state.X03 = dd;
+            state.X04 = ee;
         }
 
         /// <summary>
         /// Second part of compression function
         /// </summary>
-        private static void Compress_II(ref InternalRIPEMDState st, in InternalRIPEMDBlock X)
+        private static void Compress_II(ref InternalRIPEMDState state, in InternalRIPEMDBlock X)
         {
-            uint aaa = st.X00;
-            uint bbb = st.X01;
-            uint ccc = st.X02;
-            uint ddd = st.X03;
-            uint eee = st.X04;
+            uint aaa = state.X00;
+            uint bbb = state.X01;
+            uint ccc = state.X02;
+            uint ddd = state.X03;
+            uint eee = state.X04;
 
             // parallel round 1
             JJJ(ref aaa, bbb, ref ccc, ddd, eee, X.X05, 8);
@@ -302,34 +302,34 @@
             FFF(ref bbb, ccc, ref ddd, eee, aaa, X.X11, 11);
 
             // Results
-            st.X00 = aaa;
-            st.X01 = bbb;
-            st.X02 = ccc;
-            st.X03 = ddd;
-            st.X04 = eee;
+            state.X00 = aaa;
+            state.X01 = bbb;
+            state.X02 = ccc;
+            state.X03 = ddd;
+            state.X04 = eee;
         }
 
         /// <summary>
         /// The compression function.
         /// Transforms MDbuf using message bytes X[0] through X[15]
         /// </summary>
-        public static void Compress(ref InternalRIPEMDState MDbuf, in InternalRIPEMDBlock X)
+        public static void Compress(ref InternalRIPEMDState state, in InternalRIPEMDBlock X)
         {
-            InternalRIPEMDState s1 = MDbuf;
-            InternalRIPEMDState s2 = MDbuf;
+            InternalRIPEMDState s1 = new(state);
+            InternalRIPEMDState s2 = new(state);
 
             Compress_I(ref s1, X);
             Compress_II(ref s2, X);
 
             // combine results
-            s2.X03 += s1.X02 + MDbuf.X01;
+            s2.X03 += s1.X02 + state.X01;
 
             // final result for MDbuf[0]
-            MDbuf.X01 = MDbuf.X02 + s1.X03 + s2.X04;
-            MDbuf.X02 = MDbuf.X03 + s1.X04 + s2.X00;
-            MDbuf.X03 = MDbuf.X04 + s1.X00 + s2.X01;
-            MDbuf.X04 = MDbuf.X00 + s1.X01 + s2.X02;
-            MDbuf.X00 = s2.X03;
+            state.X01 = state.X02 + s1.X03 + s2.X04;
+            state.X02 = state.X03 + s1.X04 + s2.X00;
+            state.X03 = state.X04 + s1.X00 + s2.X01;
+            state.X04 = state.X00 + s1.X01 + s2.X02;
+            state.X00 = s2.X03;
         }
 
         /// <summary>
@@ -338,11 +338,11 @@
         ///  note: length in bits == 8 * (lswlen + 2^32 mswlen).
         ///  note: there are(lswlen mod 64) bytes left in strptr.
         /// </summary>
-        /// <param name="MDbuf"></param>
+        /// <param name="state"></param>
         /// <param name="block"></param>
         /// <param name="lswlen"></param>
         /// <param name="mswlen"></param>
-        public static void Finish(ref InternalRIPEMDState MDbuf, ref InternalRIPEMDBlock block, uint lswlen, uint mswlen)
+        public static void Finish(ref InternalRIPEMDState state, ref InternalRIPEMDBlock block, uint lswlen, uint mswlen)
         {
             InternalRIPEMDBlock X = new();
 
@@ -359,14 +359,14 @@
             if ((lswlen & 63) > 55)
             {
                 // length goes to next block
-                Compress(ref MDbuf, X);
+                Compress(ref state, X);
                 X.Reset();
             }
 
             // append length in bits
             X.X14 = lswlen << 3;
             X.X15 = (lswlen >> 29) | (mswlen << 3);
-            Compress(ref MDbuf, X);
+            Compress(ref state, X);
         }
     }
 }
