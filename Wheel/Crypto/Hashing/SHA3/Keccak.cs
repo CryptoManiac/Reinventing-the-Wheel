@@ -148,6 +148,9 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
                     new Span<byte>(ptr, ctx.HashSz).CopyTo(hash);
                 }
             }
+
+            // Reset hasher state
+            Reset();
         }
 
         public byte[] Digest()
