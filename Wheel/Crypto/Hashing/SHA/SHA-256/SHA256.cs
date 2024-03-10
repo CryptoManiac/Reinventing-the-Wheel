@@ -36,6 +36,8 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         /// </summary>
         private int digestSz;
 
+        public int HashSz => digestSz;
+
         public SHA256Base(InternalSHA256State constants, int outSz)
         {
             initState = new(constants);

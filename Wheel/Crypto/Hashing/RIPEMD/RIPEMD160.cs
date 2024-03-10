@@ -8,6 +8,8 @@ namespace Wheel.Crypto.Hashing.RIPEMD
         private InternalRIPEMDState state = new(InternalRIPEMDConstants.ripemd_init_state);
         private InternalRIPEMDBlock block = new();
 
+        public int HashSz => 20;
+
         public byte[] Digest()
         {
             byte[] hash = new byte[20];

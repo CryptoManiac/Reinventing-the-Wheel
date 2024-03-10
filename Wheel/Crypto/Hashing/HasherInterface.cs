@@ -2,6 +2,7 @@
 {
 	public interface IHasher
 	{
+        public int HashSz { get; }
         public void Reset();
         public byte[] Digest();
         public void Digest(Span<byte> hash);

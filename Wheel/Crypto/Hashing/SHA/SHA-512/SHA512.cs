@@ -36,6 +36,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         /// </summary>
         private int digestSz;
 
+        public int HashSz => digestSz;
 
         public SHA512Base(InternalSHA512State constants, int outSz)
         {
