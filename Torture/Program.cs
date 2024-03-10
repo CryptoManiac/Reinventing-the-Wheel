@@ -3,6 +3,7 @@ using Wheel.Crypto.Hashing.SHA.SHA256;
 using Wheel.Crypto.Hashing.SHA.SHA512;
 using Wheel.Crypto.Hashing.RIPEMD;
 using Wheel.Crypto.Hashing;
+using Wheel.Crypto.Hashing.SHA3;
 
 // Perverted tests
 SortedDictionary<string, KeyValuePair<Func<IHasher>, Tuple<string, string>>> tortureScript = new()
@@ -69,7 +70,34 @@ SortedDictionary<string, KeyValuePair<Func<IHasher>, Tuple<string, string>>> tor
                 "9a7f86727c3be1403d6702617646b15589b8c5a92c70f1703cd25b52"
             )
         )
-    }
+    },
+    {
+        "SHA3_256", new (
+            () => new SHA3_256(),
+            new (
+                "5c8875ae474a3634ba4fd55ec85bffd661f32aca75c6d699d0cdcb6c115891c1",
+                "ecbbc42cbf296603acb2c6bc0410ef4378bafb24b710357f12df607758b33e2b"
+            )
+        )
+    },
+    {
+        "SHA3_384", new (
+            () => new SHA3_384(),
+            new (
+                "eee9e24d78c1855337983451df97c8ad9eedf256c6334f8e948d252d5e0e76847aa0774ddb90a842190d2c558b4b8340",
+                "a04296f4fcaae14871bb5ad33e28dcf69238b04204d9941b8782e816d014bcb7540e4af54f30d578f1a1ca2930847a12"
+            )
+        )
+    },
+    {
+        "SHA3_512", new (
+            () => new SHA3_512(),
+            new (
+                "3c3a876da14034ab60627c077bb98f7e120a2a5370212dffb3385a18d4f38859ed311d0a9d5141ce9cc5c66ee689b266a8aa18ace8282a0e0db596c90b0a7b87",
+                "235ffd53504ef836a1342b488f483b396eabbfe642cf78ee0d31feec788b23d0d18d5c339550dd5958a500d4b95363da1b5fa18affc1bab2292dc63b7d85097c"
+            )
+        )
+    },
 };
 
 static void WriteRepeatedly(IHasher hasher, byte[] input, int iterations)
