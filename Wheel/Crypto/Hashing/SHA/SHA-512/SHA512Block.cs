@@ -27,23 +27,21 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly byte GetRegisterByte(uint index)
         {
-            ThrowOrPassByte(index);
+            if (index >= TypeByteSz)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeByteSz + ") range");
+            }
             return data[index];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SetRegisterByte(uint index, byte value)
         {
-            ThrowOrPassByte(index);
-            data[index] = value;
-        }
-
-        static void ThrowOrPassByte(uint index)
-        {
             if (index >= TypeByteSz)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeByteSz + ") range");
             }
+            data[index] = value;
         }
         #endregion
 
@@ -156,23 +154,21 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly ulong GetRegisterUlong(uint index)
         {
-            ThrowOrPassUlong(index);
+            if (index >= TypeUlongSz)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeUlongSz + ") range");
+            }
             return registers[index];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe void SetRegisterUlong(uint index, ulong value)
         {
-            ThrowOrPassUlong(index);
-            registers[index] = value;
-        }
-
-        static void ThrowOrPassUlong(uint index)
-        {
             if (index >= TypeUlongSz)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeUlongSz + ") range");
             }
+            registers[index] = value;
         }
         #endregion
 

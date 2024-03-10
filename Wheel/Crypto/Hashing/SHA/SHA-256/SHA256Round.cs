@@ -8,7 +8,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
     /// Represents the round context data for the 256-bit family of SHA functions
     /// </summary>
     [StructLayout(LayoutKind.Explicit)]
-    public unsafe struct InternalSHA256Round
+    public struct InternalSHA256Round
     {
         /// <summary>
         /// Instantiate from array or a variable number of arguments
@@ -56,25 +56,23 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
 
         #region Register access logic
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly uint GetRegisterUint(uint index)
-        {
-            ThrowOrPassUint(index);
-            return registers[index];
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SetRegisterUint(uint index, uint value)
-        {
-            ThrowOrPassUint(index);
-            registers[index] = value;
-        }
-
-        static void ThrowOrPassUint(uint index)
+        private unsafe readonly uint GetRegisterUint(uint index)
         {
             if (index >= TypeUintSz)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeUintSz + ") range");
             }
+            return registers[index];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private unsafe void SetRegisterUint(uint index, uint value)
+        {
+            if (index >= TypeUintSz)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeUintSz + ") range");
+            }
+            registers[index] = value;
         }
         #endregion
 
@@ -96,7 +94,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         /// <summary>
         /// Revert the byte order for the first 16 state registers
         /// </summary>
-        private void RevertBlock()
+        private unsafe void RevertBlock()
         {
             for (int i = 0; i < InternalSHA256Block.TypeUintSz; ++i)
             {
@@ -118,17 +116,17 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         /// <summary>
         /// Size of structure in memory when treated as a collection of uint values
         /// </summary>
-        static public readonly int TypeUintSz = sizeof(InternalSHA256Round) / 4;
+        static public unsafe readonly int TypeUintSz = sizeof(InternalSHA256Round) / 4;
 
         // <summary>
         /// Size of structure in memory when treated as a collection of bytes
         /// </summary>
-        static public readonly int TypeByteSz = sizeof(InternalSHA256Round);
+        static public unsafe readonly int TypeByteSz = sizeof(InternalSHA256Round);
 
         /// <summary>
         /// Fixed size buffer for registers
         /// </summary>
         [FieldOffset(0)]
-        private fixed uint registers[64];
+        private unsafe fixed uint registers[64];
     }
 }

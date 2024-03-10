@@ -73,23 +73,21 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly ulong GetRegisterUlong(uint index)
         {
-            ThrowOrPassUlong(index);
+            if (index >= TypeUlongSz)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeUlongSz + ") range");
+            }
             return registers[index];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SetRegisterUlong(uint index, ulong value)
         {
-            ThrowOrPassUlong(index);
-            registers[index] = value;
-        }
-
-        static void ThrowOrPassUlong(uint index)
-        {
             if (index >= TypeUlongSz)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeUlongSz + ") range");
             }
+            registers[index] = value;
         }
         #endregion
 

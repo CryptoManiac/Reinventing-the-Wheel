@@ -26,23 +26,21 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly byte GetRegisterByte(uint index)
         {
-            ThrowOrPassByte(index);
+            if (index >= TypeByteSz)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeByteSz + ") range");
+            }
             return data[index];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SetRegisterByte(uint index, byte value)
         {
-            ThrowOrPassByte(index);
-            data[index] = value;
-        }
-
-        static void ThrowOrPassByte(uint index)
-        {
             if (index >= TypeByteSz)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeByteSz + ") range");
             }
+            data[index] = value;
         }
         #endregion
 
@@ -155,23 +153,21 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly uint GetRegisterUint(uint index)
         {
-            ThrowOrPassUint(index);
+            if (index >= TypeUintSz)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeUintSz + ") range");
+            }
             return registers[index];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SetRegisterUint(uint index, uint value)
         {
-            ThrowOrPassUint(index);
-            registers[index] = value;
-        }
-
-        static void ThrowOrPassUint(uint index)
-        {
             if (index >= TypeUintSz)
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeUintSz + ") range");
             }
+            registers[index] = value;
         }
         #endregion
 
