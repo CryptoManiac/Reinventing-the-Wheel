@@ -4,27 +4,27 @@ using Wheel.Crypto.Miscellaneous.Support;
 
 namespace Wheel.Crypto.Hashing.SHA.SHA512
 {
-    public abstract class SHA512Base : IHasher
+    public struct SHA512Base : IHasher
     {
         /// <summary>
         /// Current data block length in bytes
         /// </summary>
-        protected uint blockLen;
+        private uint blockLen = 0;
 
         /// <summary>
         /// Total input length in bits
         /// </summary>
-        protected ulong bitLen;
+        private ulong bitLen = 0;
 
         /// <summary>
         /// Pending block data to transform
         /// </summary>
-        protected InternalSHA512Block pendingBlock = new();
+        private InternalSHA512Block pendingBlock = new();
 
         /// <summary>
         /// Current hashing state
         /// </summary>
-        protected InternalSHA512State state = new();
+        private InternalSHA512State state = new();
 
         /// <summary>
         /// Initial state to be used by Reset()
@@ -120,7 +120,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
             return hash;
         }
 
-        protected void Transform()
+        private void Transform()
         {
             // Initialize with first 16 words filled from the
             // pending block and reverted to big endian
@@ -152,7 +152,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
             state.Add(loc);
         }
 
-        protected void Finish()
+        private void Finish()
         {
             uint i = blockLen;
             uint end = (blockLen < 112u) ? 112u : 128u;
@@ -179,12 +179,23 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         }
     }
 
-    public class SHA512 : SHA512Base
+    public struct SHA512 : IHasher
 	{
-        public SHA512() : base(InternalSHA512Constants.init_state_512, 64)
+        private IHasher ctx = new SHA512Base(InternalSHA512Constants.init_state_512, 64);
+
+        public SHA512()
         {
         }
 
+        #region Pass-through methods
+        public int HashSz => ctx.HashSz;
+        public byte[] Digest() => ctx.Digest();
+        public void Digest(Span<byte> hash) => ctx.Digest(hash);
+        public void Reset() => ctx.Reset();
+        public void Update(byte[] input) => ctx.Update(input);
+        #endregion
+
+        #region Static methods
         public static byte[] Hash(byte[] input)
         {
             SHA512 hasher = new();
@@ -198,15 +209,26 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
             hasher.Update(input);
             hasher.Digest(digest);
         }
-
+        #endregion
     }
 
-    public class SHA384 : SHA512Base
+    public struct SHA384 : IHasher
     {
-        public SHA384() : base(InternalSHA512Constants.init_state_384, 48)
+        private IHasher ctx = new SHA512Base(InternalSHA512Constants.init_state_384, 48);
+
+        public SHA384()
         {
         }
 
+        #region Pass-through methods
+        public int HashSz => ctx.HashSz;
+        public byte[] Digest() => ctx.Digest();
+        public void Digest(Span<byte> hash) => ctx.Digest(hash);
+        public void Reset() => ctx.Reset();
+        public void Update(byte[] input) => ctx.Update(input);
+        #endregion
+
+        #region Static methods
         public static byte[] Hash(byte[] input)
         {
             SHA384 hasher = new();
@@ -220,14 +242,26 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
             hasher.Update(input);
             hasher.Digest(digest);
         }
+        #endregion
     }
 
-    public class SHA512_256 : SHA512Base
+    public struct SHA512_256 : IHasher
     {
-        public SHA512_256() : base(InternalSHA512Constants.init_state_256, 32)
+        private IHasher ctx = new SHA512Base(InternalSHA512Constants.init_state_256, 32);
+
+        public SHA512_256()
         {
         }
 
+        #region Pass-through methods
+        public int HashSz => ctx.HashSz;
+        public byte[] Digest() => ctx.Digest();
+        public void Digest(Span<byte> hash) => ctx.Digest(hash);
+        public void Reset() => ctx.Reset();
+        public void Update(byte[] input) => ctx.Update(input);
+        #endregion
+
+        #region Static methods
         public static byte[] Hash(byte[] input)
         {
             SHA512_256 hasher = new();
@@ -241,14 +275,26 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
             hasher.Update(input);
             hasher.Digest(digest);
         }
+        #endregion
     }
 
-    public class SHA512_224 : SHA512Base
+    public struct SHA512_224 : IHasher
     {
-        public SHA512_224() : base(InternalSHA512Constants.init_state_224, 28)
+        private IHasher ctx = new SHA512Base(InternalSHA512Constants.init_state_224, 28);
+
+        public SHA512_224()
         {
         }
 
+        #region Pass-through methods
+        public int HashSz => ctx.HashSz;
+        public byte[] Digest() => ctx.Digest();
+        public void Digest(Span<byte> hash) => ctx.Digest(hash);
+        public void Reset() => ctx.Reset();
+        public void Update(byte[] input) => ctx.Update(input);
+        #endregion
+
+        #region Static methods
         public static byte[] Hash(byte[] input)
         {
             SHA512_224 hasher = new();
@@ -262,5 +308,6 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
             hasher.Update(input);
             hasher.Digest(digest);
         }
+        #endregion
     }
 }

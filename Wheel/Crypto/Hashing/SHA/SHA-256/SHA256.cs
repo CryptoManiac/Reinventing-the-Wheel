@@ -4,7 +4,7 @@ using Wheel.Crypto.Hashing.SHA.SHA256.Internal;
 
 namespace Wheel.Crypto.Hashing.SHA.SHA256
 {
-    public abstract class SHA256Base : IHasher
+    public class SHA256Base : IHasher
     {
         /// <summary>
         /// Current data block length in bytes
@@ -178,12 +178,23 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         }
     }
 
-    public class SHA256 : SHA256Base
+    public struct SHA256 : IHasher
 	{
-        public SHA256() : base(InternalSHA256Constants.init_state_256, 32)
+        private IHasher ctx = new SHA256Base(InternalSHA256Constants.init_state_256, 32);
+
+        public SHA256()
         {
         }
 
+        #region Pass-through methods
+        public int HashSz => ctx.HashSz;
+        public byte[] Digest() => ctx.Digest();
+        public void Digest(Span<byte> hash) => ctx.Digest(hash);
+        public void Reset() => ctx.Reset();
+        public void Update(byte[] input) => ctx.Update(input);
+        #endregion
+
+        #region Static methods
         public static byte[] Hash(byte[] input)
         {
             SHA256 hasher = new();
@@ -197,14 +208,26 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
             hasher.Update(input);
             hasher.Digest(digest);
         }
+        #endregion
     }
 
-    public class SHA224 : SHA256Base
+    public struct SHA224 : IHasher
     {
-        public SHA224() : base(InternalSHA256Constants.init_state_224, 28)
+        private IHasher ctx = new SHA256Base(InternalSHA256Constants.init_state_224, 28);
+
+        public SHA224()
         {
         }
 
+        #region Pass-through methods
+        public int HashSz => ctx.HashSz;
+        public byte[] Digest() => ctx.Digest();
+        public void Digest(Span<byte> hash) => ctx.Digest(hash);
+        public void Reset() => ctx.Reset();
+        public void Update(byte[] input) => ctx.Update(input);
+        #endregion
+
+        #region Static methods
         public static byte[] Hash(byte[] input)
         {
             SHA224 hasher = new();
@@ -218,5 +241,6 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
             hasher.Update(input);
             hasher.Digest(digest);
         }
+        #endregion
     }
 }

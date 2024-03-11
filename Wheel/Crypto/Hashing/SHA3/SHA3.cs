@@ -2,12 +2,23 @@
 
 namespace Wheel.Crypto.Hashing.SHA3
 {
-    public class SHA3_256 : Keccak
+    public struct SHA3_256 : IHasher
     {
-        public SHA3_256() : base(256, false)
+        private IHasher ctx = new Keccak(256, false);
+
+        public SHA3_256()
         {
         }
 
+        #region Pass-through methods
+        public int HashSz => ctx.HashSz;
+        public byte[] Digest() => ctx.Digest();
+        public void Digest(Span<byte> hash) => ctx.Digest(hash);
+        public void Reset() => ctx.Reset();
+        public void Update(byte[] input) => ctx.Update(input);
+        #endregion
+
+        #region Static methods
         public static byte[] Hash(byte[] input)
         {
             SHA3_256 hasher = new();
@@ -21,14 +32,26 @@ namespace Wheel.Crypto.Hashing.SHA3
             hasher.Update(input);
             hasher.Digest(digest);
         }
+        #endregion
     }
 
-    public class SHA3_384 : Keccak
+    public struct SHA3_384 : IHasher
     {
-        public SHA3_384() : base(384, false)
+        private IHasher ctx = new Keccak(384, false);
+
+        public SHA3_384()
         {
         }
 
+        #region Pass-through methods
+        public int HashSz => ctx.HashSz;
+        public byte[] Digest() => ctx.Digest();
+        public void Digest(Span<byte> hash) => ctx.Digest(hash);
+        public void Reset() => ctx.Reset();
+        public void Update(byte[] input) => ctx.Update(input);
+        #endregion
+
+        #region Static methods
         public static byte[] Hash(byte[] input)
         {
             SHA3_384 hasher = new();
@@ -42,14 +65,26 @@ namespace Wheel.Crypto.Hashing.SHA3
             hasher.Update(input);
             hasher.Digest(digest);
         }
+        #endregion
     }
 
-    public class SHA3_512 : Keccak
+    public struct SHA3_512 : IHasher
     {
-        public SHA3_512() : base(512, false)
+        private IHasher ctx = new Keccak(512, false);
+
+        public SHA3_512()
         {
         }
 
+        #region Pass-through methods
+        public int HashSz => ctx.HashSz;
+        public byte[] Digest() => ctx.Digest();
+        public void Digest(Span<byte> hash) => ctx.Digest(hash);
+        public void Reset() => ctx.Reset();
+        public void Update(byte[] input) => ctx.Update(input);
+        #endregion
+
+        #region Static methods
         public static byte[] Hash(byte[] input)
         {
             SHA3_512 hasher = new();
@@ -63,14 +98,26 @@ namespace Wheel.Crypto.Hashing.SHA3
             hasher.Update(input);
             hasher.Digest(digest);
         }
+        #endregion
     }
 
-    public class Keccak_256 : Keccak
+    public struct Keccak_256 : IHasher
     {
-        public Keccak_256() : base(256, true)
+        private IHasher ctx = new Keccak(256, true);
+
+        public Keccak_256()
         {
         }
 
+        #region Pass-through methods
+        public int HashSz => ctx.HashSz;
+        public byte[] Digest() => ctx.Digest();
+        public void Digest(Span<byte> hash) => ctx.Digest(hash);
+        public void Reset() => ctx.Reset();
+        public void Update(byte[] input) => ctx.Update(input);
+        #endregion
+
+        #region Static methods
         public static byte[] Hash(byte[] input)
         {
             Keccak_256 hasher = new();
@@ -84,14 +131,26 @@ namespace Wheel.Crypto.Hashing.SHA3
             hasher.Update(input);
             hasher.Digest(digest);
         }
+        #endregion
     }
 
-    public class Keccak_384 : Keccak
+    public struct Keccak_384 : IHasher
     {
-        public Keccak_384() : base(384, true)
+        private IHasher ctx = new Keccak(384, true);
+
+        public Keccak_384()
         {
         }
 
+        #region Pass-through methods
+        public int HashSz => ctx.HashSz;
+        public byte[] Digest() => ctx.Digest();
+        public void Digest(Span<byte> hash) => ctx.Digest(hash);
+        public void Reset() => ctx.Reset();
+        public void Update(byte[] input) => ctx.Update(input);
+        #endregion
+
+        #region Static methods
         public static byte[] Hash(byte[] input)
         {
             Keccak_384 hasher = new();
@@ -105,14 +164,26 @@ namespace Wheel.Crypto.Hashing.SHA3
             hasher.Update(input);
             hasher.Digest(digest);
         }
+        #endregion
     }
 
-    public class Keccak_512 : Keccak
+    public struct Keccak_512 : IHasher
     {
-        public Keccak_512() : base(512, true)
+        private IHasher ctx = new Keccak(512, true);
+
+        public Keccak_512()
         {
         }
 
+        #region Pass-through methods
+        public int HashSz => ctx.HashSz;
+        public byte[] Digest() => ctx.Digest();
+        public void Digest(Span<byte> hash) => ctx.Digest(hash);
+        public void Reset() => ctx.Reset();
+        public void Update(byte[] input) => ctx.Update(input);
+        #endregion
+
+        #region Static methods
         public static byte[] Hash(byte[] input)
         {
             Keccak_512 hasher = new();
@@ -126,5 +197,6 @@ namespace Wheel.Crypto.Hashing.SHA3
             hasher.Update(input);
             hasher.Digest(digest);
         }
+        #endregion
     }
 }

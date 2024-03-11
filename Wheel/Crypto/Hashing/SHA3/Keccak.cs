@@ -2,7 +2,7 @@
 
 namespace Wheel.Crypto.Hashing.SHA3.Internal
 {
-    public class Keccak : IHasher
+    public struct Keccak : IHasher
     {
         /// <summary>
         /// 0..7--the next byte after the set one
@@ -32,12 +32,12 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
         /// </summary>
         private KeccakSpounge spounge;
 
-        public bool IsKeccak
+        public readonly bool IsKeccak
         {
             get { return 0 != (capacityWords & KeccakConstants.SHA3_USE_KECCAK_FLAG); }
         }
 
-        public int HashSz
+        public readonly int HashSz
         {
             get { return (int)capacityWords * 4; }
         }
@@ -197,4 +197,3 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
         }
     }
 }
-
