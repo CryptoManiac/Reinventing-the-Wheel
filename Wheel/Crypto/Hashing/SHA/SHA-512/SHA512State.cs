@@ -8,27 +8,28 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
     /// Represents the state data for the 512-bit family of SHA functions
     /// </summary>
 	[StructLayout(LayoutKind.Explicit)]
-    public unsafe struct InternalSHA512State
+    public struct InternalSHA512State
     {
         /// <summary>
         /// Instantiate from array or a variable number of arguments
         /// </summary>
         /// <param name="ulongs"></param>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public unsafe InternalSHA512State(params ulong[] ulongs)
+        public InternalSHA512State(params ulong[] ulongs)
         {
             if (ulongs.Length != TypeUlongSz)
             {
                 throw new ArgumentOutOfRangeException(nameof(ulongs), ulongs.Length, "Must provide " + TypeUlongSz + " arguments exactly");
             }
-
-            fixed (void* source = &ulongs[0])
-            {
-                fixed (void* target = &this)
-                {
-                    new Span<byte>(source, TypeByteSz).CopyTo(new Span<byte>(target, TypeByteSz));
-                }
-            }
+            
+            a = ulongs[0];
+            b = ulongs[1];
+            c = ulongs[2];
+            d = ulongs[3];
+            e = ulongs[4];
+            f = ulongs[5];
+            g = ulongs[6];
+            h = ulongs[7];
         }
 
         /// <summary>
@@ -40,15 +41,16 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
             Set(state);
         }
 
-        public unsafe void Set(in InternalSHA512State state)
+        public void Set(in InternalSHA512State state)
         {
-            fixed (void* source = &state)
-            {
-                fixed (void* target = &this)
-                {
-                    new Span<byte>(source, TypeByteSz).CopyTo(new Span<byte>(target, TypeByteSz));
-                }
-            }
+            a = state.a;
+            b = state.b;
+            c = state.c;
+            d = state.d;
+            e = state.e;
+            f = state.f;
+            g = state.g;
+            h = state.h;
         }
 
         public void Add(in InternalSHA512State state)
@@ -68,7 +70,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         /// </summary>
         /// <param name="bytes"></param>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public unsafe readonly void Store(Span<byte> to)
+        public readonly void Store(Span<byte> to)
         {
             int byteSz = TypeByteSz;
 
@@ -77,10 +79,53 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
                 throw new ArgumentOutOfRangeException(nameof(to), to.Length, "Span must not be longer than " + byteSz + " bytes");
             }
 
-            fixed (void* source = &this)
+            switch(to.Length)
             {
-                var from = new Span<byte>(source, to.Length);
-                from.CopyTo(to);
+                case 28:
+                    {
+                        // SHA512_224 is a special one, treat
+                        //  as 32 bit chunks for simplicity
+                        Span<uint> X = MemoryMarshal.Cast<byte, uint>(to);
+                        X[0] = a_hi;
+                        X[1] = a_low;
+                        X[2] = b_hi;
+                        X[3] = b_low;
+                        X[4] = c_hi;
+                        X[5] = c_low;
+                        X[6] = d_hi;
+                        return;
+                    }
+                case 32:
+                case 48:
+                case 64:
+                    {
+                        // Cast to a set of 64-bit integers
+                        Span<ulong> X = MemoryMarshal.Cast<byte, ulong>(to);
+
+                        // 0 .. 3 for SHA512_256, SHA-384 and SHA-512
+                        X[0] = a;
+                        X[1] = b;
+                        X[2] = c;
+                        X[3] = d;
+
+                        if (X.Length == 6 || X.Length == 8)
+                        {
+                            // 4 and 5 for both SHA-384 and SHA-512
+                            X[4] = e;
+                            X[5] = f;
+                        }
+
+                        if (X.Length == 8)
+                        {
+                            // 6 and 7 for SHA-512
+                            X[6] = g;
+                            X[7] = h;
+                        }
+
+                        return;
+                    }
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(to), to.Length, "Span must be 28, 32, 48 or 64 bytes long");
             }
         }
 
@@ -89,27 +134,45 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         /// </summary>
         public void Revert()
         {
-            for (int i = 0; i < TypeUlongSz; ++i)
-            {
-                registers[i] = Common.REVERT(registers[i]);
-            }
+            a = Common.REVERT(a);
+            b = Common.REVERT(b);
+            c = Common.REVERT(c);
+            d = Common.REVERT(d);
+            e = Common.REVERT(e);
+            f = Common.REVERT(f);
+            g = Common.REVERT(g);
+            h = Common.REVERT(h);
         }
 
         /// <summary>
         /// Size of structure in memory when treated as a collection of ulong values
         /// </summary>
-        static public readonly int TypeUlongSz = sizeof(InternalSHA512State) / 8;
+        static public readonly int TypeUlongSz = 8;
 
         /// <summary>
         /// Size of structure in memory when treated as a collection of bytes
         /// </summary>
-        static public readonly int TypeByteSz = sizeof(InternalSHA512State);
+        static public readonly int TypeByteSz = TypeUlongSz * 8;
 
-        /// <summary>
-        /// Fixed size buffers for registers
-        /// </summary>
+        #region For Store() call from the SHA512_224 intances
         [FieldOffset(0)]
-        private fixed ulong registers[8];
+        private uint a_hi;
+        [FieldOffset(4)]
+        private uint a_low;
+
+        [FieldOffset(8)]
+        private uint b_hi;
+        [FieldOffset(12)]
+        private uint b_low;
+
+        [FieldOffset(16)]
+        private uint c_hi;
+        [FieldOffset(20)]
+        private uint c_low;
+
+        [FieldOffset(24)]
+        private uint d_hi;
+        #endregion
 
         #region Public access to named register fields
         [FieldOffset(0)]

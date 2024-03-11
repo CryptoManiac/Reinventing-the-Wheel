@@ -8,47 +8,49 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
     /// Represents the state data for the 256-bit family of SHA functions
     /// </summary>
 	[StructLayout(LayoutKind.Explicit)]
-    public unsafe struct InternalSHA256State
+    public struct InternalSHA256State
     {
         /// <summary>
         /// Instantiate from array or a variable number of arguments
         /// </summary>
         /// <param name="uints"></param>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public unsafe InternalSHA256State(params uint[] uints)
+        public InternalSHA256State(params uint[] uints)
         {
             if (uints.Length != TypeUintSz)
             {
                 throw new ArgumentOutOfRangeException(nameof(uints), uints.Length, "Must provide " + TypeUintSz + " arguments exactly");
             }
 
-            fixed (void* source = &uints[0])
-            {
-                fixed (void* target = &this)
-                {
-                    new Span<byte>(source, TypeByteSz).CopyTo(new Span<byte>(target, TypeByteSz));
-                }
-            }
+            a = uints[0];
+            b = uints[1];
+            c = uints[2];
+            d = uints[3];
+            e = uints[4];
+            f = uints[5];
+            g = uints[6];
+            h = uints[7];
         }
 
         /// <summary>
         /// Instantiate as a copy of the other state
         /// </summary>
         /// <param name="round">Other block</param>
-        public unsafe InternalSHA256State(in InternalSHA256State state)
+        public InternalSHA256State(in InternalSHA256State state)
         {
             Set(state);
         }
 
-        public unsafe void Set(in InternalSHA256State state)
+        public void Set(in InternalSHA256State state)
         {
-            fixed (void* source = &state)
-            {
-                fixed (void* target = &this)
-                {
-                    new Span<byte>(source, TypeByteSz).CopyTo(new Span<byte>(target, TypeByteSz));
-                }
-            }
+            a = state.a;
+            b = state.b;
+            c = state.c;
+            d = state.d;
+            e = state.e;
+            f = state.f;
+            g = state.g;
+            h = state.h;
         }
 
         public void Add(in InternalSHA256State state)
@@ -68,19 +70,30 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         /// </summary>
         /// <param name="bytes"></param>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public unsafe readonly void Store(Span<byte> to)
+        public readonly void Store(Span<byte> to)
         {
             int byteSz = TypeByteSz;
 
             if (to.Length > byteSz)
             {
-                throw new ArgumentOutOfRangeException(nameof(to), to.Length, "Span must not be longer than " + byteSz + " bytes");
+                throw new ArgumentOutOfRangeException(nameof(to), to.Length, "Span must not be more than " + byteSz + " bytes long");
             }
 
-            fixed (void* source = &this)
+            Span<uint> X = MemoryMarshal.Cast<byte, uint>(to);
+
+            // First 7 fields for both SHA-256 and SHA-224
+            X[0] = a;
+            X[1] = b;
+            X[2] = c;
+            X[3] = d;
+            X[4] = e;
+            X[5] = f;
+            X[6] = g;
+
+            // 8th field for SHA-256
+            if (X.Length == 8)
             {
-                var from = new Span<byte>(source, to.Length);
-                from.CopyTo(to);
+                X[7] = h;
             }
         }
 
@@ -89,27 +102,25 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         /// </summary>
         public void Revert()
         {
-            for (int i = 0; i < TypeUintSz; ++i)
-            {
-                registers[i] = Common.REVERT(registers[i]);
-            }
+            a = Common.REVERT(a);
+            b = Common.REVERT(b);
+            c = Common.REVERT(c);
+            d = Common.REVERT(d);
+            e = Common.REVERT(e);
+            f = Common.REVERT(f);
+            g = Common.REVERT(g);
+            h = Common.REVERT(h);
         }
 
         /// <summary>
         /// Size of structure in memory when treated as a collection of uint values
         /// </summary>
-        static public readonly int TypeUintSz = sizeof(InternalSHA256State) / 4;
+        static public readonly int TypeUintSz = 8;
 
         /// <summary>
         /// Size of structure in memory when treated as a collection of bytes
         /// </summary>
-        static public readonly int TypeByteSz = sizeof(InternalSHA256State);
-
-        /// <summary>
-        /// Fixed size buffers for registers
-        /// </summary>
-        [FieldOffset(0)]
-        private fixed uint registers[8];
+        static public readonly int TypeByteSz = TypeUintSz * sizeof(uint);
 
         #region Public access to named register fields
         [FieldOffset(0)]
