@@ -19,7 +19,7 @@ The well tested implementations of the following hash functions are provided as 
 
 ## API
 
-All classes are implementing the well known Init - Update - Finalize paradighm. The implementations are derived from `IHasher` interface which is declaring the following method signatures:
+All hashers are implementing the well known Init - Update - Finalize paradighm. The implementations are derived from `IHasher` interface which is declaring the following method signatures:
 
 ```csharp
 /// Reset the hasher's internal state
@@ -36,3 +36,8 @@ public byte[] Digest()
 //  Note: This implies the Reset() operation
 public void Digest(Span<byte> hash)
 ```
+
+## Notable features
+
+All hashers are implemented as structures of the deterministic size, which is designed to be known at the compile time. This allows you to allocate them on stack, either directly using `stackalloc` operator, or indirectly by letting the compiler to decide. Stack allocated structures are avoiding the garbage collecting overhead since their living cycle is limited by that of the function's stack memory. The fact that they're not placed in the CLR heap is a good thing as well, especially for security.
+
