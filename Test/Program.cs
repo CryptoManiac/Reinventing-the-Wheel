@@ -1,5 +1,4 @@
-﻿
-using System.Text;
+﻿using System.Text;
 using Wheel.Crypto.Hashing.RIPEMD;
 using Wheel.Crypto.Hashing.SHA.SHA256;
 using Wheel.Crypto.Hashing.SHA.SHA512;

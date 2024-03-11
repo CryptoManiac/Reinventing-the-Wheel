@@ -4,27 +4,27 @@ using Wheel.Crypto.Hashing.SHA.SHA256.Internal;
 
 namespace Wheel.Crypto.Hashing.SHA.SHA256
 {
-    public class SHA256Base : IHasher
+    public struct SHA256Base : IHasher
     {
         /// <summary>
         /// Current data block length in bytes
         /// </summary>
-        protected uint blockLen;
+        private uint blockLen = 0;
 
         /// <summary>
         /// Total input length in bits
         /// </summary>
-        protected ulong bitLen;
+        private ulong bitLen = 0;
 
         /// <summary>
         /// Pending block data to transform
         /// </summary>
-        protected InternalSHA256Block pendingBlock = new();
+        private InternalSHA256Block pendingBlock = new();
 
         /// <summary>
         /// Current hashing state
         /// </summary>
-        protected InternalSHA256State state = new();
+        private InternalSHA256State state = new();
 
         /// <summary>
         /// Initial state to be used by Reset()
@@ -119,7 +119,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
             }
         }
 
-        protected void Transform()
+        private void Transform()
         {
             // Initialize with first 16 words filled from the
             // pending block and reverted to big endian
@@ -151,7 +151,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
             state.Add(loc);
         }
 
-        protected void Finish()
+        private void Finish()
         {
 
             uint i = blockLen;
