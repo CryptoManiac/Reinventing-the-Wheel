@@ -8,7 +8,7 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
     /// Access to individual spounge bytes through index operator
     /// </summary>
 	[StructLayout(LayoutKind.Explicit)]
-    public unsafe struct InternalKeccakSpoungeBytes
+    public struct InternalKeccakSpoungeBytes
     {
         /// <summary>
         /// Index access to individual bytes
@@ -25,7 +25,7 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
 
         #region Byte access logic
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly byte GetRegisterByte(uint index)
+        private unsafe readonly byte GetRegisterByte(uint index)
         {
             int byteSz = KeccakConstants.SHA3_SPONGE_WORDS * 8;
             if (0 > index || index >= byteSz)
@@ -36,7 +36,7 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SetRegisterByte(uint index, byte value)
+        private unsafe void SetRegisterByte(uint index, byte value)
         {
             int byteSz = KeccakConstants.SHA3_SPONGE_WORDS * 8;
             if (0 > index || index >= byteSz)
@@ -68,7 +68,7 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
         }
 
         [FieldOffset(0)]
-        private fixed byte data[KeccakConstants.SHA3_SPONGE_WORDS * 8];
+        private unsafe fixed byte data[KeccakConstants.SHA3_SPONGE_WORDS * 8];
     }
 
     /// <summary>
@@ -124,7 +124,61 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
         {
             fixed (void* ptr = &this)
             {
-                new Span<byte>(ptr, KeccakConstants.SHA3_SPONGE_WORDS * 8).Clear();
+                new Span<ulong>(ptr, KeccakConstants.SHA3_SPONGE_WORDS).Clear();
+            }
+        }
+
+        public unsafe void KeccakF()
+        {
+            Span<ulong> bc = stackalloc ulong[5];
+
+            uint i, j, round;
+            ulong t;
+
+            for (round = 0; round < KeccakConstants.SHA3_ROUNDS; round++)
+            {
+
+                /* Theta */
+                for (i = 0; i < 5; i++)
+                {
+                    bc[(int)i] = registers[i] ^ registers[i + 5] ^ registers[i + 10] ^ registers[i + 15] ^ registers[i + 20];
+                }
+
+                for (i = 0; i < 5; i++)
+                {
+                    t = bc[(int)(i + 4) % 5] ^ KeccakFunctions.SHA3_ROTL64(bc[(int)(i + 1) % 5], 1);
+                    for (j = 0; j < 25; j += 5)
+                    {
+                        registers[j + i] ^= t;
+                    }
+                }
+
+                /* Rho Pi */
+                t = registers[1];
+                for (i = 0; i < 24; i++)
+                {
+                    j = KeccakConstants.keccakf_piln[i];
+                    bc[0] = registers[j];
+                    registers[j] = KeccakFunctions.SHA3_ROTL64(t, (int)KeccakConstants.keccakf_rotc[i]);
+                    t = bc[0];
+                }
+
+                /* Chi */
+                for (j = 0; j < 25; j += 5)
+                {
+                    for (i = 0; i < 5; i++)
+                    {
+                        bc[(int)i] = registers[j + i];
+                    }
+
+                    for (i = 0; i < 5; i++)
+                    {
+                        registers[j + i] ^= (~bc[(int)(i + 1) % 5]) & bc[(int)(i + 2) % 5];
+                    }
+                }
+
+                /* Iota */
+                registers[0] ^= KeccakConstants.keccakf_rndc[round];
             }
         }
 

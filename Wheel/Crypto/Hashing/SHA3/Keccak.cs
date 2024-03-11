@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using Wheel.Crypto.Miscellaneous.Support;
+﻿using Wheel.Crypto.Miscellaneous.Support;
 
 namespace Wheel.Crypto.Hashing.SHA3.Internal
 {
@@ -87,7 +86,7 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
 
                 if (++wordIndex == (KeccakConstants.SHA3_SPONGE_WORDS - KeccakFunctions.SHA3_CW(capacityWords)))
                 {
-                    KeccakFunctions.keccakf(ref spounge);
+                    spounge.KeccakF();
                     wordIndex = 0;
                 }
             }
@@ -129,7 +128,7 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
 
                 if (++wordIndex == (KeccakConstants.SHA3_SPONGE_WORDS - KeccakFunctions.SHA3_CW(capacityWords)))
                 {
-                    KeccakFunctions.keccakf(ref spounge);
+                    spounge.KeccakF();
                     wordIndex = 0;
                 }
 
@@ -172,7 +171,7 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
 
             spounge[wordIndex] ^= saved ^ t;
             spounge[KeccakConstants.SHA3_SPONGE_WORDS - KeccakFunctions.SHA3_CW(capacityWords) - 1] ^= 0x8000000000000000UL;
-            KeccakFunctions.keccakf(ref spounge);
+            spounge.KeccakF();
 
             // Revert byte order on BE machines
             //  Considering that Itanium is dead, this is unlikely to ever be useful
