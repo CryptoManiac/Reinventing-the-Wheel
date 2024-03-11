@@ -47,10 +47,10 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         /// <summary>
         /// Size of structure in memory when treated as a collection of bytes
         /// </summary>
-        static public readonly int TypeByteSz = sizeof(InternalSHA256BlockBytes);
+        public const int TypeByteSz = InternalSHA256Block.TypeByteSz;
 
         [FieldOffset(0)]
-        private fixed byte data[64];
+        private fixed byte data[TypeByteSz];
     }
 
     /// <summary>
@@ -82,17 +82,15 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public unsafe void Wipe(uint begin, uint sz)
         {
-            uint byteSz = (uint)TypeByteSz;
-
             // Begin index must have a sane value
-            if (begin >= byteSz)
+            if (begin >= TypeByteSz)
             {
-                throw new ArgumentOutOfRangeException(nameof(begin), begin, "begin index must be within [0 .. " + byteSz + ") range");
+                throw new ArgumentOutOfRangeException(nameof(begin), begin, "begin index must be within [0 .. " + TypeByteSz + ") range");
             }
 
             // Maximum size is a distance between the
             //  beginning and the vector size
-            uint maxSz = byteSz - begin;
+            uint maxSz = TypeByteSz - begin;
 
             if (sz > maxSz)
             {
@@ -112,17 +110,15 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         /// <param name="targetIndex">Offset to write them from the beginning of this vector</param>
         public unsafe void Write(Span<byte> bytes, uint targetIndex)
         {
-            uint byteSz = (uint)TypeByteSz;
-
             // Target index must have a sane value
-            if (targetIndex >= byteSz)
+            if (targetIndex >= TypeByteSz)
             {
-                throw new ArgumentOutOfRangeException(nameof(targetIndex), targetIndex, "targetIndex index must be within [0 .. " + byteSz + ") range");
+                throw new ArgumentOutOfRangeException(nameof(targetIndex), targetIndex, "targetIndex index must be within [0 .. " + TypeByteSz + ") range");
             }
 
             // Maximum size is a distance between the
             //  beginning and the vector size
-            uint limit = byteSz - targetIndex;
+            uint limit = TypeByteSz - targetIndex;
 
             if (bytes.Length > limit)
             {
@@ -190,13 +186,13 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         /// <summary>
         /// Size of structure in memory when treated as a collection of uint values
         /// </summary>
-        public const int TypeUintSz = TypeByteSz / 4;
+        public const int TypeUintSz = TypeByteSz / sizeof(uint);
 
         /// <summary>
         /// Fixed size buffer for registers
         /// </summary>
         [FieldOffset(0)]
-        private fixed uint registers[16];
+        private fixed uint registers[TypeUintSz];
 
         /// <summary>
         /// Public indexed access to the individual block bytes

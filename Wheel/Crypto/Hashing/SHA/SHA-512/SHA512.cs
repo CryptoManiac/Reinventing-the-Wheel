@@ -191,7 +191,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
     public struct SHA512 : IHasher
 	{
         [FieldOffset(0)]
-        private IHasher ctx = new SHA512Base(InternalSHA512Constants.init_state_512, 64);
+        private SHA512Base ctx = new SHA512Base(InternalSHA512Constants.init_state_512, 64);
 
         public SHA512()
         {
@@ -226,7 +226,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
     public struct SHA384 : IHasher
     {
         [FieldOffset(0)]
-        private IHasher ctx = new SHA512Base(InternalSHA512Constants.init_state_384, 48);
+        private SHA512Base ctx = new SHA512Base(InternalSHA512Constants.init_state_384, 48);
 
         public SHA384()
         {
@@ -261,7 +261,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
     public struct SHA512_256 : IHasher
     {
         [FieldOffset(0)]
-        private IHasher ctx = new SHA512Base(InternalSHA512Constants.init_state_256, 32);
+        private SHA512Base ctx = new SHA512Base(InternalSHA512Constants.init_state_256, 32);
 
         public SHA512_256()
         {
@@ -296,7 +296,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
     public struct SHA512_224 : IHasher
     {
         [FieldOffset(0)]
-        private IHasher ctx = new SHA512Base(InternalSHA512Constants.init_state_224, 28);
+        private SHA512Base ctx = new SHA512Base(InternalSHA512Constants.init_state_224, 28);
 
         public SHA512_224()
         {

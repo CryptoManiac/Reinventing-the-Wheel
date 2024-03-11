@@ -7,7 +7,7 @@ namespace Wheel.Crypto.Hashing.SHA3
     public struct SHA3_256 : IHasher
     {
         [FieldOffset(0)]
-        private IHasher ctx = new Keccak(256, false);
+        private Keccak ctx = new Keccak(256, false);
 
         public SHA3_256()
         {
@@ -42,7 +42,7 @@ namespace Wheel.Crypto.Hashing.SHA3
     public struct SHA3_384 : IHasher
     {
         [FieldOffset(0)]
-        private IHasher ctx = new Keccak(384, false);
+        private Keccak ctx = new Keccak(384, false);
 
         public SHA3_384()
         {
@@ -77,7 +77,7 @@ namespace Wheel.Crypto.Hashing.SHA3
     public struct SHA3_512 : IHasher
     {
         [FieldOffset(0)]
-        private IHasher ctx = new Keccak(512, false);
+        private Keccak ctx = new Keccak(512, false);
 
         public SHA3_512()
         {
@@ -112,7 +112,7 @@ namespace Wheel.Crypto.Hashing.SHA3
     public struct Keccak_256 : IHasher
     {
         [FieldOffset(0)]
-        private IHasher ctx = new Keccak(256, true);
+        private Keccak ctx = new Keccak(256, true);
 
         public Keccak_256()
         {
@@ -147,7 +147,7 @@ namespace Wheel.Crypto.Hashing.SHA3
     public struct Keccak_384 : IHasher
     {
         [FieldOffset(0)]
-        private IHasher ctx = new Keccak(384, true);
+        private Keccak ctx = new Keccak(384, true);
 
         public Keccak_384()
         {
@@ -182,7 +182,7 @@ namespace Wheel.Crypto.Hashing.SHA3
     public struct Keccak_512 : IHasher
     {
         [FieldOffset(0)]
-        private IHasher ctx = new Keccak(512, true);
+        private Keccak ctx = new Keccak(512, true);
 
         public Keccak_512()
         {

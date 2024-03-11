@@ -189,7 +189,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
     public struct SHA256 : IHasher
 	{
         [FieldOffset(0)]
-        private IHasher ctx = new SHA256Base(InternalSHA256Constants.init_state_256, 32);
+        private SHA256Base ctx = new SHA256Base(InternalSHA256Constants.init_state_256, 32);
 
         public SHA256()
         {
@@ -224,7 +224,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
     public struct SHA224 : IHasher
     {
         [FieldOffset(0)]
-        private IHasher ctx = new SHA256Base(InternalSHA256Constants.init_state_224, 28);
+        private SHA256Base ctx = new SHA256Base(InternalSHA256Constants.init_state_224, 28);
 
         public SHA224()
         {

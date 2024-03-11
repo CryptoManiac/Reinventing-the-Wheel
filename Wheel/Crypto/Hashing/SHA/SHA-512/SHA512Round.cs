@@ -129,19 +129,19 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         }
 
         /// <summary>
-        /// Size of structure in memory when treated as a collection of ulong values
-        /// </summary>
-        static public readonly int TypeUlongSz = sizeof(InternalSHA512Round) / 8;
-
-        /// <summary>
         /// Size of structure in memory when treated as a collection of bytes
         /// </summary>
-        static public readonly int TypeByteSz = sizeof(InternalSHA512Round);
+        public const int TypeByteSz = 640;
+
+        /// <summary>
+        /// Size of structure in memory when treated as a collection of ulong values
+        /// </summary>
+        public const int TypeUlongSz = TypeByteSz / sizeof(ulong);
 
         /// <summary>
         /// Fixed size buffer for registers
         /// </summary>
         [FieldOffset(0)]
-        private fixed ulong registers[80];
+        private fixed ulong registers[TypeUlongSz];
     }
 }
