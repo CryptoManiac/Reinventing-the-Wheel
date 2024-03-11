@@ -7,7 +7,7 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
     /// Access to individual block bytes through index operator
     /// </summary>
     [StructLayout(LayoutKind.Explicit)]
-    public unsafe struct InternalRIPEMDBlockBytes
+    public struct InternalRIPEMDBlockBytes
     {
         /// <summary>
         /// Index access to individual registers
@@ -30,7 +30,11 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeByteSz + ") range");
             }
-            return data[index];
+
+            unsafe
+            {
+                return data[index];
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -40,17 +44,32 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeByteSz + ") range");
             }
-            data[index] = value;
+
+            unsafe
+            {
+                data[index] = value;
+            }
         }
         #endregion
 
         /// <summary>
+        /// Set to zeros
+        /// </summary>
+        public unsafe void Reset()
+        {
+            fixed (void* ptr = &this)
+            {
+                new Span<byte>(ptr, TypeByteSz).Clear();
+            }
+        }
+
+        /// <summary>
         /// Size of structure in memory when treated as a collection of bytes
         /// </summary>
-        static public readonly int TypeByteSz = sizeof(InternalRIPEMDBlockBytes);
+        public const int TypeByteSz = InternalRIPEMDBlock.TypeByteSz;
 
         [FieldOffset(0)]
-        private fixed byte data[64];
+        private unsafe fixed byte data[TypeByteSz];
     }
 
     /// <summary>
@@ -58,7 +77,7 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
     /// Note: Mostly identical to that of SHA-256
     /// </summary>
 	[StructLayout(LayoutKind.Explicit)]
-    public unsafe struct InternalRIPEMDBlock
+    public struct InternalRIPEMDBlock
     {
         /// <summary>
         /// Overwrite the part of value with a sequence of bytes
@@ -67,17 +86,15 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
         /// <param name="targetIndex">Offset to write them from the beginning of this vector</param>
         public unsafe void Write(Span<byte> bytes, uint targetIndex)
         {
-            uint byteSz = (uint)TypeByteSz;
-
             // Target index must have a sane value
-            if (targetIndex >= byteSz)
+            if (targetIndex >= TypeByteSz)
             {
-                throw new ArgumentOutOfRangeException(nameof(targetIndex), targetIndex, "targetIndex index must be within [0 .. " + byteSz + ") range");
+                throw new ArgumentOutOfRangeException(nameof(targetIndex), targetIndex, "targetIndex index must be within [0 .. " + TypeByteSz + ") range");
             }
 
             // Maximum size is a distance between the
             //  beginning and the vector size
-            uint limit = byteSz - targetIndex;
+            uint limit = TypeByteSz - targetIndex;
 
             if (bytes.Length > limit)
             {
@@ -112,7 +129,11 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeUintSz + ") range");
             }
-            return registers[index];
+
+            unsafe
+            {
+                return registers[index];
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -122,34 +143,35 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
             {
                 throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeUintSz + ") range");
             }
-            registers[index] = value;
+
+            unsafe
+            {
+                registers[index] = value;
+            }
         }
         #endregion
 
         /// <summary>
         /// Set to zero
         /// </summary>
-        public unsafe void Reset()
+        public void Reset()
         {
-            fixed (void* ptr = &this)
-            {
-                new Span<byte>(ptr, TypeByteSz).Clear();
-            }
+            bytes.Reset();
         }
-
-        /// <summary>
-        /// Size of structure in memory when treated as a collection of uint values
-        /// </summary>
-        static public readonly int TypeUintSz = sizeof(InternalRIPEMDBlock) / 4;
 
         /// <summary>
         /// Size of structure in memory when treated as a collection of bytes
         /// </summary>
-        static public readonly int TypeByteSz = sizeof(InternalRIPEMDBlock);
+        public const int TypeByteSz = 64;
+
+        /// <summary>
+        /// Size of structure in memory when treated as a collection of uint values
+        /// </summary>
+        public const int TypeUintSz = TypeByteSz / sizeof(uint);
 
         #region Fixed size buffer for registers
         [FieldOffset(0)]
-        private fixed uint registers[16];
+        private unsafe fixed uint registers[TypeUintSz];
         #endregion
 
         /// <summary>

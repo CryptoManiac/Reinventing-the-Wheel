@@ -2,13 +2,17 @@
 
 namespace Wheel.Crypto.Hashing.RIPEMD
 {
-	public class RIPEMD160 : IHasher
+	public struct RIPEMD160 : IHasher
 	{
         private uint bytesLo = 0, bytesHi = 0;
         private InternalRIPEMDState state = new(InternalRIPEMDConstants.ripemd_init_state);
         private InternalRIPEMDBlock block = new();
 
-        public int HashSz => 20;
+        public RIPEMD160()
+        {
+        }
+
+        public readonly int HashSz => 20;
 
         public byte[] Digest()
         {
@@ -30,6 +34,20 @@ namespace Wheel.Crypto.Hashing.RIPEMD
             bytesHi = 0;
             state.Set(InternalRIPEMDConstants.ripemd_init_state);
             block.Reset();
+        }
+
+        public static byte[] Hash(byte[] input)
+        {
+            RIPEMD160 hasher = new();
+            hasher.Update(input);
+            return hasher.Digest();
+        }
+
+        public static void Hash(Span<byte> digest, byte[] input)
+        {
+            RIPEMD160 hasher = new();
+            hasher.Update(input);
+            hasher.Digest(digest);
         }
 
         public void Update(byte[] input)
