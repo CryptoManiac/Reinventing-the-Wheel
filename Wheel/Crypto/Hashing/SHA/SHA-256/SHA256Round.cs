@@ -116,17 +116,17 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         /// <summary>
         /// Size of structure in memory when treated as a collection of uint values
         /// </summary>
-        static public unsafe readonly int TypeUintSz = sizeof(InternalSHA256Round) / 4;
+        public const int TypeUintSz = 64;
 
         // <summary>
         /// Size of structure in memory when treated as a collection of bytes
         /// </summary>
-        static public unsafe readonly int TypeByteSz = sizeof(InternalSHA256Round);
+        public const int TypeByteSz = TypeUintSz * sizeof(uint);
 
         /// <summary>
         /// Fixed size buffer for registers
         /// </summary>
         [FieldOffset(0)]
-        private unsafe fixed uint registers[64];
+        private unsafe fixed uint registers[TypeUintSz];
     }
 }
