@@ -115,12 +115,12 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         /// <summary>
         /// Size of structure in memory when treated as a collection of uint values
         /// </summary>
-        static public readonly int TypeUintSz = 8;
+        public const int TypeUintSz = 8;
 
         /// <summary>
         /// Size of structure in memory when treated as a collection of bytes
         /// </summary>
-        static public readonly int TypeByteSz = TypeUintSz * sizeof(uint);
+        public const int TypeByteSz = TypeUintSz * sizeof(uint);
 
         #region Public access to named register fields
         [FieldOffset(0)]

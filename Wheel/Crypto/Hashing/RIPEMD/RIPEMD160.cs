@@ -1,11 +1,21 @@
-﻿using Wheel.Crypto.Hashing.RIPEMD.Internal;
+﻿using System.Runtime.InteropServices;
+using Wheel.Crypto.Hashing.RIPEMD.Internal;
 
 namespace Wheel.Crypto.Hashing.RIPEMD
 {
-	public struct RIPEMD160 : IHasher
+    [StructLayout(LayoutKind.Explicit)]
+    public struct RIPEMD160 : IHasher
 	{
-        private uint bytesLo = 0, bytesHi = 0;
+        [FieldOffset(0)]
+        private uint bytesLo = 0;
+
+        [FieldOffset(4)]
+        private uint bytesHi = 0;
+
+        [FieldOffset(8)]
         private InternalRIPEMDState state = new(InternalRIPEMDConstants.ripemd_init_state);
+
+        [FieldOffset(12 + InternalRIPEMDBlock.TypeByteSz)]
         private InternalRIPEMDBlock block = new();
 
         public RIPEMD160()

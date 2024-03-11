@@ -1,40 +1,48 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Wheel.Crypto.Hashing.SHA.SHA512.Internal;
 using Wheel.Crypto.Miscellaneous.Support;
 
 namespace Wheel.Crypto.Hashing.SHA.SHA512
 {
+    [StructLayout(LayoutKind.Explicit)]
     public struct SHA512Base : IHasher
     {
         /// <summary>
         /// Current data block length in bytes
         /// </summary>
+        [FieldOffset(0)]
         private uint blockLen = 0;
+
+        /// <summary>
+        /// Output length
+        /// </summary>
+        [FieldOffset(4)]
+        private int digestSz;
 
         /// <summary>
         /// Total input length in bits
         /// </summary>
+        [FieldOffset(8)]
         private ulong bitLen = 0;
 
         /// <summary>
         /// Pending block data to transform
         /// </summary>
+        [FieldOffset(16)]
         private InternalSHA512Block pendingBlock = new();
 
         /// <summary>
         /// Current hashing state
         /// </summary>
+        [FieldOffset(16 + InternalSHA512Block.TypeByteSz)]
         private InternalSHA512State state = new();
 
         /// <summary>
         /// Initial state to be used by Reset()
         /// </summary>
+        [FieldOffset(16 + InternalSHA512Block.TypeByteSz + InternalSHA512State.TypeByteSz)]
         private InternalSHA512State initState;
-
-        /// <summary>
-        /// Output length
-        /// </summary>
-        private int digestSz;
 
         public int HashSz => digestSz;
 
@@ -179,8 +187,10 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         }
     }
 
+    [StructLayout(LayoutKind.Explicit)]
     public struct SHA512 : IHasher
 	{
+        [FieldOffset(0)]
         private IHasher ctx = new SHA512Base(InternalSHA512Constants.init_state_512, 64);
 
         public SHA512()
@@ -212,8 +222,10 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         #endregion
     }
 
+    [StructLayout(LayoutKind.Explicit)]
     public struct SHA384 : IHasher
     {
+        [FieldOffset(0)]
         private IHasher ctx = new SHA512Base(InternalSHA512Constants.init_state_384, 48);
 
         public SHA384()
@@ -245,8 +257,10 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         #endregion
     }
 
+    [StructLayout(LayoutKind.Explicit)]
     public struct SHA512_256 : IHasher
     {
+        [FieldOffset(0)]
         private IHasher ctx = new SHA512Base(InternalSHA512Constants.init_state_256, 32);
 
         public SHA512_256()
@@ -278,8 +292,10 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         #endregion
     }
 
+    [StructLayout(LayoutKind.Explicit)]
     public struct SHA512_224 : IHasher
     {
+        [FieldOffset(0)]
         private IHasher ctx = new SHA512Base(InternalSHA512Constants.init_state_224, 28);
 
         public SHA512_224()

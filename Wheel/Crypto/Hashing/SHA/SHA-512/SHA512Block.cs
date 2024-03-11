@@ -184,14 +184,14 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         }
 
         /// <summary>
-        /// Size of structure in memory when treated as a collection of ulong values
-        /// </summary>
-        static public readonly int TypeUlongSz = sizeof(InternalSHA512Block) / 8;
-
-        /// <summary>
         /// Size of structure in memory when treated as a collection of bytes
         /// </summary>
-        static public readonly int TypeByteSz = sizeof(InternalSHA512Block);
+        public const int TypeByteSz = 128;
+
+        /// <summary>
+        /// Size of structure in memory when treated as a collection of ulong values
+        /// </summary>
+        public const int TypeUlongSz = TypeByteSz / 8;
 
         /// <summary>
         /// Fixed size buffers for actual storage

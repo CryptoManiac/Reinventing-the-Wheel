@@ -1,35 +1,42 @@
-﻿using Wheel.Crypto.Miscellaneous.Support;
+﻿using System.Runtime.InteropServices;
+using Wheel.Crypto.Miscellaneous.Support;
 
 namespace Wheel.Crypto.Hashing.SHA3.Internal
 {
+    [StructLayout(LayoutKind.Explicit)]
     public struct Keccak : IHasher
     {
         /// <summary>
         /// 0..7--the next byte after the set one
         /// (starts from 0; 0--none are buffered)
         /// </summary>
+        [FieldOffset(0)]
         public int byteIndex;
 
         /// <summary>
         /// 0..24--the next word to integrate input
         /// (starts from 0)
         /// </summary>
+        [FieldOffset(4)]
         public uint wordIndex;
 
         /// <summary>
         /// the double size of the hash output in
         /// words (e.g. 16 for Keccak 512)
         /// </summary>
+        [FieldOffset(8)]
         public readonly uint capacityWords;
 
         /// <summary>
         /// the portion of the input message that we didn't consume yet
         /// </summary>
+        [FieldOffset(12)]
         public ulong saved;
 
         /// <summary>
         /// Keccak data mixer
         /// </summary>
+        [FieldOffset(20)]
         private KeccakSpounge spounge;
 
         public readonly bool IsKeccak

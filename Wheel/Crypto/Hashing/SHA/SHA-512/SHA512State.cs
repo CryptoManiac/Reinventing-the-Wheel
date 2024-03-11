@@ -147,12 +147,12 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         /// <summary>
         /// Size of structure in memory when treated as a collection of ulong values
         /// </summary>
-        static public readonly int TypeUlongSz = 8;
+        public const int TypeUlongSz = 8;
 
         /// <summary>
         /// Size of structure in memory when treated as a collection of bytes
         /// </summary>
-        static public readonly int TypeByteSz = TypeUlongSz * 8;
+        public const int TypeByteSz = TypeUlongSz * 8;
 
         #region For Store() call from the SHA512_224 intances
         [FieldOffset(0)]

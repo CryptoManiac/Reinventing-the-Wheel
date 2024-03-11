@@ -1,40 +1,48 @@
 ﻿using Wheel.Crypto.Miscellaneous.Support;
 using System.Runtime.CompilerServices;
 using Wheel.Crypto.Hashing.SHA.SHA256.Internal;
+using System.Runtime.InteropServices;
 
 namespace Wheel.Crypto.Hashing.SHA.SHA256
 {
+    [StructLayout(LayoutKind.Explicit)]
     public struct SHA256Base : IHasher
     {
         /// <summary>
         /// Current data block length in bytes
         /// </summary>
+        [FieldOffset(0)]
         private uint blockLen = 0;
+
+        /// <summary>
+        /// Output length
+        /// </summary>
+        [FieldOffset(4)]
+        private int digestSz = 0;
 
         /// <summary>
         /// Total input length in bits
         /// </summary>
+        [FieldOffset(8)]
         private ulong bitLen = 0;
 
         /// <summary>
         /// Pending block data to transform
         /// </summary>
+        [FieldOffset(16)]
         private InternalSHA256Block pendingBlock = new();
 
         /// <summary>
         /// Current hashing state
         /// </summary>
+        [FieldOffset(16 + InternalSHA256Block.TypeByteSz)]
         private InternalSHA256State state = new();
 
         /// <summary>
         /// Initial state to be used by Reset()
         /// </summary>
+        [FieldOffset(16 + InternalSHA256Block.TypeByteSz + InternalSHA256State.TypeByteSz)]
         private InternalSHA256State initState;
-
-        /// <summary>
-        /// Output length
-        /// </summary>
-        private int digestSz;
 
         public int HashSz => digestSz;
 
@@ -153,7 +161,6 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
 
         private void Finish()
         {
-
             uint i = blockLen;
             uint end = (blockLen < 56u) ? 56u : 64u;
             pendingBlock.bytes[i++] = 0x80; // Append a bit 1
@@ -178,8 +185,10 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         }
     }
 
+    [StructLayout(LayoutKind.Explicit)]
     public struct SHA256 : IHasher
 	{
+        [FieldOffset(0)]
         private IHasher ctx = new SHA256Base(InternalSHA256Constants.init_state_256, 32);
 
         public SHA256()
@@ -211,8 +220,10 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         #endregion
     }
 
+    [StructLayout(LayoutKind.Explicit)]
     public struct SHA224 : IHasher
     {
+        [FieldOffset(0)]
         private IHasher ctx = new SHA256Base(InternalSHA256Constants.init_state_224, 28);
 
         public SHA224()

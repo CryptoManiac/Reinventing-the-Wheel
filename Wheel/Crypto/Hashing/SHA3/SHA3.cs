@@ -1,9 +1,12 @@
-﻿using Wheel.Crypto.Hashing.SHA3.Internal;
+﻿using System.Runtime.InteropServices;
+using Wheel.Crypto.Hashing.SHA3.Internal;
 
 namespace Wheel.Crypto.Hashing.SHA3
 {
+    [StructLayout(LayoutKind.Explicit)]
     public struct SHA3_256 : IHasher
     {
+        [FieldOffset(0)]
         private IHasher ctx = new Keccak(256, false);
 
         public SHA3_256()
@@ -35,8 +38,10 @@ namespace Wheel.Crypto.Hashing.SHA3
         #endregion
     }
 
+    [StructLayout(LayoutKind.Explicit)]
     public struct SHA3_384 : IHasher
     {
+        [FieldOffset(0)]
         private IHasher ctx = new Keccak(384, false);
 
         public SHA3_384()
@@ -68,8 +73,10 @@ namespace Wheel.Crypto.Hashing.SHA3
         #endregion
     }
 
+    [StructLayout(LayoutKind.Explicit)]
     public struct SHA3_512 : IHasher
     {
+        [FieldOffset(0)]
         private IHasher ctx = new Keccak(512, false);
 
         public SHA3_512()
@@ -101,8 +108,10 @@ namespace Wheel.Crypto.Hashing.SHA3
         #endregion
     }
 
+    [StructLayout(LayoutKind.Explicit)]
     public struct Keccak_256 : IHasher
     {
+        [FieldOffset(0)]
         private IHasher ctx = new Keccak(256, true);
 
         public Keccak_256()
@@ -134,8 +143,10 @@ namespace Wheel.Crypto.Hashing.SHA3
         #endregion
     }
 
+    [StructLayout(LayoutKind.Explicit)]
     public struct Keccak_384 : IHasher
     {
+        [FieldOffset(0)]
         private IHasher ctx = new Keccak(384, true);
 
         public Keccak_384()
@@ -167,8 +178,10 @@ namespace Wheel.Crypto.Hashing.SHA3
         #endregion
     }
 
+    [StructLayout(LayoutKind.Explicit)]
     public struct Keccak_512 : IHasher
     {
+        [FieldOffset(0)]
         private IHasher ctx = new Keccak(512, true);
 
         public Keccak_512()

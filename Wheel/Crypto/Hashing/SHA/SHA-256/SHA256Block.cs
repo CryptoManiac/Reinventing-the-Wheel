@@ -183,14 +183,14 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         }
 
         /// <summary>
-        /// Size of structure in memory when treated as a collection of uint values
-        /// </summary>
-        static public readonly int TypeUintSz = sizeof(InternalSHA256Block) / 4;
-
-        /// <summary>
         /// Size of structure in memory when treated as a collection of bytes
         /// </summary>
-        static public readonly int TypeByteSz = sizeof(InternalSHA256Block);
+        public const int TypeByteSz = 64;
+
+        /// <summary>
+        /// Size of structure in memory when treated as a collection of uint values
+        /// </summary>
+        public const int TypeUintSz = TypeByteSz / 4;
 
         /// <summary>
         /// Fixed size buffer for registers
