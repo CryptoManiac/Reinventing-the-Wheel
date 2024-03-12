@@ -141,11 +141,11 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
         public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
     }
 
-    public struct HMAC_SHA512_384 : IMac
+    public struct HMAC_SHA384 : IMac
     {
         private SHA512Base_HMAC ctx;
 
-        public HMAC_SHA512_384(ReadOnlySpan<byte> key)
+        public HMAC_SHA384(ReadOnlySpan<byte> key)
         {
             ctx = new(InternalSHA512Constants.init_state_384, 48, key);
         }

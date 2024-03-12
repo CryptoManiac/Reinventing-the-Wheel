@@ -18,7 +18,7 @@ SortedDictionary<string, Func<byte[], IMac>> mac_algorithms = new()
 {
     { "HMAC-SHA-224", (byte[] pw) => new HMAC_SHA224(pw) },
     { "HMAC-SHA-256", (byte[] pw) => new HMAC_SHA256(pw) },
-    { "HMAC-SHA-384", (byte[] pw) => new HMAC_SHA512_384(pw) },
+    { "HMAC-SHA-384", (byte[] pw) => new HMAC_SHA384(pw) },
     { "HMAC-SHA-512", (byte[] pw) => new HMAC_SHA512(pw) },
 };
 
