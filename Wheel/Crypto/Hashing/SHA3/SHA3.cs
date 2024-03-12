@@ -34,7 +34,9 @@ namespace Wheel.Crypto.Hashing.SHA3
         {
             SHA3_256 hasher = new();
             hasher.Update(input);
-            hasher.Digest(digest);
+            Span<byte> hash = stackalloc byte[hasher.HashSz];
+            hasher.Digest(hash);
+            hash.Slice(0, digest.Length).CopyTo(digest);
         }
         #endregion
     }
@@ -69,7 +71,9 @@ namespace Wheel.Crypto.Hashing.SHA3
         {
             SHA3_384 hasher = new();
             hasher.Update(input);
-            hasher.Digest(digest);
+            Span<byte> hash = stackalloc byte[hasher.HashSz];
+            hasher.Digest(hash);
+            hash.Slice(0, digest.Length).CopyTo(digest);
         }
         #endregion
     }
@@ -104,7 +108,9 @@ namespace Wheel.Crypto.Hashing.SHA3
         {
             SHA3_512 hasher = new();
             hasher.Update(input);
-            hasher.Digest(digest);
+            Span<byte> hash = stackalloc byte[hasher.HashSz];
+            hasher.Digest(hash);
+            hash.Slice(0, digest.Length).CopyTo(digest);
         }
         #endregion
     }
@@ -139,7 +145,9 @@ namespace Wheel.Crypto.Hashing.SHA3
         {
             Keccak_256 hasher = new();
             hasher.Update(input);
-            hasher.Digest(digest);
+            Span<byte> hash = stackalloc byte[hasher.HashSz];
+            hasher.Digest(hash);
+            hash.Slice(0, digest.Length).CopyTo(digest);
         }
         #endregion
     }
@@ -174,7 +182,9 @@ namespace Wheel.Crypto.Hashing.SHA3
         {
             Keccak_384 hasher = new();
             hasher.Update(input);
-            hasher.Digest(digest);
+            Span<byte> hash = stackalloc byte[hasher.HashSz];
+            hasher.Digest(hash);
+            hash.Slice(0, digest.Length).CopyTo(digest);
         }
         #endregion
     }
@@ -209,7 +219,9 @@ namespace Wheel.Crypto.Hashing.SHA3
         {
             Keccak_512 hasher = new();
             hasher.Update(input);
-            hasher.Digest(digest);
+            Span<byte> hash = stackalloc byte[hasher.HashSz];
+            hasher.Digest(hash);
+            hash.Slice(0, digest.Length).CopyTo(digest);
         }
         #endregion
     }

@@ -19,10 +19,11 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
 
         [FieldOffset(SHA512Base.TypeByteSz * 3)]
         private SHA512Base ctx_outside_reinit = new();
-
-        [FieldOffset(SHA512Base.TypeByteSz * 4)]
-        InternalSHA512State constants;
         #endregion
+
+        // For key pre-hashing
+        [FieldOffset(SHA512Base.TypeByteSz * 4)]
+        private SHA512Base ctx_prehasher;
 
         public int HashSz => ctx_inside.HashSz;
 
@@ -30,6 +31,7 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
         {
             ctx_inside = new(constants, outSz);
             ctx_outside = new(constants, outSz);
+            ctx_prehasher = new(constants, outSz);
             Reset(key);
         }
 
@@ -50,12 +52,12 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
             {
                 if (key.Length > InternalSHA512Block.TypeByteSz)
                 {
-                    keySz = InternalSHA512Block.TypeByteSz;
-                    SHA512.Hash(key_used, key);
+                    ctx_prehasher.Update(key);
+                    ctx_prehasher.Digest(key_used);
+                    keySz = key_used.Length;
                 }
                 else
                 {
-                    // key.Length > InternalSHA512Block.TypeByteSz
                     keySz = key.Length;
                     key.CopyTo(key_used);
                 }

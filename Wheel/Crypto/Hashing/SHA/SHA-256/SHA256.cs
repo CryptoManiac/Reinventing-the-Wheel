@@ -238,7 +238,9 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         {
             SHA256 hasher = new();
             hasher.Update(input);
-            hasher.Digest(digest);
+            Span<byte> hash = stackalloc byte[hasher.HashSz];
+            hasher.Digest(hash);
+            hash.Slice(0, digest.Length).CopyTo(digest);
         }
         #endregion
     }

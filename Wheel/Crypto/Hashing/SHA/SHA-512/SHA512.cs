@@ -243,7 +243,9 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         {
             SHA512 hasher = new();
             hasher.Update(input);
-            hasher.Digest(digest);
+            Span<byte> hash = stackalloc byte[hasher.HashSz];
+            hasher.Digest(hash);
+            hash.Slice(0, digest.Length).CopyTo(digest);
         }
         #endregion
     }
@@ -284,7 +286,9 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         {
             SHA384 hasher = new();
             hasher.Update(input);
-            hasher.Digest(digest);
+            Span<byte> hash = stackalloc byte[hasher.HashSz];
+            hasher.Digest(hash);
+            hash.Slice(0, digest.Length).CopyTo(digest);
         }
         #endregion
     }
@@ -325,7 +329,9 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         {
             SHA512_256 hasher = new();
             hasher.Update(input);
-            hasher.Digest(digest);
+            Span<byte> hash = stackalloc byte[hasher.HashSz];
+            hasher.Digest(hash);
+            hash.Slice(0, digest.Length).CopyTo(digest);
         }
         #endregion
     }
@@ -366,7 +372,9 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         {
             SHA512_224 hasher = new();
             hasher.Update(input);
-            hasher.Digest(digest);
+            Span<byte> hash = stackalloc byte[hasher.HashSz];
+            hasher.Digest(hash);
+            hash.Slice(0, digest.Length).CopyTo(digest);
         }
         #endregion
     }

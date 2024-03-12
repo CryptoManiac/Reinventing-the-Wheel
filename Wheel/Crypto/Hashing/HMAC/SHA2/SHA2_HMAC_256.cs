@@ -21,12 +21,17 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
         private SHA256Base ctx_outside_reinit;
         #endregion
 
+        // For key pre-hashing
+        [FieldOffset(SHA256Base.TypeByteSz * 4)]
+        private SHA256Base ctx_prehasher;
+
         public readonly int HashSz => ctx_inside.HashSz;
 
         public SHA256Base_HMAC(in InternalSHA256State constants, int outSz, in ReadOnlySpan<byte> key)
         {
             ctx_inside = new(constants, outSz);
             ctx_outside = new(constants, outSz);
+            ctx_prehasher = new(constants, outSz);
             Reset(key);
         }
 
@@ -47,12 +52,12 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
             {
                 if (key.Length > InternalSHA256Block.TypeByteSz)
                 {
-                    keySz = InternalSHA256Block.TypeByteSz;
-                    SHA256.Hash(key_used, key);
+                    ctx_prehasher.Update(key);
+                    ctx_prehasher.Digest(key_used);
+                    keySz = key_used.Length;
                 }
                 else
                 {
-                    // key.Length > InternalSHA256Block.TypeByteSz
                     keySz = key.Length;
                     key.CopyTo(key_used);
                 }
