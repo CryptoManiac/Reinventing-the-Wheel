@@ -84,7 +84,7 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
         /// </summary>
         /// <param name="bytes">Bytes to write</param>
         /// <param name="targetIndex">Offset to write them from the beginning of this vector</param>
-        public unsafe void Write(Span<byte> bytes, uint targetIndex)
+        public unsafe void Write(ReadOnlySpan<byte> bytes, uint targetIndex)
         {
             // Target index must have a sane value
             if (targetIndex >= TypeByteSz)

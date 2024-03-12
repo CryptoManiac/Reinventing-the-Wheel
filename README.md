@@ -26,7 +26,7 @@ All hashers are implementing the well known Init - Update - Finalize paradighm. 
 public void Reset()
 
 /// Write bytes to hasher state
-public void Update(byte[] input)
+public void Update(ReadOnlySpan<byte> input)
 
 /// Return hash as a new byte array
 //  Note: This implies the Reset() operation

@@ -46,21 +46,21 @@ namespace Wheel.Crypto.Hashing.RIPEMD
             block.Reset();
         }
 
-        public static byte[] Hash(byte[] input)
+        public static byte[] Hash(ReadOnlySpan<byte> input)
         {
             RIPEMD160 hasher = new();
             hasher.Update(input);
             return hasher.Digest();
         }
 
-        public static void Hash(Span<byte> digest, byte[] input)
+        public static void Hash(Span<byte> digest, ReadOnlySpan<byte> input)
         {
             RIPEMD160 hasher = new();
             hasher.Update(input);
             hasher.Digest(digest);
         }
 
-        public void Update(byte[] input)
+        public void Update(ReadOnlySpan<byte> input)
         {
             uint len = (uint)input.Length;
 
@@ -89,7 +89,7 @@ namespace Wheel.Crypto.Hashing.RIPEMD
             if (i > 0)
             {
                 // First chunk is an odd size
-                block.Write(input.AsSpan(offset, 64 - (int)i), i);
+                block.Write(input.Slice(offset, 64 - (int)i), i);
                 InternalRIPEMDOps.Compress(ref state, block);
                 offset += 64 - (int)i;
                 len -= 64 - i;
@@ -98,7 +98,7 @@ namespace Wheel.Crypto.Hashing.RIPEMD
             while (len >= 64)
             {
                 // Process data in 64-byte chunks
-                block.Write(input.AsSpan(offset, 64), i);
+                block.Write(input.Slice(offset, 64), i);
                 InternalRIPEMDOps.Compress(ref state, block);
                 offset += 64;
                 len -= 64;
@@ -107,7 +107,7 @@ namespace Wheel.Crypto.Hashing.RIPEMD
             if (len > 0)
             {
                 // Handle any remaining bytes of data.
-                block.Write(input.AsSpan(offset, (int)len), 0);
+                block.Write(input.Slice(offset, (int)len), 0);
             }
         }
     }

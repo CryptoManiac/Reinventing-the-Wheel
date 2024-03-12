@@ -1,5 +1,4 @@
 ﻿using Wheel.Crypto.Miscellaneous.Support;
-using System.Runtime.CompilerServices;
 using Wheel.Crypto.Hashing.SHA.SHA256.Internal;
 using System.Runtime.InteropServices;
 
@@ -44,6 +43,11 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         [FieldOffset(16 + InternalSHA256Block.TypeByteSz + InternalSHA256State.TypeByteSz)]
         private InternalSHA256State initState;
 
+        /// <summary>
+        /// Size of structure in bytes
+        /// </summary>
+        public const int TypeByteSz = 2 * sizeof(uint) + sizeof(ulong) + InternalSHA256Block.TypeByteSz + InternalSHA256State.TypeByteSz * 2;
+
         public int HashSz => digestSz;
 
         public SHA256Base(InternalSHA256State constants, int outSz)
@@ -62,6 +66,19 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
             bitLen = 0;
             pendingBlock.Reset();
             state.Set(initState);
+        }
+
+        /// <summary>
+        /// Reset to specific hashing state
+        /// </summary>
+        /// <param name="to"></param>
+        public void Reset(SHA256Base to)
+        {
+            blockLen = to.blockLen;
+            digestSz = to.digestSz;
+            bitLen = to.bitLen;
+            pendingBlock = new(to.pendingBlock);
+            state = new(to.state);
         }
 
         /// <summary>
@@ -98,7 +115,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         /// </summary>
         /// <param name="input">Input bytes to update hasher with</param>
         /// <exception cref="InvalidOperationException"></exception>
-        public void Update(byte[] input)
+        public void Update(ReadOnlySpan<byte> input)
         {
             for (int i = 0; i < input.Length;)
             {
@@ -109,7 +126,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
                 int needed = 64 - (int)blockLen;
 
                 // Either entire remaining byte stream or merely a needed chunk of it
-                Span<byte> toWrite = new(input, i, (remaining < needed) ? remaining : needed);
+                ReadOnlySpan<byte> toWrite = input.Slice(i, (remaining < needed) ? remaining : needed);
 
                 // Write data at current index
                 pendingBlock.Write(toWrite, blockLen);
@@ -191,6 +208,11 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         [FieldOffset(0)]
         private SHA256Base ctx = new SHA256Base(InternalSHA256Constants.init_state_256, 32);
 
+        /// <summary>
+        /// Size of structure in bytes
+        /// </summary>
+        public const int TypeByteSz = SHA256Base.TypeByteSz;
+
         public SHA256()
         {
         }
@@ -200,18 +222,19 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Update(byte[] input) => ctx.Update(input);
+        public void Reset(in SHA256 to) => ctx.Reset(to.ctx);
+        public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         #endregion
 
         #region Static methods
-        public static byte[] Hash(byte[] input)
+        public static byte[] Hash(ReadOnlySpan<byte> input)
         {
             SHA256 hasher = new();
             hasher.Update(input);
             return hasher.Digest();
         }
 
-        public static void Hash(Span<byte> digest, byte[] input)
+        public static void Hash(Span<byte> digest, ReadOnlySpan<byte> input)
         {
             SHA256 hasher = new();
             hasher.Update(input);
@@ -226,6 +249,11 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         [FieldOffset(0)]
         private SHA256Base ctx = new SHA256Base(InternalSHA256Constants.init_state_224, 28);
 
+        /// <summary>
+        /// Size of structure in bytes
+        /// </summary>
+        public const int TypeByteSz = SHA256Base.TypeByteSz;
+
         public SHA224()
         {
         }
@@ -235,18 +263,19 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Update(byte[] input) => ctx.Update(input);
+        public void Reset(in SHA224 to) => ctx.Reset(to.ctx);
+        public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         #endregion
 
         #region Static methods
-        public static byte[] Hash(byte[] input)
+        public static byte[] Hash(ReadOnlySpan<byte> input)
         {
             SHA224 hasher = new();
             hasher.Update(input);
             return hasher.Digest();
         }
 
-        public static void Hash(Span<byte> digest, byte[] input)
+        public static void Hash(Span<byte> digest, ReadOnlySpan<byte> input)
         {
             SHA224 hasher = new();
             hasher.Update(input);

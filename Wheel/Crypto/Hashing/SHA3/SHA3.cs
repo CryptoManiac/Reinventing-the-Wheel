@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 using Wheel.Crypto.Hashing.SHA3.Internal;
 
 namespace Wheel.Crypto.Hashing.SHA3
@@ -18,18 +19,18 @@ namespace Wheel.Crypto.Hashing.SHA3
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Update(byte[] input) => ctx.Update(input);
+        public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         #endregion
 
         #region Static methods
-        public static byte[] Hash(byte[] input)
+        public static byte[] Hash(Span<byte> input)
         {
             SHA3_256 hasher = new();
             hasher.Update(input);
             return hasher.Digest();
         }
 
-        public static void Hash(Span<byte> digest, byte[] input)
+        public static void Hash(Span<byte> digest, Span<byte> input)
         {
             SHA3_256 hasher = new();
             hasher.Update(input);
@@ -53,18 +54,18 @@ namespace Wheel.Crypto.Hashing.SHA3
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Update(byte[] input) => ctx.Update(input);
+        public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         #endregion
 
         #region Static methods
-        public static byte[] Hash(byte[] input)
+        public static byte[] Hash(Span<byte> input)
         {
             SHA3_384 hasher = new();
             hasher.Update(input);
             return hasher.Digest();
         }
 
-        public static void Hash(Span<byte> digest, byte[] input)
+        public static void Hash(Span<byte> digest, Span<byte> input)
         {
             SHA3_384 hasher = new();
             hasher.Update(input);
@@ -88,18 +89,18 @@ namespace Wheel.Crypto.Hashing.SHA3
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Update(byte[] input) => ctx.Update(input);
+        public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         #endregion
 
         #region Static methods
-        public static byte[] Hash(byte[] input)
+        public static byte[] Hash(Span<byte> input)
         {
             SHA3_512 hasher = new();
             hasher.Update(input);
             return hasher.Digest();
         }
 
-        public static void Hash(Span<byte> digest, byte[] input)
+        public static void Hash(Span<byte> digest, Span<byte> input)
         {
             SHA3_512 hasher = new();
             hasher.Update(input);
@@ -123,18 +124,18 @@ namespace Wheel.Crypto.Hashing.SHA3
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Update(byte[] input) => ctx.Update(input);
+        public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         #endregion
 
         #region Static methods
-        public static byte[] Hash(byte[] input)
+        public static byte[] Hash(Span<byte> input)
         {
             Keccak_256 hasher = new();
             hasher.Update(input);
             return hasher.Digest();
         }
 
-        public static void Hash(Span<byte> digest, byte[] input)
+        public static void Hash(Span<byte> digest, Span<byte> input)
         {
             Keccak_256 hasher = new();
             hasher.Update(input);
@@ -158,18 +159,18 @@ namespace Wheel.Crypto.Hashing.SHA3
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Update(byte[] input) => ctx.Update(input);
+        public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         #endregion
 
         #region Static methods
-        public static byte[] Hash(byte[] input)
+        public static byte[] Hash(Span<byte> input)
         {
             Keccak_384 hasher = new();
             hasher.Update(input);
             return hasher.Digest();
         }
 
-        public static void Hash(Span<byte> digest, byte[] input)
+        public static void Hash(Span<byte> digest, Span<byte> input)
         {
             Keccak_384 hasher = new();
             hasher.Update(input);
@@ -193,18 +194,18 @@ namespace Wheel.Crypto.Hashing.SHA3
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Update(byte[] input) => ctx.Update(input);
+        public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         #endregion
 
         #region Static methods
-        public static byte[] Hash(byte[] input)
+        public static byte[] Hash(Span<byte> input)
         {
             Keccak_512 hasher = new();
             hasher.Update(input);
             return hasher.Digest();
         }
 
-        public static void Hash(Span<byte> digest, byte[] input)
+        public static void Hash(Span<byte> digest, Span<byte> input)
         {
             Keccak_512 hasher = new();
             hasher.Update(input);

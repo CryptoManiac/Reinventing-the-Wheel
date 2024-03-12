@@ -1,5 +1,8 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Wheel.Crypto.Hashing.SHA.SHA256;
+using Wheel.Crypto.Hashing.SHA.SHA256.Internal;
 using Wheel.Crypto.Hashing.SHA.SHA512.Internal;
 using Wheel.Crypto.Miscellaneous.Support;
 
@@ -44,6 +47,11 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         [FieldOffset(16 + InternalSHA512Block.TypeByteSz + InternalSHA512State.TypeByteSz)]
         private InternalSHA512State initState;
 
+        /// <summary>
+        /// Size of structure in bytes
+        /// </summary>
+        public const int TypeByteSz = 2 * sizeof(uint) + sizeof(ulong) + InternalSHA512Block.TypeByteSz + InternalSHA512State.TypeByteSz * 2;
+
         public int HashSz => digestSz;
 
         public SHA512Base(InternalSHA512State constants, int outSz)
@@ -65,13 +73,25 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         }
 
         /// <summary>
+        /// Reset to specific hashing state
+        /// </summary>
+        /// <param name="to"></param>
+        public void Reset(in SHA512Base to)
+        {
+            blockLen = to.blockLen;
+            digestSz = to.digestSz;
+            bitLen = to.bitLen;
+            pendingBlock = new(to.pendingBlock);
+            state = new(to.state);
+        }
+
+        /// <summary>
         /// Update hasher with new data bytes
         /// </summary>
         /// <param name="input">Input bytes to update hasher with</param>
         /// <exception cref="InvalidOperationException"></exception>
-        public void Update(byte[] input)
+        public void Update(ReadOnlySpan<byte> input)
         {
-
             for (int i = 0; i < input.Length;)
             {
                 // How many bytes are left unprocessed
@@ -81,7 +101,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
                 int needed = 128 - (int)blockLen;
 
                 // Either entire remaining byte stream or merely a needed chunk of it
-                Span<byte> toWrite = new(input, i, (remaining < needed) ? remaining : needed);
+                ReadOnlySpan<byte> toWrite = input.Slice(i, (remaining < needed) ? remaining : needed);
 
                 // Write data at current index
                 pendingBlock.Write(toWrite, blockLen);
@@ -193,6 +213,11 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         [FieldOffset(0)]
         private SHA512Base ctx = new SHA512Base(InternalSHA512Constants.init_state_512, 64);
 
+        /// <summary>
+        /// Size of structure in bytes
+        /// </summary>
+        public const int TypeByteSz = SHA512Base.TypeByteSz;
+
         public SHA512()
         {
         }
@@ -202,18 +227,19 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Update(byte[] input) => ctx.Update(input);
+        public void Reset(in SHA512 to) => ctx.Reset(to.ctx);
+        public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         #endregion
 
         #region Static methods
-        public static byte[] Hash(byte[] input)
+        public static byte[] Hash(ReadOnlySpan<byte> input)
         {
             SHA512 hasher = new();
             hasher.Update(input);
             return hasher.Digest();
         }
 
-        public static void Hash(Span<byte> digest, byte[] input)
+        public static void Hash(Span<byte> digest, ReadOnlySpan<byte> input)
         {
             SHA512 hasher = new();
             hasher.Update(input);
@@ -228,6 +254,11 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         [FieldOffset(0)]
         private SHA512Base ctx = new SHA512Base(InternalSHA512Constants.init_state_384, 48);
 
+        /// <summary>
+        /// Size of structure in bytes
+        /// </summary>
+        public const int TypeByteSz = SHA512Base.TypeByteSz;
+
         public SHA384()
         {
         }
@@ -237,18 +268,19 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Update(byte[] input) => ctx.Update(input);
+        public void Reset(in SHA384 to) => ctx.Reset(to.ctx);
+        public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         #endregion
 
         #region Static methods
-        public static byte[] Hash(byte[] input)
+        public static byte[] Hash(ReadOnlySpan<byte> input)
         {
             SHA384 hasher = new();
             hasher.Update(input);
             return hasher.Digest();
         }
 
-        public static void Hash(Span<byte> digest, byte[] input)
+        public static void Hash(Span<byte> digest, ReadOnlySpan<byte> input)
         {
             SHA384 hasher = new();
             hasher.Update(input);
@@ -263,6 +295,11 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         [FieldOffset(0)]
         private SHA512Base ctx = new SHA512Base(InternalSHA512Constants.init_state_256, 32);
 
+        /// <summary>
+        /// Size of structure in bytes
+        /// </summary>
+        public const int TypeByteSz = SHA512Base.TypeByteSz;
+
         public SHA512_256()
         {
         }
@@ -272,18 +309,19 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Update(byte[] input) => ctx.Update(input);
+        public void Reset(in SHA512_256 to) => ctx.Reset(to.ctx);
+        public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         #endregion
 
         #region Static methods
-        public static byte[] Hash(byte[] input)
+        public static byte[] Hash(ReadOnlySpan<byte> input)
         {
             SHA512_256 hasher = new();
             hasher.Update(input);
             return hasher.Digest();
         }
 
-        public static void Hash(Span<byte> digest, byte[] input)
+        public static void Hash(Span<byte> digest, ReadOnlySpan<byte> input)
         {
             SHA512_256 hasher = new();
             hasher.Update(input);
@@ -298,6 +336,11 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         [FieldOffset(0)]
         private SHA512Base ctx = new SHA512Base(InternalSHA512Constants.init_state_224, 28);
 
+        /// <summary>
+        /// Size of structure in bytes
+        /// </summary>
+        public const int TypeByteSz = SHA512Base.TypeByteSz;
+
         public SHA512_224()
         {
         }
@@ -307,18 +350,19 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Update(byte[] input) => ctx.Update(input);
+        public void Reset(in SHA512_224 to) => ctx.Reset(to.ctx);
+        public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         #endregion
 
         #region Static methods
-        public static byte[] Hash(byte[] input)
+        public static byte[] Hash(ReadOnlySpan<byte> input)
         {
             SHA512_224 hasher = new();
             hasher.Update(input);
             return hasher.Digest();
         }
 
-        public static void Hash(Span<byte> digest, byte[] input)
+        public static void Hash(Span<byte> digest, ReadOnlySpan<byte> input)
         {
             SHA512_224 hasher = new();
             hasher.Update(input);
