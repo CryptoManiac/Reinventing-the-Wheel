@@ -45,7 +45,7 @@ The HMAC implementations are derived from `IMac` interface which is defining the
 
 ```csharp
 /// Reset the hasher to the post-initialized state
-public void Reinit();
+public void Reset();
 
 /// Reset hasher with a new key
 public void Reset(in ReadOnlySpan<byte> key);
@@ -54,7 +54,7 @@ public void Reset(in ReadOnlySpan<byte> key);
 public void Update(in ReadOnlySpan<byte> input);
 
 /// Write hash into provided span or array
-//  Note: This implies the Reinit() operation
+//  Note: This implies the Reset() operation
 public void Digest(Span<byte> hash);
 
 /// This property returns size of the buffer

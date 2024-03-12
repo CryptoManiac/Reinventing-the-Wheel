@@ -13,7 +13,7 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
         [FieldOffset(SHA512Base.TypeByteSz)]
         private SHA512Base ctx_outside = new();
 
-        #region For Reinit()
+        #region For Reset()
         [FieldOffset(SHA512Base.TypeByteSz * 2)]
         private SHA512Base ctx_inside_reinit = new();
 
@@ -99,10 +99,10 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
             ctx_outside.Update(digest_inside);
             ctx_outside.Digest(mac_temp);
             mac_temp.Slice(0, mac.Length).CopyTo(mac);
-            Reinit();
+            Reset();
         }
 
-        public void Reinit()
+        public void Reset()
         {
             ctx_inside.Reset(ctx_inside_reinit);
             ctx_outside.Reset(ctx_outside_reinit);
@@ -120,7 +120,7 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
 
         public int HashSz => ctx.HashSz;
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
-        public void Reinit() => ctx.Reinit();
+        public void Reset() => ctx.Reset();
         public void Reset(in ReadOnlySpan<byte> key) => ctx.Reset(key);
         public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
     }
@@ -136,7 +136,7 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
 
         public int HashSz => ctx.HashSz;
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
-        public void Reinit() => ctx.Reinit();
+        public void Reset() => ctx.Reset();
         public void Reset(in ReadOnlySpan<byte> key) => ctx.Reset(key);
         public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
     }
@@ -152,7 +152,7 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
 
         public int HashSz => ctx.HashSz;
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
-        public void Reinit() => ctx.Reinit();
+        public void Reset() => ctx.Reset();
         public void Reset(in ReadOnlySpan<byte> key) => ctx.Reset(key);
         public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
     }
@@ -168,7 +168,7 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
 
         public int HashSz => ctx.HashSz;
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
-        public void Reinit() => ctx.Reinit();
+        public void Reset() => ctx.Reset();
         public void Reset(in ReadOnlySpan<byte> key) => ctx.Reset(key);
         public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
     }
