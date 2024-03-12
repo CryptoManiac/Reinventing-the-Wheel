@@ -34,13 +34,7 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
         public ulong saved;
 
         /// <summary>
-        /// Keccak data mixer (byte access)
-        /// </summary>
-        [FieldOffset(20)]
-        private unsafe fixed byte bytes[KeccakConstants.SHA3_SPONGE_WORDS * 8];
-
-        /// <summary>
-        /// Keccak data mixer (word access)
+        /// Keccak data mixer
         /// </summary>
         [FieldOffset(20)]
         private unsafe fixed ulong registers[KeccakConstants.SHA3_SPONGE_WORDS];
@@ -214,7 +208,7 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
 
             unsafe
             {
-                fixed (void* source = &bytes[0])
+                fixed (void* source = &registers[0])
                 {
                     new Span<byte>(source, hash.Length).CopyTo(hash);
                 }
