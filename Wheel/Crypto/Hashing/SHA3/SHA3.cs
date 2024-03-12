@@ -19,7 +19,7 @@ namespace Wheel.Crypto.Hashing.SHA3
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
+        public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
         #endregion
 
         #region Static methods
@@ -56,7 +56,7 @@ namespace Wheel.Crypto.Hashing.SHA3
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
+        public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
         #endregion
 
         #region Static methods
@@ -93,7 +93,7 @@ namespace Wheel.Crypto.Hashing.SHA3
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
+        public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
         #endregion
 
         #region Static methods
@@ -130,7 +130,7 @@ namespace Wheel.Crypto.Hashing.SHA3
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
+        public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
         #endregion
 
         #region Static methods
@@ -167,7 +167,7 @@ namespace Wheel.Crypto.Hashing.SHA3
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
+        public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
         #endregion
 
         #region Static methods
@@ -204,7 +204,7 @@ namespace Wheel.Crypto.Hashing.SHA3
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
+        public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
         #endregion
 
         #region Static methods

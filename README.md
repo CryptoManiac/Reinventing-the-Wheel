@@ -28,7 +28,7 @@ The hash function implementations are derived from the `IHasher` interface which
 public void Reset()
 
 /// Write bytes to hasher state
-public void Update(ReadOnlySpan<byte> input)
+public void Update(in ReadOnlySpan<byte> input)
 
 /// Write hash into provided span or array
 //  Note: This implies the Reset() operation
@@ -51,7 +51,7 @@ public void Reinit();
 public void Reset(in ReadOnlySpan<byte> key);
 
 /// Write bytes to hasher state
-public void Update(ReadOnlySpan<byte> input);
+public void Update(in ReadOnlySpan<byte> input);
 
 /// Write hash into provided span or array
 //  Note: This implies the Reinit() operation

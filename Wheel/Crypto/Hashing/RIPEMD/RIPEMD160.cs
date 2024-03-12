@@ -53,14 +53,14 @@ namespace Wheel.Crypto.Hashing.RIPEMD
             return hasher.Digest();
         }
 
-        public static void Hash(Span<byte> digest, ReadOnlySpan<byte> input)
+        public static void Hash(Span<byte> digest, in ReadOnlySpan<byte> input)
         {
             RIPEMD160 hasher = new();
             hasher.Update(input);
             hasher.Digest(digest);
         }
 
-        public void Update(ReadOnlySpan<byte> input)
+        public void Update(in ReadOnlySpan<byte> input)
         {
             uint len = (uint)input.Length;
 

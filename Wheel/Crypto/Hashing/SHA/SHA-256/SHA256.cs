@@ -115,7 +115,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         /// </summary>
         /// <param name="input">Input bytes to update hasher with</param>
         /// <exception cref="InvalidOperationException"></exception>
-        public void Update(ReadOnlySpan<byte> input)
+        public void Update(in ReadOnlySpan<byte> input)
         {
             for (int i = 0; i < input.Length;)
             {
@@ -223,7 +223,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
         public void Reset(in SHA256 to) => ctx.Reset(to.ctx);
-        public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
+        public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
         #endregion
 
         #region Static methods
@@ -266,7 +266,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
         public void Reset(in SHA224 to) => ctx.Reset(to.ctx);
-        public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
+        public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
         #endregion
 
         #region Static methods
