@@ -24,7 +24,7 @@ SortedDictionary<string, Func<IHasher>> algorithms = new()
 
 static void Benchmark(string name, Action action, int n, int bytes)
 {
-    int cpuFreq = 3800; // Set your processor clock in MHz here
+    int cpuFreq = 3200; // Set your processor clock in MHz here
 
     Console.ForegroundColor = ConsoleColor.White;
     Console.WriteLine("{0} {1}", name, bytes);
