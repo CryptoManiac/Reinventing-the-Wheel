@@ -17,7 +17,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         /// Output length
         /// </summary>
         [FieldOffset(4)]
-        private int digestSz = 0;
+        private int digestSz;
 
         /// <summary>
         /// Total input length in bits

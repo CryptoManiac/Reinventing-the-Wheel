@@ -9,7 +9,7 @@ namespace Wheel.Crypto.Hashing.HMAC
         public int HashSz { get; }
         public void Reset(in ReadOnlySpan<byte> key);
         public void Reinit();
-        public byte[] Digest();
+        public byte[] Digest(int mac_size);
         public void Digest(Span<byte> hash);
         public void Update(ReadOnlySpan<byte> input);
     }
