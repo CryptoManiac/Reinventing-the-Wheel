@@ -7,25 +7,25 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
     public struct Keccak : IHasher
     {
         /// <summary>
+        /// the double size of the hash output in
+        /// words (e.g. 16 for Keccak 512)
+        /// </summary>
+        [FieldOffset(0)]
+        public readonly uint capacityWords;
+
+        /// <summary>
         /// 0..7--the next byte after the set one
         /// (starts from 0; 0--none are buffered)
         /// </summary>
-        [FieldOffset(0)]
+        [FieldOffset(4)]
         public int byteIndex;
 
         /// <summary>
         /// 0..24--the next word to integrate input
         /// (starts from 0)
         /// </summary>
-        [FieldOffset(4)]
-        public uint wordIndex;
-
-        /// <summary>
-        /// the double size of the hash output in
-        /// words (e.g. 16 for Keccak 512)
-        /// </summary>
         [FieldOffset(8)]
-        public readonly uint capacityWords;
+        public uint wordIndex;
 
         /// <summary>
         /// the portion of the input message that we didn't consume yet
@@ -34,10 +34,16 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
         public ulong saved;
 
         /// <summary>
-        /// Keccak data mixer
+        /// Keccak data mixer (byte access)
         /// </summary>
         [FieldOffset(20)]
-        private KeccakSpounge spounge;
+        private unsafe fixed byte bytes[KeccakConstants.SHA3_SPONGE_WORDS * 8];
+
+        /// <summary>
+        /// Keccak data mixer (word access)
+        /// </summary>
+        [FieldOffset(20)]
+        private unsafe fixed ulong registers[KeccakConstants.SHA3_SPONGE_WORDS];
 
         public readonly bool IsKeccak
         {
@@ -65,12 +71,13 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
 
         }
 
-        public void Reset()
+        public unsafe void Reset()
         {
-            spounge.Reset();
-            wordIndex = 0;
-            byteIndex = 0;
-            saved = 0;
+            fixed(void* ptr = &this)
+            {
+                // Skip the first 4 bytes to keep the capacityWords intact
+                new Span<byte>((byte*)ptr + sizeof(uint), sizeof(Keccak) - sizeof(uint)).Clear();
+            }
         }
 
         public void Update(in ReadOnlySpan<byte> input)
@@ -82,18 +89,21 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
             // now work in full words directly from input
             for (int i = 0; i < words; i++, offset += 8)
             {
-                spounge[wordIndex] ^= (input[offset]) |
+                unsafe
+                {
+                    registers[wordIndex] ^= (input[offset]) |
                         ((ulong)input[offset + 1] << 8 * 1) |
                         ((ulong)input[offset + 2] << 8 * 2) |
                         ((ulong)input[offset + 3] << 8 * 3) |
                         ((ulong)input[offset + 4] << 8 * 4) |
                         ((ulong)input[offset + 5] << 8 * 5) |
                         ((ulong)input[offset + 6] << 8 * 6) |
-                        ((ulong)input[offset + 7] << 8 * 7);
+                         ((ulong)input[offset + 7] << 8 * 7);
+                }
 
                 if (++wordIndex == (KeccakConstants.SHA3_SPONGE_WORDS - KeccakFunctions.SHA3_CW(capacityWords)))
                 {
-                    spounge.KeccakF();
+                    KeccakF();
                     wordIndex = 0;
                 }
             }
@@ -129,13 +139,18 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
                 }
 
                 // now ready to add saved to the sponge
-                spounge[wordIndex] ^= saved;
+
+                unsafe
+                {
+                    registers[wordIndex] ^= saved;
+                }
+
                 byteIndex = 0;
                 saved = 0;
 
                 if (++wordIndex == (KeccakConstants.SHA3_SPONGE_WORDS - KeccakFunctions.SHA3_CW(capacityWords)))
                 {
-                    spounge.KeccakF();
+                    KeccakF();
                     wordIndex = 0;
                 }
 
@@ -176,9 +191,13 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
                 t = ((ulong)(0x02 | (1 << 2))) << (byteIndex * 8);
             }
 
-            spounge[wordIndex] ^= saved ^ t;
-            spounge[KeccakConstants.SHA3_SPONGE_WORDS - KeccakFunctions.SHA3_CW(capacityWords) - 1] ^= 0x8000000000000000UL;
-            spounge.KeccakF();
+            unsafe
+            {
+                registers[wordIndex] ^= saved ^ t;
+                registers[KeccakConstants.SHA3_SPONGE_WORDS - KeccakFunctions.SHA3_CW(capacityWords) - 1] ^= 0x8000000000000000UL;
+            }
+
+            KeccakF();
 
             // Revert byte order on BE machines
             //  Considering that Itanium is dead, this is unlikely to ever be useful
@@ -186,11 +205,20 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
             {
                 for (uint i = 0; i < KeccakConstants.SHA3_SPONGE_WORDS; i++)
                 {
-                    spounge[i] = Common.REVERT(spounge[i]);
+                    unsafe
+                    {
+                        Common.REVERT(ref registers[i]);
+                    }
                 }
             }
 
-            spounge.bytes.Store(hash);
+            unsafe
+            {
+                fixed (void* source = &bytes[0])
+                {
+                    new Span<byte>(source, hash.Length).CopyTo(hash);
+                }
+            }
 
             // Reset hasher state
             Reset();
@@ -201,6 +229,57 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
             byte[] hash = new byte[HashSz];
             Digest(hash);
             return hash;
+        }
+
+        private unsafe void KeccakF()
+        {
+            Span<ulong> bc = stackalloc ulong[5];
+
+            for (int round = 0; round < KeccakConstants.SHA3_ROUNDS; ++round)
+            {
+
+                /* Theta */
+                for (int i = 0; i < 5; ++i)
+                {
+                    bc[i] = registers[i] ^ registers[i + 5] ^ registers[i + 10] ^ registers[i + 15] ^ registers[i + 20];
+                }
+
+                for (int i = 0; i < 5; ++i)
+                {
+                    ulong t1 = bc[(i + 4) % 5] ^ KeccakFunctions.SHA3_ROTL64(bc[(i + 1) % 5], 1);
+                    for (int j = 0; j < 25; j += 5)
+                    {
+                        registers[j + i] ^= t1;
+                    }
+                }
+
+                /* Rho Pi */
+                ulong t = registers[1];
+                for (int i = 0; i < 24; ++i)
+                {
+                    int j = KeccakConstants.keccakf_piln[i];
+                    bc[0] = registers[j];
+                    registers[j] = KeccakFunctions.SHA3_ROTL64(t, KeccakConstants.keccakf_rotc[i]);
+                    t = bc[0];
+                }
+
+                /* Chi */
+                for (int j = 0; j < 25; j += 5)
+                {
+                    for (int i = 0; i < 5; ++i)
+                    {
+                        bc[i] = registers[j + i];
+                    }
+
+                    for (int i = 0; i < 5; ++i)
+                    {
+                        registers[j + i] ^= (~bc[(i + 1) % 5]) & bc[(i + 2) % 5];
+                    }
+                }
+
+                /* Iota */
+                registers[0] ^= KeccakConstants.keccakf_rndc[round];
+            }
         }
     }
 }

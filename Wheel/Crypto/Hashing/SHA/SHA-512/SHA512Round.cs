@@ -8,7 +8,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
     /// Represents the round context data for the 512-bit family of SHA functions
     /// </summary>
     [StructLayout(LayoutKind.Explicit)]
-    public unsafe struct InternalSHA512Round
+    public struct InternalSHA512Round
     {
         /// <summary>
         /// Instantiate from array or a variable number of arguments
@@ -71,7 +71,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
 
         #region Register access logic
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly ulong GetRegisterUlong(uint index)
+        private unsafe readonly ulong GetRegisterUlong(uint index)
         {
             if (index >= TypeUlongSz)
             {
@@ -81,7 +81,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SetRegisterUlong(uint index, ulong value)
+        private unsafe void SetRegisterUlong(uint index, ulong value)
         {
             if (index >= TypeUlongSz)
             {
@@ -109,11 +109,11 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         /// <summary>
         /// Revert the byte order for the first 16 state registers
         /// </summary>
-        private void RevertBlock()
+        private unsafe void RevertBlock()
         {
             for (int i = 0; i < InternalSHA512Block.TypeUlongSz; ++i)
             {
-                registers[i] = Common.REVERT(registers[i]);
+                Common.REVERT(ref registers[i]);
             }
         }
 
@@ -129,19 +129,19 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         }
 
         /// <summary>
-        /// Size of structure in memory when treated as a collection of bytes
-        /// </summary>
-        public const int TypeByteSz = 640;
-
-        /// <summary>
         /// Size of structure in memory when treated as a collection of ulong values
         /// </summary>
-        public const int TypeUlongSz = TypeByteSz / sizeof(ulong);
+        public const int TypeUlongSz = 80;
+
+        /// <summary>
+        /// Size of structure in memory when treated as a collection of bytes
+        /// </summary>
+        public const int TypeByteSz = TypeUlongSz * sizeof(ulong);
 
         /// <summary>
         /// Fixed size buffer for registers
         /// </summary>
         [FieldOffset(0)]
-        private fixed ulong registers[TypeUlongSz];
+        private unsafe fixed ulong registers[TypeUlongSz];
     }
 }

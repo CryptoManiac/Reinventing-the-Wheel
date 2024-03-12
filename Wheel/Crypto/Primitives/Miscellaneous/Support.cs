@@ -7,15 +7,15 @@ namespace Wheel.Crypto.Miscellaneous.Support
     internal static class Common
 	{
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint REVERT(uint value)
+        public static void REVERT(ref uint value)
         {
-            return (uint)IPAddress.NetworkToHostOrder((int)value);
+            value = (uint)IPAddress.NetworkToHostOrder((int)value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong REVERT(ulong value)
+        public static void REVERT(ref ulong value)
         {
-            return (ulong)IPAddress.NetworkToHostOrder((long)value);
+            value = (ulong)IPAddress.NetworkToHostOrder((long)value);
         }
 
         /// <summary>

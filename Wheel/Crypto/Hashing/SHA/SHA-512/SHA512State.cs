@@ -134,14 +134,14 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         /// </summary>
         public void Revert()
         {
-            a = Common.REVERT(a);
-            b = Common.REVERT(b);
-            c = Common.REVERT(c);
-            d = Common.REVERT(d);
-            e = Common.REVERT(e);
-            f = Common.REVERT(f);
-            g = Common.REVERT(g);
-            h = Common.REVERT(h);
+            Common.REVERT(ref a);
+            Common.REVERT(ref b);
+            Common.REVERT(ref c);
+            Common.REVERT(ref d);
+            Common.REVERT(ref e);
+            Common.REVERT(ref f);
+            Common.REVERT(ref g);
+            Common.REVERT(ref h);
         }
 
         /// <summary>

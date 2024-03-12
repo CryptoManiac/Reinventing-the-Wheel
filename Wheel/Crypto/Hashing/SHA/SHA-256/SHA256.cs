@@ -194,7 +194,8 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
             // Append to the padding the total message's
             // length in bits and transform.
             bitLen += blockLen * 8;
-            pendingBlock.lastDWord = Common.REVERT(bitLen);
+            pendingBlock.lastDWord = bitLen;
+            Common.REVERT(ref pendingBlock.lastDWord);
             Transform();
 
             // Reverse byte ordering to get final hashing result

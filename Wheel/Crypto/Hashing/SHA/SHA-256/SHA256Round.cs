@@ -98,7 +98,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         {
             for (int i = 0; i < InternalSHA256Block.TypeUintSz; ++i)
             {
-                registers[i] = Common.REVERT(registers[i]);
+                Common.REVERT(ref registers[i]);
             }
         }
 
