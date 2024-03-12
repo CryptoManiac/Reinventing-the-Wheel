@@ -153,9 +153,9 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
         /// </summary>
         public void Digest(Span<byte> hash)
         {
-            if (hash.Length < HashSz)
+            if (hash.Length != HashSz)
             {
-                throw new ArgumentOutOfRangeException(nameof(hash), hash.Length, "Hash buffer must be at least " + HashSz + " bytes long");
+                throw new InvalidOperationException("Target buffer size doesn't match the expected " + HashSz + " bytes");
             }
 
             // Append 2-bit suffix 01, per SHA-3 spec. Instead of 1 for padding we

@@ -39,33 +39,33 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
         {
             int keySz;
 
-            Span<byte> key_used = stackalloc byte[ctx_inside.HashSz];
+            Span<byte> key_used = stackalloc byte[InternalSHA256Block.TypeByteSz];
             Span<byte> block_opad = stackalloc byte[InternalSHA256Block.TypeByteSz];
             Span<byte> block_ipad = stackalloc byte[InternalSHA256Block.TypeByteSz];
 
             if (key.Length == InternalSHA256Block.TypeByteSz)
             {
-                keySz = InternalSHA256Block.TypeByteSz;
                 key.CopyTo(key_used);
+                keySz = InternalSHA256Block.TypeByteSz;
             }
             else
             {
                 if (key.Length > InternalSHA256Block.TypeByteSz)
                 {
+                    keySz = ctx_prehasher.HashSz;
                     ctx_prehasher.Update(key);
-                    ctx_prehasher.Digest(key_used);
-                    keySz = key_used.Length;
+                    ctx_prehasher.Digest(key_used.Slice(0, ctx_prehasher.HashSz));
                 }
                 else
                 {
-                    keySz = key.Length;
                     key.CopyTo(key_used);
+                    keySz = key.Length;
                 }
 
                 int fill = InternalSHA256Block.TypeByteSz - keySz;
 
-                block_ipad.Slice(keySz).Fill(0x36);
-                block_opad.Slice(keySz).Fill(0x5c);
+                block_ipad.Slice(keySz, fill).Fill(0x36);
+                block_opad.Slice(keySz, fill).Fill(0x5c);
             }
 
             for (int i = 0; i < keySz; i++)
