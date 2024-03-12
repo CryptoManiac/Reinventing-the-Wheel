@@ -115,7 +115,7 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
             ctx = new(InternalSHA256Constants.init_state_224, 28, key);
         }
 
-        public int HashSz => ((IMac)ctx).HashSz;
+        public int HashSz => ctx.HashSz;
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reinit() => ctx.Reinit();
         public void Reset(in ReadOnlySpan<byte> key) => ctx.Reset(key);
@@ -131,7 +131,7 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
             ctx = new(InternalSHA256Constants.init_state_256, 32, key);
         }
 
-        public int HashSz => ((IMac)ctx).HashSz;
+        public int HashSz => ctx.HashSz;
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reinit() => ctx.Reinit();
         public void Reset(in ReadOnlySpan<byte> key) => ctx.Reset(key);
