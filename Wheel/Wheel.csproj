@@ -30,6 +30,7 @@
     <None Remove="Crypto\Hashing\SHA3\" />
     <None Remove="Crypto\Hashing\HMAC\" />
     <None Remove="Crypto\Hashing\HMAC\SHA2\" />
+    <None Remove="Crypto\Hashing\PBKDF\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Crypto\" />
@@ -43,5 +44,6 @@
     <Folder Include="Crypto\Hashing\SHA3\" />
     <Folder Include="Crypto\Hashing\HMAC\" />
     <Folder Include="Crypto\Hashing\HMAC\SHA2\" />
+    <Folder Include="Crypto\Hashing\PBKDF\" />
   </ItemGroup>
 </Project>
