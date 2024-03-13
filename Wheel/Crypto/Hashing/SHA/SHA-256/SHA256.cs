@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 namespace Wheel.Crypto.Hashing.SHA.SHA256
 {
     [StructLayout(LayoutKind.Explicit)]
-    public struct SHA256Base : IHasher
+    internal struct SHA256Base : IHasher
     {
         /// <summary>
         /// Current data block length in bytes

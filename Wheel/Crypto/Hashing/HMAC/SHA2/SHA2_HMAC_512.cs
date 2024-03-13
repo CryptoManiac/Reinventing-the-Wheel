@@ -5,7 +5,7 @@ using Wheel.Crypto.Hashing.SHA.SHA512.Internal;
 namespace Wheel.Crypto.Hashing.HMAC.SHA2
 {
 	[StructLayout(LayoutKind.Explicit)]
-    public struct SHA512Base_HMAC : IMac
+    internal struct SHA512Base_HMAC : IMac
     {
         [FieldOffset(0)]
         private SHA512Base ctx_inside = new();

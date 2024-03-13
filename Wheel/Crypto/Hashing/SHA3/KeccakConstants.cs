@@ -1,6 +1,6 @@
 ﻿namespace Wheel.Crypto.Hashing.SHA3.Internal
 {
-	public static class KeccakConstants
+    internal static class KeccakConstants
 	{
         public const int SHA3_ROUNDS = 24;
         public const int SHA3_SPONGE_WORDS = 25; // Calculated as 1600 / 8 / sizeof(ulong)

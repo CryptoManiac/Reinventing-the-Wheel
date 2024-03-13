@@ -4,7 +4,7 @@ using Wheel.Crypto.Miscellaneous.Support;
 namespace Wheel.Crypto.Hashing.SHA3.Internal
 {
     [StructLayout(LayoutKind.Explicit)]
-    public struct Keccak : IHasher
+    internal struct Keccak : IHasher
     {
         /// <summary>
         /// the double size of the hash output in

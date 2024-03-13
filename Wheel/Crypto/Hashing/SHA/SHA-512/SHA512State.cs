@@ -8,7 +8,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
     /// Represents the state data for the 512-bit family of SHA functions
     /// </summary>
 	[StructLayout(LayoutKind.Explicit)]
-    public struct InternalSHA512State
+    internal struct InternalSHA512State
     {
         /// <summary>
         /// Instantiate from array or a variable number of arguments

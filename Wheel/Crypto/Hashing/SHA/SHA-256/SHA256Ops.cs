@@ -2,7 +2,7 @@
 
 namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
 {
-    public static class InternalSHA256Ops
+    internal static class InternalSHA256Ops
     {
         // Inline for performance reasons
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

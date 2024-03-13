@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using Wheel.Crypto.Hashing.SHA3.Internal;
 
 namespace Wheel.Crypto.Hashing.SHA3

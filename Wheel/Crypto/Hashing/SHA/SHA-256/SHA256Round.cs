@@ -8,7 +8,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
     /// Represents the round context data for the 256-bit family of SHA functions
     /// </summary>
     [StructLayout(LayoutKind.Explicit)]
-    public struct InternalSHA256Round
+    internal struct InternalSHA256Round
     {
         /// <summary>
         /// Instantiate from array or a variable number of arguments
@@ -35,7 +35,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
         /// Initialize first 16 registers from the provided block and revert them
         /// </summary>
         /// <param name="block">A context to provide 16 registers</param>
-        public InternalSHA256Round(in InternalSHA256Block block)
+        internal InternalSHA256Round(in InternalSHA256Block block)
         {
             SetBlock(block);
             RevertBlock();

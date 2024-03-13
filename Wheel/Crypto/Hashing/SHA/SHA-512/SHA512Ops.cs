@@ -2,7 +2,7 @@
 
 namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
 {
-    public static class InternalSHA512Ops
+    internal static class InternalSHA512Ops
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ulong SHFR(ulong x, int n) => x >> n;

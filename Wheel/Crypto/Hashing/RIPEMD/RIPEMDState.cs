@@ -7,7 +7,7 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
     /// Note: Mostly identical to that of SHA-256
     /// </summary>
 	[StructLayout(LayoutKind.Explicit)]
-    public struct InternalRIPEMDState
+    internal struct InternalRIPEMDState
     {
         /// <summary>
         /// Instantiate from array or a variable number of arguments

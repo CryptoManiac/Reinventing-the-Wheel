@@ -8,7 +8,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
     /// Access to individual block bytes through index operator
     /// </summary>
 	[StructLayout(LayoutKind.Explicit)]
-    public unsafe struct InternalSHA512BlockBytes
+    internal unsafe struct InternalSHA512BlockBytes
     {
         /// <summary>
         /// Index access to individual registers
@@ -58,7 +58,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
     /// Represents the block data for the 512-bit family of SHA functions
     /// </summary>
 	[StructLayout(LayoutKind.Explicit)]
-	public unsafe struct InternalSHA512Block
+    internal unsafe struct InternalSHA512Block
 	{
         /// <summary>
         /// Instantiate as a copy of the other block

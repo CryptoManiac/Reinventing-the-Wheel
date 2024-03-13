@@ -1,6 +1,6 @@
 ﻿namespace Wheel.Crypto.Hashing.RIPEMD.Internal
 {
-	public static class InternalRIPEMDOps
+    internal static class InternalRIPEMDOps
 	{
         /// <summary>
         /// ROL(x, n) cyclically rotates x over n bits to the left.

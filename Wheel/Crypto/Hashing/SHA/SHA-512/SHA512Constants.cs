@@ -1,7 +1,7 @@
 ﻿namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
 {
     /// Constants which are specific for SHA512 family of functions
-    public static class InternalSHA512Constants
+    internal static class InternalSHA512Constants
     {
         /// <summary>
         /// SHA-512 init state words

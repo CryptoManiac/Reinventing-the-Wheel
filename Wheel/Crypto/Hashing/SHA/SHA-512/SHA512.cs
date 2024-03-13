@@ -5,7 +5,7 @@ using Wheel.Crypto.Miscellaneous.Support;
 namespace Wheel.Crypto.Hashing.SHA.SHA512
 {
     [StructLayout(LayoutKind.Explicit)]
-    public struct SHA512Base : IHasher
+    internal struct SHA512Base : IHasher
     {
         /// <summary>
         /// Current data block length in bytes

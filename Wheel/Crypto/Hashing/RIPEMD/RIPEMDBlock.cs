@@ -7,7 +7,7 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
     /// Access to individual block bytes through index operator
     /// </summary>
     [StructLayout(LayoutKind.Explicit)]
-    public struct InternalRIPEMDBlockBytes
+    internal struct InternalRIPEMDBlockBytes
     {
         /// <summary>
         /// Index access to individual registers
@@ -77,7 +77,7 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
     /// Note: Mostly identical to that of SHA-256
     /// </summary>
 	[StructLayout(LayoutKind.Explicit)]
-    public struct InternalRIPEMDBlock
+    internal struct InternalRIPEMDBlock
     {
         /// <summary>
         /// Overwrite the part of value with a sequence of bytes

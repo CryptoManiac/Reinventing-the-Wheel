@@ -5,7 +5,7 @@ using Wheel.Crypto.Hashing.SHA.SHA256.Internal;
 namespace Wheel.Crypto.Hashing.HMAC.SHA2
 {
 	[StructLayout(LayoutKind.Explicit)]
-	public struct SHA256Base_HMAC : IMac
+    internal struct SHA256Base_HMAC : IMac
 	{
 		[FieldOffset(0)]
 		private SHA256Base ctx_inside;

@@ -1,7 +1,7 @@
 ﻿namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
 {
     /// Constants which are specific for SHA256 family of functions
-    public static class InternalSHA256Constants
+    internal static class InternalSHA256Constants
     {
         /// <summary>
         /// SHA-256 init state words

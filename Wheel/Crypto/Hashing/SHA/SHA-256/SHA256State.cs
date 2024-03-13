@@ -8,7 +8,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
     /// Represents the state data for the 256-bit family of SHA functions
     /// </summary>
 	[StructLayout(LayoutKind.Explicit)]
-    public struct InternalSHA256State
+    internal struct InternalSHA256State
     {
         /// <summary>
         /// Instantiate from array or a variable number of arguments

@@ -1,6 +1,6 @@
 ﻿namespace Wheel.Crypto.Hashing.RIPEMD.Internal
 {
-	public static class InternalRIPEMDConstants
+    internal static class InternalRIPEMDConstants
 	{
         /// <summary>
         /// RIPEMD-160 initial state

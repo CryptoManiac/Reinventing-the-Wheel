@@ -7,7 +7,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
     /// Access to individual block bytes through index operator
     /// </summary>
 	[StructLayout(LayoutKind.Explicit)]
-    public unsafe struct InternalSHA256BlockBytes
+    internal unsafe struct InternalSHA256BlockBytes
     {
         /// <summary>
         /// Index access to individual registers
@@ -57,7 +57,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
     /// Represents the block data for the 256-bit family of SHA functions
     /// </summary>
 	[StructLayout(LayoutKind.Explicit)]
-	public unsafe struct InternalSHA256Block
+	internal unsafe struct InternalSHA256Block
 	{
         /// <summary>
         /// Instantiate as a copy of the other block
