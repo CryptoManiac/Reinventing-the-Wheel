@@ -75,7 +75,10 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
                 block_opad[i] = (byte) (key_used[i] ^ 0x5c);
             }
 
+            ctx_inside.Reset();
             ctx_inside.Update(block_ipad);
+
+            ctx_outside.Reset();
             ctx_outside.Update(block_opad);
 
             // for Reinit()
