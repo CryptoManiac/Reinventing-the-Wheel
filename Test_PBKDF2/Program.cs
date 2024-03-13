@@ -184,7 +184,7 @@ foreach (var (password, salt, iterations, keySize, expected) in vectors_256)
 {
     var secret = buffer.Slice(0, keySize);
 
-    PBKDF2.Derive(secret, (byte[] key) => new HMAC_SHA256(key), password, salt, iterations);
+    PBKDF2.Derive<HMAC_SHA256>(secret, password, salt, iterations);
 
     Console.WriteLine("Derived key with hmac-sha256, vector {0}: ", i++);
     Console.WriteLine("Calculated:\t{0}\nExpected:\t{1}", Convert.ToHexString(secret), expected);
@@ -197,7 +197,7 @@ foreach (var (password, salt, iterations, keySize, expected) in vectors_512)
 {
     var secret = buffer.Slice(0, keySize);
 
-    PBKDF2.Derive(secret, (byte[] key) => new HMAC_SHA512(key), password, salt, iterations);
+    PBKDF2.Derive<HMAC_SHA512>(secret, password, salt, iterations);
 
     Console.WriteLine("Derived key with hmac-sha512, vector {0}: ", j++);
     Console.WriteLine("Calculated:\t{0}\nExpected:\t{1}", Convert.ToHexString(secret), expected);

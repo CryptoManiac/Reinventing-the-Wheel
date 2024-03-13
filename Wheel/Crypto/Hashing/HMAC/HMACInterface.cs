@@ -7,7 +7,7 @@ namespace Wheel.Crypto.Hashing.HMAC
 	public interface IMac : IDisposable
     {
         public int HashSz { get; }
-        public void Reset(in ReadOnlySpan<byte> key);
+        public void Init(in ReadOnlySpan<byte> key);
         public void Reset();
         public void Digest(Span<byte> hash);
         public void Update(ReadOnlySpan<byte> input);

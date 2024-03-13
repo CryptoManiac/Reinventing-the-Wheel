@@ -13,27 +13,29 @@ namespace Wheel.Crypto.Hashing.Derivation
 		/// <param name="password"></param>
 		/// <param name="salt"></param>
 		/// <param name="c">Number of hashing iterations</param>
-		public static void Derive(Span<byte> key, Func<byte[], IMac> mac, string password, string salt, int c)
+		public static void Derive<MAC_IMPL>(Span<byte> key, string password, string salt, int c) where MAC_IMPL : struct, IMac
 		{
             byte[] password_bytes = Encoding.ASCII.GetBytes(password);
             byte[] salt_bytes = Encoding.ASCII.GetBytes(salt);
 
             /* Compute HMAC state after processing P and S. */
-            IMac PShctx = mac(password_bytes);
+            MAC_IMPL PShctx = new();
+            PShctx.Init(password_bytes);
 			PShctx.Update(salt_bytes);
 
-            Span<byte> U = stackalloc byte[PShctx.HashSz];
-            Span<byte> T = stackalloc byte[PShctx.HashSz];
+            int HashSz = PShctx.HashSz;
+            Span<byte> U = stackalloc byte[HashSz];
+            Span<byte> T = stackalloc byte[HashSz];
             Span<byte> ivec = stackalloc byte[4];
 
             /* Iterate through the blocks. */
-            for (int i = 0; i * PShctx.HashSz < key.Length; ++i)
+            for (int i = 0; i * HashSz < key.Length; ++i)
 			{
                 /* Generate INT(i + 1). */
                 be32enc(ivec, (uint)(i + 1));
 
                 /* Compute U_1 = PRF(P, S || INT(i)). */
-                IMac hctx = PShctx.Clone();
+                MAC_IMPL hctx = PShctx;
                 hctx.Update(ivec);
                 hctx.Digest(U);
 
@@ -43,26 +45,26 @@ namespace Wheel.Crypto.Hashing.Derivation
                 for (int j = 2; j <= c; j++)
                 {
                     /* Compute U_j. */
-                    hctx.Reset(password_bytes);
+                    hctx.Init(password_bytes);
                     hctx.Update(U);
                     hctx.Digest(U);
 
                     /* ... xor U_j ... */
-                    for (int k = 0; k < PShctx.HashSz; k++)
+                    for (int k = 0; k < HashSz; k++)
                     {
                         T[k] ^= U[k];
                     }
                 }
 
                 /* Copy as many bytes as necessary into buf. */
-                int clen = key.Length - i * PShctx.HashSz;
-                if (clen > PShctx.HashSz)
+                int clen = key.Length - i * HashSz;
+                if (clen > HashSz)
                 {
-                    clen = PShctx.HashSz;
+                    clen = HashSz;
                 }
 
                 var src = T.Slice(0, clen);
-                var target = key.Slice(i * PShctx.HashSz);
+                var target = key.Slice(i * HashSz);
 
                 src.CopyTo(target);
             }

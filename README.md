@@ -44,18 +44,23 @@ public int HashSz;
 The HMAC implementations are derived from `IMac` interface which is defining these signatures:
 
 ```csharp
-/// Reset the hasher to the post-initialized state
-public void Reset();
-
-/// Reset hasher with a new key
-public void Reset(in ReadOnlySpan<byte> key);
+/// Initialize or re-initialize hasher with a given key
+///  Note: It will overwrite any existing state
+public void Init(in ReadOnlySpan<byte> key);
 
 /// Write bytes to hasher state
 public void Update(in ReadOnlySpan<byte> input);
 
+/// Reset the hasher to the post-initialized state
+public void Reset();
+
 /// Write hash into provided span or array
-//  Note: This implies the Reset() operation
+///  Note: This implies the Reset() operation
 public void Digest(Span<byte> hash);
+
+/// Reset hasher to non-initialized state
+///  All internal structures will be either zeroed or set to their standard defined initial values
+public void Dispose();
 
 /// This property returns size of the buffer
 // which you need to provide for the Digest() call

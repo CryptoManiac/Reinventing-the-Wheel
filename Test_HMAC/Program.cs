@@ -2,7 +2,7 @@
 using Wheel.Crypto.Hashing.HMAC.SHA2;
 using System.Text;
 
-static string CalculateHMAC(string key, string message, int mac_length, Func<byte[], IMac> algorithm)
+static string CalculateHMAC(string key, string message, int mac_length, Func<IMac> algorithm)
 {
     byte[] pw;
     byte[] data;
@@ -25,7 +25,8 @@ static string CalculateHMAC(string key, string message, int mac_length, Func<byt
         data = Encoding.ASCII.GetBytes(message);
     }
 
-    IMac hasher = algorithm(pw);
+    IMac hasher = algorithm();
+    hasher.Init(pw);
     hasher.Update(data);
 
     Span<byte> mac = stackalloc byte[mac_length == 0 ? hasher.HashSz : mac_length];
@@ -33,12 +34,12 @@ static string CalculateHMAC(string key, string message, int mac_length, Func<byt
     return Convert.ToHexString(mac).ToLower();
 }
 
-SortedDictionary<string, Func<byte[], IMac>> mac_algorithms = new()
+SortedDictionary<string, Func<IMac>> mac_algorithms = new()
 {
-    { "HMAC-SHA-224", (byte[] pw) => new HMAC_SHA224(pw) },
-    { "HMAC-SHA-256", (byte[] pw) => new HMAC_SHA256(pw) },
-    { "HMAC-SHA-384", (byte[] pw) => new HMAC_SHA384(pw) },
-    { "HMAC-SHA-512", (byte[] pw) => new HMAC_SHA512(pw) },
+    { "HMAC-SHA-224", () => new HMAC_SHA224() },
+    { "HMAC-SHA-256", () => new HMAC_SHA256() },
+    { "HMAC-SHA-384", () => new HMAC_SHA384() },
+    { "HMAC-SHA-512", () => new HMAC_SHA512() },
 };
 
 /**

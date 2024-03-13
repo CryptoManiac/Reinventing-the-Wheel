@@ -13,29 +13,34 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
         [FieldOffset(SHA512Base.TypeByteSz)]
         private SHA512Base ctx_outside = new();
 
-        #region For Reset()
+        // For key pre-hashing
         [FieldOffset(SHA512Base.TypeByteSz * 2)]
+        private SHA512Base ctx_prehasher;
+
+        #region For Reset()
+        [FieldOffset(SHA512Base.TypeByteSz * 3)]
         private SHA512Base ctx_inside_reinit = new();
 
-        [FieldOffset(SHA512Base.TypeByteSz * 3)]
+        [FieldOffset(SHA512Base.TypeByteSz * 4)]
         private SHA512Base ctx_outside_reinit = new();
         #endregion
 
-        // For key pre-hashing
-        [FieldOffset(SHA512Base.TypeByteSz * 4)]
-        private SHA512Base ctx_prehasher;
+        [FieldOffset(SHA512Base.TypeByteSz * 5)]
+        private bool initialized;
 
         public int HashSz => ctx_inside.HashSz;
 
-        public SHA512Base_HMAC(in InternalSHA512State constants, int outSz, in ReadOnlySpan<byte> key)
+        public SHA512Base_HMAC(in InternalSHA512State constants, int outSz)
         {
             ctx_inside = new(constants, outSz);
             ctx_outside = ctx_inside;
             ctx_prehasher = ctx_inside;
-            Reset(key);
+            ctx_inside_reinit = ctx_inside;
+            ctx_outside_reinit = ctx_inside;
+            initialized = false;
         }
 
-        public void Reset(in ReadOnlySpan<byte> key)
+        public void Init(in ReadOnlySpan<byte> key)
         {
             int keySz;
 
@@ -77,21 +82,35 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
 
             ctx_inside.Reset();
             ctx_outside.Reset();
+            ctx_inside_reinit.Reset();
+            ctx_outside_reinit.Reset();
+
             ctx_inside.Update(block_ipad);
             ctx_outside.Update(block_opad);
 
             // for Reset()
-            ctx_inside_reinit = ctx_inside;
-            ctx_outside_reinit = ctx_outside;
+            ctx_inside_reinit.Update(block_ipad);
+            ctx_outside_reinit.Update(block_opad);
+
+            // Allow update/digest calls
+            initialized = true;
         }
 
         public void Update(ReadOnlySpan<byte> message)
         {
+            if (!initialized)
+            {
+                throw new InvalidOperationException("Trying to update the uninitialized HMAC structure. Please call the Init() method first.");
+            }
             ctx_inside.Update(message);
         }
 
         public void Digest(Span<byte> mac)
         {
+            if (!initialized)
+            {
+                throw new InvalidOperationException("Trying to get a Digest() result from the uninitialized HMAC structure. Please call the Init() method first.");
+            }
             Span<byte> mac_temp = stackalloc byte[ctx_inside.HashSz];
             ctx_inside.Digest(mac_temp);
             ctx_outside.Update(mac_temp);
@@ -108,6 +127,7 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
 
         public void Dispose()
         {
+            initialized = false;
             ctx_inside.Reset();
             ctx_outside.Reset();
             ctx_inside_reinit.Reset();
@@ -124,15 +144,15 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
     {
         private SHA512Base_HMAC ctx;
 
-        public HMAC_SHA512_224(ReadOnlySpan<byte> key)
+        public HMAC_SHA512_224()
         {
-            ctx = new(InternalSHA512Constants.init_state_224, 28, key);
+            ctx = new(InternalSHA512Constants.init_state_224, 28);
         }
 
         public int HashSz => ctx.HashSz;
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Reset(in ReadOnlySpan<byte> key) => ctx.Reset(key);
+        public void Init(in ReadOnlySpan<byte> key) => ctx.Init(key);
         public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         public void Dispose() => ctx.Dispose();
         public IMac Clone() => ctx.Clone();
@@ -142,15 +162,15 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
     {
         private SHA512Base_HMAC ctx;
 
-        public HMAC_SHA512_256(ReadOnlySpan<byte> key)
+        public HMAC_SHA512_256()
         {
-            ctx = new(InternalSHA512Constants.init_state_256, 32, key);
+            ctx = new(InternalSHA512Constants.init_state_256, 32);
         }
 
         public int HashSz => ctx.HashSz;
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Reset(in ReadOnlySpan<byte> key) => ctx.Reset(key);
+        public void Init(in ReadOnlySpan<byte> key) => ctx.Init(key);
         public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         public void Dispose() => ctx.Dispose();
         public IMac Clone() => ctx.Clone();
@@ -160,15 +180,15 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
     {
         private SHA512Base_HMAC ctx;
 
-        public HMAC_SHA384(ReadOnlySpan<byte> key)
+        public HMAC_SHA384()
         {
-            ctx = new(InternalSHA512Constants.init_state_384, 48, key);
+            ctx = new(InternalSHA512Constants.init_state_384, 48);
         }
 
         public int HashSz => ctx.HashSz;
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Reset(in ReadOnlySpan<byte> key) => ctx.Reset(key);
+        public void Init(in ReadOnlySpan<byte> key) => ctx.Init(key);
         public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         public void Dispose() => ctx.Dispose();
         public IMac Clone() => ctx.Clone();
@@ -178,15 +198,15 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
     {
         private SHA512Base_HMAC ctx;
 
-        public HMAC_SHA512(ReadOnlySpan<byte> key)
+        public HMAC_SHA512()
         {
-            ctx = new(InternalSHA512Constants.init_state_512, 64, key);
+            ctx = new(InternalSHA512Constants.init_state_512, 64);
         }
 
         public int HashSz => ctx.HashSz;
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Reset(in ReadOnlySpan<byte> key) => ctx.Reset(key);
+        public void Init(in ReadOnlySpan<byte> key) => ctx.Init(key);
         public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         public void Dispose() => ctx.Dispose();
         public IMac Clone() => ctx.Clone();

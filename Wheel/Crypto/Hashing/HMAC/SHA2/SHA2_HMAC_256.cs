@@ -27,17 +27,22 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
         private SHA256Base ctx_outside_reinit;
         #endregion
 
+        [FieldOffset(SHA256Base.TypeByteSz * 5)]
+        private bool initialized;
+
         public readonly int HashSz => ctx_inside.HashSz;
 
-        public SHA256Base_HMAC(in InternalSHA256State constants, int outSz, in ReadOnlySpan<byte> key)
+        public SHA256Base_HMAC(in InternalSHA256State constants, int outSz)
         {
             ctx_inside = new(constants, outSz);
             ctx_outside = ctx_inside;
             ctx_prehasher = ctx_inside;
-            Reset(key);
+            ctx_inside_reinit = ctx_inside;
+            ctx_outside_reinit = ctx_inside;
+            initialized = false;
         }
 
-        public void Reset(in ReadOnlySpan<byte> key)
+        public void Init(in ReadOnlySpan<byte> key)
         {
             int keySz;
 
@@ -79,22 +84,35 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
 
             ctx_inside.Reset();
             ctx_outside.Reset();
+            ctx_inside_reinit.Reset();
+            ctx_outside_reinit.Reset();
 
             ctx_inside.Update(block_ipad);
             ctx_outside.Update(block_opad);
 
             // for Reset()
-            ctx_inside_reinit = ctx_inside;
-            ctx_outside_reinit = ctx_outside;
+            ctx_inside_reinit.Update(block_ipad);
+            ctx_outside_reinit.Update(block_opad);
+
+            // Allow update/digest calls
+            initialized = true;
         }
 
         public void Update(ReadOnlySpan<byte> message)
         {
+            if (!initialized)
+            {
+                throw new InvalidOperationException("Trying to update the uninitialized HMAC structure. Please call the Init() method first.");
+            }
             ctx_inside.Update(message);
         }
 
         public void Digest(Span<byte> mac)
         {
+            if (!initialized)
+            {
+                throw new InvalidOperationException("Trying to get a Digest() result from the uninitialized HMAC structure. Please call the Init() method first.");
+            }
             Span<byte> mac_temp = stackalloc byte[ctx_inside.HashSz];
             ctx_inside.Digest(mac_temp);
             ctx_outside.Update(mac_temp);
@@ -111,6 +129,7 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
 
         public void Dispose()
         {
+            initialized = false;
             ctx_inside.Reset();
             ctx_outside.Reset();
             ctx_inside_reinit.Reset();
@@ -127,15 +146,15 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
     {
         private SHA256Base_HMAC ctx;
 
-        public HMAC_SHA224(ReadOnlySpan<byte> key)
+        public HMAC_SHA224()
         {
-            ctx = new(InternalSHA256Constants.init_state_224, 28, key);
+            ctx = new(InternalSHA256Constants.init_state_224, 28);
         }
 
         public int HashSz => ctx.HashSz;
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Reset(in ReadOnlySpan<byte> key) => ctx.Reset(key);
+        public void Init(in ReadOnlySpan<byte> key) => ctx.Init(key);
         public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         public void Dispose() => ctx.Dispose();
         public IMac Clone() => ctx.Clone();
@@ -145,15 +164,15 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
     {
         private SHA256Base_HMAC ctx;
 
-        public HMAC_SHA256(ReadOnlySpan<byte> key)
+        public HMAC_SHA256()
         {
-            ctx = new(InternalSHA256Constants.init_state_256, 32, key);
+            ctx = new(InternalSHA256Constants.init_state_256, 32);
         }
 
         public int HashSz => ctx.HashSz;
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Reset(in ReadOnlySpan<byte> key) => ctx.Reset(key);
+        public void Init(in ReadOnlySpan<byte> key) => ctx.Init(key);
         public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         public void Dispose() => ctx.Dispose();
         public IMac Clone() => ctx.Clone();
