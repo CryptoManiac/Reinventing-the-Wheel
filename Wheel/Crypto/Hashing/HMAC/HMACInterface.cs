@@ -11,6 +11,7 @@ namespace Wheel.Crypto.Hashing.HMAC
         public void Reset();
         public void Digest(Span<byte> hash);
         public void Update(ReadOnlySpan<byte> input);
+        IMac Clone();
     }
 }
 

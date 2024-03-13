@@ -114,6 +114,16 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
             ctx_inside_reinit.Reset();
             ctx_outside_reinit.Reset();
         }
+
+        public IMac Clone()
+        {
+            SHA256Base_HMAC clone = new();
+            clone.ctx_inside.Reset(ctx_inside);
+            clone.ctx_outside.Reset(ctx_inside);
+            clone.ctx_inside_reinit.Reset(ctx_inside_reinit);
+            clone.ctx_outside_reinit.Reset(ctx_inside_reinit);
+            return clone;
+        }
     }
 
     public struct HMAC_SHA224 : IMac
@@ -131,6 +141,7 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
         public void Reset(in ReadOnlySpan<byte> key) => ctx.Reset(key);
         public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         public void Dispose() => ctx.Dispose();
+        public IMac Clone() => ctx.Clone();
     }
 
     public struct HMAC_SHA256 : IMac
@@ -148,5 +159,6 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
         public void Reset(in ReadOnlySpan<byte> key) => ctx.Reset(key);
         public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         public void Dispose() => ctx.Dispose();
+        public IMac Clone() => ctx.Clone();
     }
 }
