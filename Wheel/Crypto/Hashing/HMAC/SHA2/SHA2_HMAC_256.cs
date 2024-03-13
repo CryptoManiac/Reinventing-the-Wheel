@@ -110,7 +110,6 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
             ctx_outside.Reset();
             ctx_inside_reinit.Reset();
             ctx_outside_reinit.Reset();
-            GC.SuppressFinalize(this);
         }
     }
 
