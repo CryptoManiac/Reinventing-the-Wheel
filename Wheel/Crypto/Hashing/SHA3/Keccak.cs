@@ -155,17 +155,16 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
             return 0;
         }
 
-        /// <summary>
-        /// This is simply the 'update' with the padding block.
-        /// The padding block is 0x01 || 0x00* || 0x80. First 0x01 and last 0x80 
-        /// bytes are always present, but they can be the same byte.
-        /// </summary>
         public void Digest(Span<byte> hash)
         {
             if (hash.Length != HashSz)
             {
                 throw new InvalidOperationException("Target buffer size doesn't match the expected " + HashSz + " bytes");
             }
+
+            /// This is simply the 'update' with the padding block.
+            /// The padding block is 0x01 || 0x00* || 0x80. First 0x01 and last 0x80 
+            /// bytes are always present, but they can be the same byte.
 
             // Append 2-bit suffix 01, per SHA-3 spec. Instead of 1 for padding we
             //  use 1<<2 below. The 0x02 below corresponds to the suffix 01.
