@@ -60,21 +60,6 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256.Internal
 	internal unsafe struct InternalSHA256Block
 	{
         /// <summary>
-        /// Instantiate as a copy of the other block
-        /// </summary>
-        /// <param name="round">Other block</param>
-        public unsafe InternalSHA256Block(in InternalSHA256Block block)
-        {
-            fixed (void* source = &block)
-            {
-                fixed (void* target = &this)
-                {
-                    new Span<byte>(source, TypeByteSz).CopyTo(new Span<byte>(target, TypeByteSz));
-                }
-            }
-        }
-
-        /// <summary>
         /// Reset some sequence of bytes to zero
         /// </summary>
         /// <param name="begin">Where to begin</param>

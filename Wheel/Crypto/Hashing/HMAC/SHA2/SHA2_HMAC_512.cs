@@ -30,8 +30,8 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
         public SHA512Base_HMAC(in InternalSHA512State constants, int outSz, in ReadOnlySpan<byte> key)
         {
             ctx_inside = new(constants, outSz);
-            ctx_outside = new(constants, outSz);
-            ctx_prehasher = new(constants, outSz);
+            ctx_outside = ctx_inside;
+            ctx_prehasher = ctx_inside;
             Reset(key);
         }
 
@@ -76,14 +76,13 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
             }
 
             ctx_inside.Reset();
-            ctx_inside.Update(block_ipad);
-
             ctx_outside.Reset();
+            ctx_inside.Update(block_ipad);
             ctx_outside.Update(block_opad);
 
-            // for Reinit()
-            ctx_inside_reinit.Reset(ctx_inside);
-            ctx_outside_reinit.Reset(ctx_outside);
+            // for Reset()
+            ctx_inside_reinit = ctx_inside;
+            ctx_outside_reinit = ctx_outside;
         }
 
         public void Update(ReadOnlySpan<byte> message)
@@ -103,8 +102,8 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
 
         public void Reset()
         {
-            ctx_inside.Reset(ctx_inside_reinit);
-            ctx_outside.Reset(ctx_outside_reinit);
+            ctx_inside = ctx_inside_reinit;
+            ctx_outside = ctx_outside_reinit;
         }
 
         public void Dispose()
@@ -113,17 +112,11 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
             ctx_outside.Reset();
             ctx_inside_reinit.Reset();
             ctx_outside_reinit.Reset();
-            GC.SuppressFinalize(this);
         }
 
         public IMac Clone()
         {
-            SHA512Base_HMAC clone = new();
-            clone.ctx_inside.Reset(ctx_inside);
-            clone.ctx_outside.Reset(ctx_inside);
-            clone.ctx_inside_reinit.Reset(ctx_inside_reinit);
-            clone.ctx_outside_reinit.Reset(ctx_inside_reinit);
-            return clone;
+            return this;
         }
     }
 

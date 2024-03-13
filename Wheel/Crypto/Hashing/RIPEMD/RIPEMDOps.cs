@@ -315,8 +315,8 @@
         /// </summary>
         public static void Compress(ref InternalRIPEMDState state, in InternalRIPEMDBlock X)
         {
-            InternalRIPEMDState s1 = new(state);
-            InternalRIPEMDState s2 = new(state);
+            InternalRIPEMDState s1 = state;
+            InternalRIPEMDState s2 = state;
 
             Compress_I(ref s1, X);
             Compress_II(ref s2, X);

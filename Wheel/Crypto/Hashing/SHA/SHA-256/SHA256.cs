@@ -50,9 +50,9 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
 
         public int HashSz => digestSz;
 
-        public SHA256Base(InternalSHA256State constants, int outSz)
+        public SHA256Base(in InternalSHA256State constants, int outSz)
         {
-            initState = new(constants);
+            initState = constants;
             digestSz = outSz;
             Reset();
         }
@@ -65,21 +65,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
             blockLen = 0;
             bitLen = 0;
             pendingBlock.Reset();
-            state.Set(initState);
-        }
-
-        /// <summary>
-        /// Reset to specific hashing state
-        /// </summary>
-        /// <param name="to"></param>
-        public void Reset(SHA256Base to)
-        {
-            blockLen = to.blockLen;
-            digestSz = to.digestSz;
-            bitLen = to.bitLen;
-            initState = new(to.initState);
-            pendingBlock = new(to.pendingBlock);
-            state = new(to.state);
+            state = initState;
         }
 
         /// <summary>
@@ -157,7 +143,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
                 wordPad[i] = InternalSHA256Ops.SIG1(wordPad[i - 2]) + wordPad[i - 7] + InternalSHA256Ops.SIG0(wordPad[i - 15]) + wordPad[i - 16];
             }
 
-            InternalSHA256State loc = new(state);
+            InternalSHA256State loc = state;
 
             for (uint i = 0; i < 64; ++i)
             {
@@ -229,7 +215,6 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Reset(in SHA256 to) => ctx.Reset(to.ctx);
         public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
         public void Dispose() => ctx.Dispose();
         #endregion
@@ -273,7 +258,6 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Reset(in SHA224 to) => ctx.Reset(to.ctx);
         public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
         public void Dispose() => ctx.Dispose();
         #endregion

@@ -32,21 +32,6 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
         }
 
         /// <summary>
-        /// Instantiate as a copy of the other round context
-        /// </summary>
-        /// <param name="round">Other round context</param>
-        public unsafe InternalSHA512Round(in InternalSHA512Round round)
-        {
-            fixed (void* source = &round)
-            {
-                fixed (void* target = &this)
-                {
-                    new Span<byte>(source, TypeByteSz).CopyTo(new Span<byte>(target, TypeByteSz));
-                }
-            }
-        }
-
-        /// <summary>
         /// Initialize first 16 registers from the provided block and revert them
         /// </summary>
         /// <param name="block">A context to provide 16 registers</param>

@@ -50,9 +50,9 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
 
         public int HashSz => digestSz;
 
-        public SHA512Base(InternalSHA512State constants, int outSz)
+        public SHA512Base(in InternalSHA512State constants, int outSz)
         {
-            initState = new(constants);
+            initState = constants;
             digestSz = outSz;
             Reset();
         }
@@ -65,21 +65,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
             blockLen = 0;
             bitLen = 0;
             pendingBlock.Reset();
-            state.Set(initState);
-        }
-
-        /// <summary>
-        /// Reset to specific hashing state
-        /// </summary>
-        /// <param name="to"></param>
-        public void Reset(in SHA512Base to)
-        {
-            blockLen = to.blockLen;
-            digestSz = to.digestSz;
-            bitLen = to.bitLen;
-            initState = new(to.initState);
-            pendingBlock = new(to.pendingBlock);
-            state = new(to.state);
+            state = initState;
         }
 
         /// <summary>
@@ -157,7 +143,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
                 wordPad[i] = InternalSHA512Ops.SIG1(wordPad[i - 2]) + wordPad[i - 7] + InternalSHA512Ops.SIG0(wordPad[i - 15]) + wordPad[i - 16];
             }
 
-            InternalSHA512State loc = new(state);
+            InternalSHA512State loc = state;
 
             for (uint i = 0; i < InternalSHA512Round.TypeUlongSz; ++i)
             {
@@ -229,7 +215,6 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Reset(in SHA512 to) => ctx.Reset(to.ctx);
         public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
         public void Dispose() => ctx.Dispose();
         #endregion
@@ -273,7 +258,6 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Reset(in SHA384 to) => ctx.Reset(to.ctx);
         public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
         public void Dispose() => ctx.Dispose();
         #endregion
@@ -317,7 +301,6 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Reset(in SHA512_256 to) => ctx.Reset(to.ctx);
         public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
         public void Dispose() => ctx.Dispose();
         #endregion
@@ -361,7 +344,6 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512
         public byte[] Digest() => ctx.Digest();
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Reset(in SHA512_224 to) => ctx.Reset(to.ctx);
         public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
         public void Dispose() => ctx.Dispose();
         #endregion

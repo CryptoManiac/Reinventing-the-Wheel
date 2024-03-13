@@ -32,27 +32,6 @@ namespace Wheel.Crypto.Hashing.SHA.SHA512.Internal
             h = ulongs[7];
         }
 
-        /// <summary>
-        /// Instantiate as a copy of the other state
-        /// </summary>
-        /// <param name="round">Other block</param>
-        public unsafe InternalSHA512State(in InternalSHA512State state)
-        {
-            Set(state);
-        }
-
-        public void Set(in InternalSHA512State state)
-        {
-            a = state.a;
-            b = state.b;
-            c = state.c;
-            d = state.d;
-            e = state.e;
-            f = state.f;
-            g = state.g;
-            h = state.h;
-        }
-
         public void Add(in InternalSHA512State state)
         {
             a += state.a;

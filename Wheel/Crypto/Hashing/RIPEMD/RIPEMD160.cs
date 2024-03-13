@@ -13,7 +13,7 @@ namespace Wheel.Crypto.Hashing.RIPEMD
         private uint bytesHi = 0;
 
         [FieldOffset(8)]
-        private InternalRIPEMDState state = new(InternalRIPEMDConstants.ripemd_init_state);
+        private InternalRIPEMDState state = InternalRIPEMDConstants.ripemd_init_state;
 
         [FieldOffset(12 + InternalRIPEMDBlock.TypeByteSz)]
         private InternalRIPEMDBlock block = new();
@@ -42,7 +42,7 @@ namespace Wheel.Crypto.Hashing.RIPEMD
         {
             bytesLo = 0;
             bytesHi = 0;
-            state.Set(InternalRIPEMDConstants.ripemd_init_state);
+            state = InternalRIPEMDConstants.ripemd_init_state;
             block.Reset();
         }
 

@@ -29,33 +29,6 @@ namespace Wheel.Crypto.Hashing.RIPEMD.Internal
         }
 
         /// <summary>
-        /// Instantiate from array or a variable number of arguments
-        /// </summary>
-        /// <param name="uints"></param>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public InternalRIPEMDState(in InternalRIPEMDState state)
-        {
-            X00 = state.X00;
-            X01 = state.X01;
-            X02 = state.X02;
-            X03 = state.X03;
-            X04 = state.X04;
-        }
-
-        /// <summary>
-        /// Set to a copy of the other state
-        /// </summary>
-        /// <param name="round">Other block</param>
-        public void Set(in InternalRIPEMDState state)
-        {
-            X00 = state.X00;
-            X01 = state.X01;
-            X02 = state.X02;
-            X03 = state.X03;
-            X04 = state.X04;
-        }
-
-        /// <summary>
         /// Dump vector contents
         /// </summary>
         /// <param name="bytes"></param>
