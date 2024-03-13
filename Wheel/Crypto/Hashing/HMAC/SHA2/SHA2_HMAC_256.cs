@@ -53,6 +53,7 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
                 if (key.Length > InternalSHA256Block.TypeByteSz)
                 {
                     keySz = ctx_prehasher.HashSz;
+                    ctx_prehasher.Reset();
                     ctx_prehasher.Update(key);
                     ctx_prehasher.Digest(key_used.Slice(0, ctx_prehasher.HashSz));
                 }
