@@ -77,6 +77,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
             blockLen = to.blockLen;
             digestSz = to.digestSz;
             bitLen = to.bitLen;
+            initState = new(to.initState);
             pendingBlock = new(to.pendingBlock);
             state = new(to.state);
         }
