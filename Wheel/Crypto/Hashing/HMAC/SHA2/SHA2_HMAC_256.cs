@@ -90,11 +90,9 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
 
         public void Digest(Span<byte> mac)
         {
-            Span<byte> digest_inside = stackalloc byte[ctx_inside.HashSz];
             Span<byte> mac_temp = stackalloc byte[ctx_inside.HashSz];
-
-            ctx_inside.Digest(digest_inside);
-            ctx_outside.Update(digest_inside);
+            ctx_inside.Digest(mac_temp);
+            ctx_outside.Update(mac_temp);
             ctx_outside.Digest(mac_temp);
             mac_temp.Slice(0, mac.Length).CopyTo(mac);
             Reset();
