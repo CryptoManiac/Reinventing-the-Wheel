@@ -1,10 +1,29 @@
 ﻿using Wheel.Crypto.Hashing.HMAC;
 using Wheel.Crypto.Hashing.HMAC.SHA2;
+using System.Text;
 
 static string CalculateHMAC(string key, string message, int mac_length, Func<byte[], IMac> algorithm)
 {
-    byte[] pw = Convert.FromHexString(key);
-    byte[] data = Convert.FromHexString(message);
+    byte[] pw;
+    byte[] data;
+
+    try
+    {
+        pw = Convert.FromHexString(key);
+    }
+    catch(FormatException)
+    {
+        pw = Encoding.ASCII.GetBytes(key);
+    }
+
+    try
+    {
+        data = Convert.FromHexString(message);
+    }
+    catch (FormatException)
+    {
+        data = Encoding.ASCII.GetBytes(message);
+    }
 
     IMac hasher = algorithm(pw);
     hasher.Update(data);
@@ -294,12 +313,33 @@ List < Tuple<string, string, int, SortedDictionary<string, string>> > vectors = 
            { "HMAC-SHA-384", "6617178e941f020d351e2f254e8fd32c602420feb0b8fb9adccebb82461e99c5a678cc31e799176d3860e6110c46523e" },
            { "HMAC-SHA-512", "e37b6a775dc87dbaa4dfa9f96e5e3ffddebd71f8867289865df5a32d20cdc944b6022cac3c4982b10d5eeb55c3e4de15134676fb6de0446065c97440fa8c6a58" },
         }
+    ),
+    new(
+        "key",
+        "The quick brown fox jumps over the lazy dog",
+        0,
+        new()
+        {
+           { "HMAC-SHA-256", "f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8" },
+           { "HMAC-SHA-384", "d7f4727e2c0b39ae0f1e40cc96f60242d5b7801841cea6fc592c5d3e1ae50700582a96cf35e1e554995fe4e03381c237" },
+           { "HMAC-SHA-512", "b42af09057bac1e2d41708e48a902e09b5ff7f12ab428a4fe86653c73dd248fb82f948a549f7b791a5b41915ee4d1ec3935357e4e2317250d0372afa2ebeeb3a" },
+        }
+    ),
+    new(
+        "",
+        "",
+        0,
+        new()
+        {
+           { "HMAC-SHA-256", "b613679a0814d9ec772f95d778c35fc5ff1697c493715653c6c712144292c5ad" },
+           { "HMAC-SHA-384", "6c1f2ee938fad2e24bd91298474382ca218c75db3d83e114b3d4367776d14d3551289e75e8209cd4b792302840234adc" },
+           { "HMAC-SHA-512", "b936cee86c9f87aa5d3c6f2e84cb5a4239a5fe50480a6ec66b70ab5b1f4ac6730c6c515421b327ec1d69402e53dfb49ad7381eb067b338fd7b0cb22247225d47" },
+        }
     )
 };
 
 foreach (var (key, message, mac_length, hmac_vectors) in vectors)
 {
-
     Console.WriteLine("MAC key:\t{0}\nMessage:\t{1}\n", key, message);
 
     foreach (var (name, expected) in hmac_vectors)
