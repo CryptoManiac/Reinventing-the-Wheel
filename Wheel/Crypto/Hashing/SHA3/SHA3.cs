@@ -20,6 +20,7 @@ namespace Wheel.Crypto.Hashing.SHA3
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
         public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
+        public void Dispose() => ctx.Dispose();
         #endregion
 
         #region Static methods
@@ -57,6 +58,7 @@ namespace Wheel.Crypto.Hashing.SHA3
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
         public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
+        public void Dispose() => ctx.Dispose();
         #endregion
 
         #region Static methods
@@ -94,6 +96,7 @@ namespace Wheel.Crypto.Hashing.SHA3
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
         public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
+        public void Dispose() => ctx.Dispose();
         #endregion
 
         #region Static methods
@@ -131,6 +134,7 @@ namespace Wheel.Crypto.Hashing.SHA3
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
         public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
+        public void Dispose() => ctx.Dispose();
         #endregion
 
         #region Static methods
@@ -168,6 +172,7 @@ namespace Wheel.Crypto.Hashing.SHA3
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
         public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
+        public void Dispose() => ctx.Dispose();
         #endregion
 
         #region Static methods
@@ -205,6 +210,7 @@ namespace Wheel.Crypto.Hashing.SHA3
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
         public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
+        public void Dispose() => ctx.Dispose();
         #endregion
 
         #region Static methods

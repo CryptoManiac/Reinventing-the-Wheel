@@ -110,6 +110,11 @@ namespace Wheel.Crypto.Hashing.RIPEMD
                 block.Write(input.Slice(offset, (int)len), 0);
             }
         }
+
+        public void Dispose()
+        {
+            Reset();
+        }
     }
 }
 

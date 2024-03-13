@@ -13,17 +13,17 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
         [FieldOffset(SHA256Base.TypeByteSz)]
         private SHA256Base ctx_outside;
 
-        #region For Reinit()
+        // For key pre-hashing
         [FieldOffset(SHA256Base.TypeByteSz * 2)]
+        private SHA256Base ctx_prehasher;
+
+        #region For Reinit()
+        [FieldOffset(SHA256Base.TypeByteSz * 3)]
         private SHA256Base ctx_inside_reinit;
 
-        [FieldOffset(SHA256Base.TypeByteSz * 3)]
+        [FieldOffset(SHA256Base.TypeByteSz * 4)]
         private SHA256Base ctx_outside_reinit;
         #endregion
-
-        // For key pre-hashing
-        [FieldOffset(SHA256Base.TypeByteSz * 4)]
-        private SHA256Base ctx_prehasher;
 
         public readonly int HashSz => ctx_inside.HashSz;
 
@@ -103,6 +103,15 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
             ctx_inside.Reset(ctx_inside_reinit);
             ctx_outside.Reset(ctx_outside_reinit);
         }
+
+        public void Dispose()
+        {
+            ctx_inside.Reset();
+            ctx_outside.Reset();
+            ctx_inside_reinit.Reset();
+            ctx_outside_reinit.Reset();
+            GC.SuppressFinalize(this);
+        }
     }
 
     public struct HMAC_SHA224 : IMac
@@ -119,6 +128,7 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
         public void Reset() => ctx.Reset();
         public void Reset(in ReadOnlySpan<byte> key) => ctx.Reset(key);
         public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
+        public void Dispose() => ctx.Dispose();
     }
 
     public struct HMAC_SHA256 : IMac
@@ -135,5 +145,6 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
         public void Reset() => ctx.Reset();
         public void Reset(in ReadOnlySpan<byte> key) => ctx.Reset(key);
         public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
+        public void Dispose() => ctx.Dispose();
     }
 }

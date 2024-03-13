@@ -274,5 +274,10 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
                 registers[0] ^= KeccakConstants.keccakf_rndc[round];
             }
         }
+
+        public void Dispose()
+        {
+            Reset();
+        }
     }
 }

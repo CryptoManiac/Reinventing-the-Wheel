@@ -4,8 +4,8 @@ namespace Wheel.Crypto.Hashing.HMAC
     /// <summary>
     /// HMAC interface. Yes, I know that its the name is very funny.
     /// </summary>
-	public interface IMac
-	{
+	public interface IMac : IDisposable
+    {
         public int HashSz { get; }
         public void Reset(in ReadOnlySpan<byte> key);
         public void Reset();

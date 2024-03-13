@@ -201,6 +201,11 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
             // Reverse byte ordering to get final hashing result
             state.Revert();
         }
+
+        public void Dispose()
+        {
+            Reset();
+        }
     }
 
     [StructLayout(LayoutKind.Explicit)]
@@ -225,6 +230,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         public void Reset() => ctx.Reset();
         public void Reset(in SHA256 to) => ctx.Reset(to.ctx);
         public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
+        public void Dispose() => ctx.Dispose();
         #endregion
 
         #region Static methods
@@ -268,6 +274,7 @@ namespace Wheel.Crypto.Hashing.SHA.SHA256
         public void Reset() => ctx.Reset();
         public void Reset(in SHA224 to) => ctx.Reset(to.ctx);
         public void Update(in ReadOnlySpan<byte> input) => ctx.Update(input);
+        public void Dispose() => ctx.Dispose();
         #endregion
 
         #region Static methods

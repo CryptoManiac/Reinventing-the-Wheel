@@ -1,6 +1,6 @@
 ﻿namespace Wheel.Crypto.Hashing
 {
-	public interface IHasher
+	public interface IHasher : IDisposable
 	{
         public int HashSz { get; }
         public void Reset();
