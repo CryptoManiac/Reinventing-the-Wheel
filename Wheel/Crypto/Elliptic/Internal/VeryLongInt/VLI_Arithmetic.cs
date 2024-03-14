@@ -255,7 +255,7 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
                     }
                     v[1 - index][i] = diff;
                 }
-                index = (index ^ borrow) > 0 ? 0 : 1u; /* Swap the index if there was no borrow */
+                index = VLI_Logic.ZeroIfNotZero(index ^ borrow); /* Swap the index if there was no borrow */
                 RShift1(mod_multiple, num_words);
                 mod_multiple[num_words - 1] |= mod_multiple[num_words] << (VLI_Common.WORD_BITS - 1);
                 RShift1(mod_multiple.Slice(num_words), num_words);

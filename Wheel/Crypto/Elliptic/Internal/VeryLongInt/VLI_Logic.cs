@@ -20,9 +20,9 @@
         /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
-        public static int OneIfNotZero(ulong n)
+        public static int OneIfNotZero(int n)
         {
-            return (int) (1 - (((n - 1) >> (sizeof(ulong) - 1)) & 1));
+            return 1 - (((n - 1) >> (sizeof(int) - 1)) & 1);
         }
 
         /// <summary>
@@ -30,9 +30,29 @@
         /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
-        public static int ZeroIfNotZero(ulong n)
+        public static int ZeroIfNotZero(int n)
         {
-            return 1 - OneIfNotZero(n);
+            return ((n - 1) >> (sizeof(int) - 1)) & 1;
+        }
+
+        /// <summary>
+        /// Returns 1 if the provided number has non-zero bits set
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        public static ulong OneIfNotZero(ulong n)
+        {
+            return 1 - (((n - 1) >> (sizeof(ulong) - 1)) & 1);
+        }
+
+        /// <summary>
+        /// Returns 0 if the provided number has non-zero bits set
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        public static ulong ZeroIfNotZero(ulong n)
+        {
+            return ((n - 1) >> (sizeof(ulong) - 1)) & 1;
         }
 
         /// <summary>
@@ -79,33 +99,6 @@
                 bits |= words[i];
             }
             return bits;
-        }
-
-        /// <summary>
-        /// Returns 1 if the provided number has non-zero bits set
-        /// </summary>
-        /// <param name="words"></param>
-        /// <param name="num_words"></param>
-        /// <returns></returns>
-        public static int OneIfNotZero(ReadOnlySpan<ulong> words, int num_words)
-        {
-            ulong bits = 0;
-            for (int i = 0; i < num_words; ++i)
-            {
-                bits |= words[i];
-            }
-            return OneIfNotZero(bits);
-        }
-
-        /// <summary>
-        /// Returns 0 if the provided number has non-zero bits set
-        /// </summary>
-        /// <param name="words"></param>
-        /// <param name="num_words"></param>
-        /// <returns></returns>
-        public static int ZeroIfNotZero(ReadOnlySpan<ulong> words, int num_words)
-        {
-            return 1 - OneIfNotZero(words, num_words);
         }
 
         /// <summary>
@@ -184,7 +177,7 @@
             Span<ulong> tmp = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
             ulong borrow = VLI_Arithmetic.Sub(tmp, left, right, num_words);
             ulong bits = GetBits(tmp, num_words);
-            return OneIfNotZero(bits) - 2 * OneIfNotZero(borrow);
+            return (int) (OneIfNotZero(bits) - 2 * OneIfNotZero(borrow));
         }
 
         /// <summary>

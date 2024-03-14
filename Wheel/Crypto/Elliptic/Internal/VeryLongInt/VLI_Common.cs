@@ -12,9 +12,6 @@
         public const int ECC_MAX_WORDS = 32 / WORD_SIZE; // For SECP256K1
         public const int WORD_BITS_SHIFT = 6;
 
-        public static int BITS_TO_WORDS(int num_bits) => (num_bits + ((WORD_SIZE * 8) - 1)) / (WORD_SIZE * 8);
-        public static int BITS_TO_BYTES(int num_bits) => (num_bits + 7) / 8;
-
         /// <summary>
         /// Choose between two spans by either zero or non-zero index
         /// </summary>

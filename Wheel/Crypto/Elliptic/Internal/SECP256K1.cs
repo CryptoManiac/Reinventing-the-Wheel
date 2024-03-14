@@ -57,7 +57,7 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
     {
         public static ulong regularize_k(ReadOnlySpan<ulong> k, Span<ulong> k0, Span<ulong> k1)
         {
-            int num_n_words = VLI_Common.BITS_TO_WORDS(Constants.NUM_N_BITS);
+            const int num_n_words = Constants.NUM_WORDS;
             ulong carry = VLI_Arithmetic.Add(k0, k, Constants.n, num_n_words);
             VLI_Arithmetic.Add(k1, k0, Constants.n, num_n_words);
             return carry;
@@ -354,7 +354,7 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
             const int num_words = Constants.NUM_WORDS;
             Span<ulong> tmp1 = stackalloc ulong[num_words];
             Span<ulong> tmp2 = stackalloc ulong[num_words];
-            VLI_Common.Picker<int> p2 = new(tmp1, tmp2);
+            VLI_Common.Picker<ulong> p2 = new(tmp1, tmp2);
             ulong carry = ECCUtil.regularize_k(scalar, tmp1, tmp2);
             PointMul(result, point, p2[VLI_Logic.ZeroIfNotZero(carry)], Constants.NUM_N_BITS + 1);
         }
