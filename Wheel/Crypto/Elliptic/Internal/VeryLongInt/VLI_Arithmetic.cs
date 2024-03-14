@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 
 namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
 {
@@ -14,8 +13,10 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
         /// <param name="dest"></param>
         /// <param name="src"></param>
         /// <param name="num_words"></param>
-        public static void Set(Span<ulong> dest, ReadOnlySpan<ulong> src, int num_words) {
-            for (int i = 0; i < num_words; ++i) {
+        public static void Set(Span<ulong> dest, ReadOnlySpan<ulong> src, int num_words)
+        {
+            for (int i = 0; i < num_words; ++i)
+            {
                 dest[i] = src[i];
             }
         }
@@ -30,41 +31,6 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
             for (int i = 0; i < num_words; ++i)
             {
                 vli[i] = 0;
-            }
-        }
-
-        /// <summary>
-        /// Computes result = left - right, returning borrow. Can modify in place.
-        /// </summary>
-        public static ulong Sub(Span<ulong> result, ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right, int num_words)
-        {
-            ulong borrow = 0;
-            for (int i = 0; i < num_words; ++i)
-            {
-                ulong diff = left[i] - right[i] - borrow;
-                if (diff != left[i])
-                {
-                    borrow = (diff > left[i]) ? 1u : 0;
-                }
-                result[i] = diff;
-            }
-            return borrow;
-        }
-
-        /// <summary>
-        /// Computes vli = vli >> 1
-        /// </summary>
-        /// <param name="words"></param>
-        /// <param name="num_words"></param>
-        public static void RShift1(Span<ulong> words, int num_words)
-        {
-            ulong carry = 0;
-            int current = num_words - 1;
-            while (current-- >= 0)
-            {
-                ulong temp = words[current];
-                words[current] = (temp >> 1) | carry;
-                carry = temp << (VLI_Common.WORD_BITS - 1);
             }
         }
 
@@ -84,11 +50,29 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
                 ulong sum = left[i] + right[i] + carry;
                 if (sum != left[i])
                 {
-                    carry = (sum < left[i]) ? 1u : 0;
+                    carry = VLI_Logic.OneIfTrue(sum < left[i]);
                 }
                 result[i] = sum;
             }
             return carry;
+        }
+
+        /// <summary>
+        /// Computes result = left - right, returning borrow. Can modify in place.
+        /// </summary>
+        public static ulong Sub(Span<ulong> result, ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right, int num_words)
+        {
+            ulong borrow = 0;
+            for (int i = 0; i < num_words; ++i)
+            {
+                ulong diff = left[i] - right[i] - borrow;
+                if (diff != left[i])
+                {
+                    borrow = VLI_Logic.OneIfTrue(diff > left[i]);
+                }
+                result[i] = diff;
+            }
+            return borrow;
         }
 
         /// <summary>
@@ -110,7 +94,7 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
             {
                 for (i = 0; i <= k; ++i)
                 {
-                    Arithmetic_Internal.muladd(left[i], right[k - i], ref r0, ref r1, ref r2);
+                    muladd(left[i], right[k - i], ref r0, ref r1, ref r2);
                 }
                 result[k] = r0;
                 r0 = r1;
@@ -121,7 +105,7 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
             {
                 for (i = (k + 1) - num_words; i < num_words; ++i)
                 {
-                    Arithmetic_Internal.muladd(left[i], right[k - i], ref r0, ref r1, ref r2);
+                    muladd(left[i], right[k - i], ref r0, ref r1, ref r2);
                 }
                 result[k] = r0;
                 r0 = r1;
@@ -152,11 +136,11 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
                 {
                     if (i < k - i)
                     {
-                        Arithmetic_Internal.mul2add(left[i], left[k - i], ref r0, ref r1, ref r2);
+                        mul2add(left[i], left[k - i], ref r0, ref r1, ref r2);
                     }
                     else
                     {
-                        Arithmetic_Internal.muladd(left[i], left[k - i], ref r0, ref r1, ref r2);
+                        muladd(left[i], left[k - i], ref r0, ref r1, ref r2);
                     }
                 }
                 result[k] = r0;
@@ -166,6 +150,23 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
             }
 
             result[num_words * 2 - 1] = r0;
+        }
+
+        /// <summary>
+        /// Computes vli = vli >> 1
+        /// </summary>
+        /// <param name="words"></param>
+        /// <param name="num_words"></param>
+        public static void RShift1(Span<ulong> words, int num_words)
+        {
+            ulong carry = 0;
+            int i = num_words - 1;
+            while (i-- >= 0)
+            {
+                ulong temp = words[i];
+                words[i] = (temp >> 1) | carry;
+                carry = temp << (VLI_Common.WORD_BITS - 1);
+            }
         }
 
         /// <summary>
@@ -326,12 +327,12 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
                 if (VLI_Logic.IsEven(a))
                 {
                     RShift1(a, num_words);
-                    Arithmetic_Internal.modInv_update(u, mod, num_words);
+                    modInv_update(u, mod, num_words);
                 }
                 else if (VLI_Logic.IsEven(b))
                 {
                     RShift1(b, num_words);
-                    Arithmetic_Internal.modInv_update(v, mod, num_words);
+                    modInv_update(v, mod, num_words);
                 }
                 else if (cmpResult > 0)
                 {
@@ -342,7 +343,7 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
                         Add(u, u, mod, num_words);
                     }
                     Sub(u, u, v, num_words);
-                    Arithmetic_Internal.modInv_update(u, mod, num_words);
+                    modInv_update(u, mod, num_words);
                 }
                 else
                 {
@@ -353,94 +354,89 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
                         Add(v, v, mod, num_words);
                     }
                     Sub(v, v, u, num_words);
-                    Arithmetic_Internal.modInv_update(v, mod, num_words);
+                    modInv_update(v, mod, num_words);
                 }
             }
             Set(result, u, num_words);
         }
 
-        /// <summary>
-        /// The functions which are only used internally by the arithmetic primitives
-        /// </summary>
-        private static class Arithmetic_Internal
+        public static void muladd(ulong a, ulong b, ref ulong r0, ref ulong r1, ref ulong r2)
         {
-            public static void muladd(ulong a, ulong b, ref ulong r0, ref ulong r1, ref ulong r2)
+            ulong a0 = a & 0xffffffff;
+            ulong a1 = a >> 32;
+            ulong b0 = b & 0xffffffff;
+            ulong b1 = b >> 32;
+
+            ulong i0 = a0 * b0;
+            ulong i1 = a0 * b1;
+            ulong i2 = a1 * b0;
+            ulong i3 = a1 * b1;
+
+            ulong p0, p1;
+
+            i2 += (i0 >> 32);
+            i2 += i1;
+            if (i2 < i1)
             {
-                ulong a0 = a & 0xffffffff;
-                ulong a1 = a >> 32;
-                ulong b0 = b & 0xffffffff;
-                ulong b1 = b >> 32;
-
-                ulong i0 = a0 * b0;
-                ulong i1 = a0 * b1;
-                ulong i2 = a1 * b0;
-                ulong i3 = a1 * b1;
-
-                ulong p0, p1;
-
-                i2 += (i0 >> 32);
-                i2 += i1;
-                if (i2 < i1)
-                {
-                    // overflow
-                    i3 += 0x100000000;
-                }
-
-                p0 = (i0 & 0xffffffff) | (i2 << 32);
-                p1 = i3 + (i2 >> 32);
-
-                r0 += p0;
-                r1 += p1 + (r0 < p0 ? 1u : 0);
-                r2 += (r1 < p1) || (r1 == p1 && r0 < p0) ? 1u : 0;
+                /* overflow */
+                i3 += 0x100000000;
             }
 
-            public static void mul2add(ulong a, ulong b, ref ulong r0, ref ulong r1, ref ulong r2)
+            p0 = (i0 & 0xffffffff) | (i2 << 32);
+            p1 = i3 + (i2 >> 32);
+
+            r0 += p0;
+            r1 += p1 + VLI_Logic.OneIfTrue(r0 < p0);
+            r2 += VLI_Logic.OneIfTrue((r1 < p1) || (r1 == p1 && r0 < p0));
+        }
+
+        public static void mul2add(ulong a, ulong b, ref ulong r0, ref ulong r1, ref ulong r2)
+        {
+            ulong a0 = a & 0xffffffff;
+            ulong a1 = a >> 32;
+            ulong b0 = b & 0xffffffff;
+            ulong b1 = b >> 32;
+
+            ulong i0 = a0 * b0;
+            ulong i1 = a0 * b1;
+            ulong i2 = a1 * b0;
+            ulong i3 = a1 * b1;
+
+            ulong p0, p1;
+
+            i2 += (i0 >> 32);
+            i2 += i1;
+            if (i2 < i1)
             {
-                ulong a0 = a & 0xffffffff;
-                ulong a1 = a >> 32;
-                ulong b0 = b & 0xffffffff;
-                ulong b1 = b >> 32;
-
-                ulong i0 = a0 * b0;
-                ulong i1 = a0 * b1;
-                ulong i2 = a1 * b0;
-                ulong i3 = a1 * b1;
-
-                ulong p0, p1;
-
-                i2 += (i0 >> 32);
-                i2 += i1;
-                if (i2 < i1)
-                {
-                    // overflow
-                    i3 += 0x100000000;
-                }
-
-                p0 = (i0 & 0xffffffff) | (i2 << 32);
-                p1 = i3 + (i2 >> 32);
-
-                r2 += (p1 >> 63);
-                p1 = (p1 << 1) | (p0 >> 63);
-                p0 <<= 1;
-
-                r0 += p0;
-                r1 += (p1 + (r0 < p0 ? 1u : 0));
-                r2 += ((r1 < p1) || (r1 == p1 && r0 < p0) ? 1u : 0);
+                /* overflow */
+                i3 += 0x100000000;
             }
 
-            public static void modInv_update(Span<ulong> uv, ReadOnlySpan<ulong> mod, int num_words)
+            p0 = (i0 & 0xffffffff) | (i2 << 32);
+            p1 = i3 + (i2 >> 32);
+
+            r2 += (p1 >> 63);
+            p1 = (p1 << 1) | (p0 >> 63);
+            p0 <<= 1;
+
+            r0 += p0;
+            r1 += p1 + VLI_Logic.OneIfTrue(r0 < p0);
+            r2 += VLI_Logic.OneIfTrue((r1 < p1) || (r1 == p1 && r0 < p0));
+        }
+
+        public static void modInv_update(Span<ulong> uv, ReadOnlySpan<ulong> mod, int num_words)
+        {
+            ulong carry = 0;
+            if (!VLI_Logic.IsEven(uv))
             {
-                ulong carry = 0;
-                if (!VLI_Logic.IsEven(uv))
-                {
-                    carry = Add(uv, uv, mod, num_words);
-                }
-                RShift1(uv, num_words);
-                if (carry != 0)
-                {
-                    uv[num_words - 1] |= VLI_Common.HIGH_BIT_SET;
-                }
+                carry = Add(uv, uv, mod, num_words);
+            }
+            RShift1(uv, num_words);
+            if (carry != 0)
+            {
+                uv[num_words - 1] |= VLI_Common.HIGH_BIT_SET;
             }
         }
     }
+
 }
