@@ -1,5 +1,7 @@
 ﻿using Wheel.Crypto.Hashing.HMAC;
 using System.Text;
+using System.Runtime.InteropServices;
+using System.Net;
 
 namespace Wheel.Crypto.Hashing.Derivation
 {
@@ -32,7 +34,7 @@ namespace Wheel.Crypto.Hashing.Derivation
             for (int i = 0; i * HashSz < key.Length; ++i)
 			{
                 /* Generate INT(i + 1). */
-                be32enc(ivec, (uint)(i + 1));
+                be32enc(ivec, i + 1);
 
                 /* Compute U_1 = PRF(P, S || INT(i)). */
                 MAC_IMPL hctx = PShctx;
@@ -73,12 +75,10 @@ namespace Wheel.Crypto.Hashing.Derivation
             PShctx.Reset();
         }
 
-        private static void be32enc(Span<byte> p, uint x)
+        private static void be32enc(Span<byte> p, int x)
         {
-            p[3] = (byte)(x & 0xff);
-            p[2] = (byte)((x >> 8) & 0xff);
-            p[1] = (byte)((x >> 16) & 0xff);
-            p[0] = (byte)((x >> 24) & 0xff);
+            Span<int> num = MemoryMarshal.Cast<byte, int>(p);
+            num[0] = IPAddress.HostToNetworkOrder(x);
         }
     }
 }

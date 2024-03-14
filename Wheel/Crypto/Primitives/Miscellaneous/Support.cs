@@ -9,13 +9,13 @@ namespace Wheel.Crypto.Miscellaneous.Support
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void REVERT(ref uint value)
         {
-            value = (uint)IPAddress.NetworkToHostOrder((int)value);
+            value = (uint)IPAddress.HostToNetworkOrder((int)value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void REVERT(ref ulong value)
         {
-            value = (ulong)IPAddress.NetworkToHostOrder((long)value);
+            value = (ulong)IPAddress.HostToNetworkOrder((long)value);
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Wheel.Crypto.Miscellaneous.Support
                 long* lo = (long*)ptr;
                 long* hi = lo + 1;
 
-                (*lo, *hi) = (IPAddress.NetworkToHostOrder(*hi), IPAddress.NetworkToHostOrder(*lo));
+                (*lo, *hi) = (IPAddress.HostToNetworkOrder(*hi), IPAddress.HostToNetworkOrder(*lo));
             }
         }
     }
