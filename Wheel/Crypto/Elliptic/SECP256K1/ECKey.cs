@@ -313,7 +313,7 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             Span<byte> n = stackalloc byte[sizeof(long)];
 
             // Will retry until succeed
-            for (long i = 0; ; ++i)
+            for (long i = 0; i != Int64.MaxValue; ++i)
             {
 
                 // Init HMAC with private key
@@ -335,6 +335,22 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
                     return true;
                 }
             }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Verify an ECDSA signature.
+        /// Usage: Compute the hash of the signed data using the same hash as the signer and
+        /// pass it to this function along with the signer's public key and the signature values (r and s).
+        /// </summary>
+        /// <param name="signature">The signature value</param>
+        /// <param name="public_key">The signer's public key</param>
+        /// <param name="message_hash">The hash of the signed data</param>
+        /// <returns></returns>
+        public static bool VerifySignature(ReadOnlySpan<byte> signature, ReadOnlySpan<byte> public_key, ReadOnlySpan<byte> message_hash)
+        {
+            throw new Exception("Not yet implemented");
         }
 
         private static void BitsToInt(Span<ulong> native, ReadOnlySpan<byte> bits, int bits_size)
