@@ -1,0 +1,1 @@
+﻿The code in this directory is a straight and narrow reimplementation of the uECC crypto library by Kenneth MacKay.
