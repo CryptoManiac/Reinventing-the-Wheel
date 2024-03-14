@@ -102,5 +102,94 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             VLI_Conversion.NativeToBytes(public_key, Constants.NUM_N_BYTES, point);
             VLI_Conversion.NativeToBytes(public_key.Slice(Constants.NUM_N_BYTES), Constants.NUM_N_BYTES, y);
         }
+
+        public static bool PrivateKeyTweak(Span<byte> result, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> scalar)
+        {
+            Span<ulong> _private = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> _result = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> _scalar = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+
+            VLI_Conversion.BytesToNative(_private, private_key, Constants.NUM_N_BYTES);
+            VLI_Conversion.BytesToNative(_scalar, scalar, Constants.NUM_N_BYTES);
+
+            // Make sure the private key is in the range [1, n-1].
+            if (VLI_Logic.IsZero(_private, Constants.NUM_WORDS))
+            {
+                return false;
+            }
+
+            if (VLI_Logic.Cmp(Constants.n, _private, Constants.NUM_WORDS) != 1)
+            {
+                return false;
+            }
+
+            // Make sure that scalar is in the range [1, n-1]
+            if (VLI_Logic.IsZero(_scalar, Constants.NUM_WORDS))
+            {
+                return false;
+            }
+
+            if (VLI_Logic.Cmp(Constants.n, _scalar, Constants.NUM_WORDS) != 1)
+            {
+                return false;
+            }
+
+            // Apply scalar addition
+            //   r = (a + scalar) % n
+            VLI_Arithmetic.ModAdd(_result, _private, _scalar, Constants.n, Constants.NUM_WORDS);
+
+            /* Check again that the new private key is in the range [1, n-1]. */
+            if (VLI_Logic.IsZero(_result, Constants.NUM_WORDS))
+            {
+                return false;
+            }
+
+            if (VLI_Logic.Cmp(Constants.n, _result, Constants.NUM_WORDS) != 1)
+            {
+                return false;
+            }
+
+            VLI_Conversion.NativeToBytes(result, Constants.NUM_N_BYTES, _result);
+
+            return true;
+        }
+
+        public static bool PublicKeyTweak(Span<byte> result, ReadOnlySpan<byte> public_key, ReadOnlySpan<byte> scalar)
+        {
+            Span<ulong> _public = stackalloc ulong[VLI_Common.ECC_MAX_WORDS * 2];
+            Span<ulong> _result = stackalloc ulong[VLI_Common.ECC_MAX_WORDS * 2];
+            Span<ulong> _s_mul_G = stackalloc ulong[VLI_Common.ECC_MAX_WORDS * 2];
+            Span<ulong> _scalar = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+
+            VLI_Conversion.BytesToNative(_public, public_key, Constants.NUM_N_BYTES);
+            VLI_Conversion.BytesToNative(_public.Slice(Constants.NUM_WORDS), public_key.Slice(Constants.NUM_N_BYTES), Constants.NUM_N_BYTES);
+            VLI_Conversion.BytesToNative(_scalar, scalar, Constants.NUM_N_BYTES);
+
+            // Make sure that public key is valid
+            if (!ECCPoint.IsValid(_public))
+            {
+                return false;
+            }
+
+            // Public key is computed by multiplication i.e. scalar*G is what we need
+            if (!ComputePublicKey(_s_mul_G, _scalar))
+            {
+                return false;
+            }
+
+            // R = A + scalar*G
+            ECCPoint.PointAdd(_result, _public, _s_mul_G);
+
+            // Ensure that new public key is valid as well
+            if (!ECCPoint.IsValid(_result))
+            {
+                return false;
+            }
+
+            VLI_Conversion.NativeToBytes(result, Constants.NUM_N_BYTES, _result);
+            VLI_Conversion.NativeToBytes(result.Slice(Constants.NUM_N_BYTES), Constants.NUM_N_BYTES, _result.Slice(Constants.NUM_WORDS));
+
+            return true;
+        }
     }
 }
