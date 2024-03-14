@@ -36,7 +36,6 @@
     <None Remove="Crypto\Elliptic\Internal\VeryLongInt\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Crypto\" />
     <Folder Include="Crypto\Primitives\" />
     <Folder Include="Crypto\Hashing\" />
     <Folder Include="Crypto\Hashing\RIPEMD\" />
@@ -48,8 +47,6 @@
     <Folder Include="Crypto\Hashing\HMAC\" />
     <Folder Include="Crypto\Hashing\HMAC\SHA2\" />
     <Folder Include="Crypto\Hashing\PBKDF\" />
-    <Folder Include="Crypto\Elliptic\" />
-    <Folder Include="Crypto\Elliptic\Internal\" />
     <Folder Include="Crypto\Elliptic\Internal\VeryLongInt\" />
   </ItemGroup>
 </Project>
