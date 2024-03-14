@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Wheel.Crypto.Elliptic.Internal.SECP256K1;
 using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
 
-namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
+namespace Wheel.Crypto.Elliptic.SECP256K1
 {
-    internal static class ECKey
+    public static class ECKey
     {
         public static bool ComputePublicKey(Span<ulong> result, ReadOnlySpan<ulong> private_key)
         {
             Span<ulong> tmp1 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
             Span<ulong> tmp2 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
             VLI_Common.Picker<ulong> p2 = new(tmp1, tmp2);
-            
+
             ulong carry;
 
             // Regularize the bitcount for the private key so that attackers cannot use a side channel
@@ -81,7 +77,7 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
             {
                 compressed[i + 1] = public_key[i];
             }
-            compressed[0] = (byte) (2 + (public_key[Constants.NUM_N_BYTES * 2 - 1] & 0x01));
+            compressed[0] = (byte)(2 + (public_key[Constants.NUM_N_BYTES * 2 - 1] & 0x01));
         }
 
         /// <summary>

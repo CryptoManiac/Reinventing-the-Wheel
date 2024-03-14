@@ -94,11 +94,11 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
             Span<ulong> t4 = stackalloc ulong[num_words];
             Span<ulong> t5 = stackalloc ulong[num_words];
 
-            ECCUtil.modSquare_fast(t5, Y1);   // t5 = y1^2
-            ECCUtil.modMult_fast(t4, X1, t5); // t4 = x1*y1^2 = A
-            ECCUtil.modSquare_fast(X1, X1);   // t1 = x1^2 
-            ECCUtil.modSquare_fast(t5, t5);   // t5 = y1^4 
-            ECCUtil.modMult_fast(Z1, Y1, Z1); // t3 = y1*z1 = z3 
+            modSquare_fast(t5, Y1);   // t5 = y1^2
+            modMult_fast(t4, X1, t5); // t4 = x1*y1^2 = A
+            modSquare_fast(X1, X1);   // t1 = x1^2 
+            modSquare_fast(t5, t5);   // t5 = y1^4 
+            modMult_fast(Z1, Y1, Z1); // t3 = y1*z1 = z3 
 
             VLI_Arithmetic.ModAdd(Y1, X1, X1, Constants.p, num_words); // t2 = 2*x1^2
             VLI_Arithmetic.ModAdd(Y1, Y1, X1, Constants.p, num_words); // t2 = 3*x1^2
@@ -106,7 +106,7 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
             {
                 ulong carry = VLI_Arithmetic.Add(Y1, Y1, Constants.p, num_words);
                 VLI_Arithmetic.RShift1(Y1, num_words);
-                Y1[Constants.NUM_WORDS - 1] |= carry << (VLI_Common.WORD_BITS - 1);
+                Y1[Constants.NUM_WORDS - 1] |= carry << VLI_Common.WORD_BITS - 1;
             }
             else
             {
@@ -114,12 +114,12 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
             }
             // t2 = 3/2*(x1^2) = B
 
-            ECCUtil.modSquare_fast(X1, Y1);                     // t1 = B^2
+            modSquare_fast(X1, Y1);                     // t1 = B^2
             VLI_Arithmetic.ModSub(X1, X1, t4, Constants.p, num_words); // t1 = B^2 - A
             VLI_Arithmetic.ModSub(X1, X1, t4, Constants.p, num_words); // t1 = B^2 - 2A = x3
 
             VLI_Arithmetic.ModSub(t4, t4, X1, Constants.p, num_words); // t4 = A - x3
-            ECCUtil.modMult_fast(Y1, Y1, t4);                   // t2 = B * (A - x3)
+            modMult_fast(Y1, Y1, t4);                   // t2 = B * (A - x3)
             VLI_Arithmetic.ModSub(Y1, Y1, t5, Constants.p, num_words); // t2 = B * (A - x3) - y1^4 = y3
         }
 

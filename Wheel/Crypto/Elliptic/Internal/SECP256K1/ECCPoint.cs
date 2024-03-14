@@ -1,6 +1,4 @@
-﻿using System;
-using System.Drawing;
-using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
+﻿using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
 
 namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
 {
@@ -24,19 +22,22 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
         /// </summary>
         /// <param name="point"></param>
         /// <returns></returns>
-        public static bool IsValid(ReadOnlySpan<ulong> point) {
+        public static bool IsValid(ReadOnlySpan<ulong> point)
+        {
 
             const int num_words = Constants.NUM_WORDS;
             Span<ulong> tmp1 = stackalloc ulong[num_words];
             Span<ulong> tmp2 = stackalloc ulong[num_words];
 
             // The point at infinity is invalid.
-            if (IsZero(point)) {
+            if (IsZero(point))
+            {
                 return false;
             }
 
             // x and y must be smaller than p.
-            if (VLI_Logic.CmpUnsafe(Constants.p, point, num_words) != 1 || VLI_Logic.CmpUnsafe(Constants.p, point.Slice(num_words), num_words) != 1) {
+            if (VLI_Logic.CmpUnsafe(Constants.p, point, num_words) != 1 || VLI_Logic.CmpUnsafe(Constants.p, point.Slice(num_words), num_words) != 1)
+            {
                 return false;
             }
 
@@ -53,7 +54,8 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
         /// <param name="R"></param>
         /// <param name="input_P"></param>
         /// <param name="input_Q"></param>
-        public static void PointAdd(Span<ulong> R, Span<ulong> input_P, ReadOnlySpan<ulong> input_Q) {
+        public static void PointAdd(Span<ulong> R, Span<ulong> input_P, ReadOnlySpan<ulong> input_Q)
+        {
             const int num_words = Constants.NUM_WORDS;
             Span<ulong> P = stackalloc ulong[num_words];
             Span<ulong> Q = stackalloc ulong[num_words];
@@ -85,7 +87,8 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
         /// <param name="result"></param>
         /// <param name="point"></param>
         /// <param name="scalar"></param>
-        public static void PointMul(Span<ulong> result, ReadOnlySpan<ulong> point, ReadOnlySpan<ulong> scalar) {
+        public static void PointMul(Span<ulong> result, ReadOnlySpan<ulong> point, ReadOnlySpan<ulong> scalar)
+        {
             const int num_words = Constants.NUM_WORDS;
             Span<ulong> tmp1 = stackalloc ulong[num_words];
             Span<ulong> tmp2 = stackalloc ulong[num_words];
