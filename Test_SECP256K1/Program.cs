@@ -24,7 +24,6 @@ static void SignData(Span<byte> signature, ReadOnlySpan<byte> private_key, ReadO
     }
 }
 
-
 Console.WriteLine("SECP256K1 private key: {0}", private_key_hex);
 Console.WriteLine("Message to sign: {0}", message);
 

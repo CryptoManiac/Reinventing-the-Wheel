@@ -28,14 +28,11 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             Span <ulong> _private = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
             Span<ulong> tmp = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
             VLI_Common.Picker<ulong> p2 = new(_private, tmp);
-
-            const int num_words = Constants.NUM_WORDS;
-            const int num_bytes = Constants.NUM_N_BYTES;
-            const int num_n_bits = Constants.NUM_N_BITS;
-
             ulong carry;
+            const int num_words = Constants.NUM_WORDS;
+            const int num_bytes = Constants.NUM_BYTES;
 
-            VLI_Conversion.BytesToNative(_private, private_key, num_bytes);
+            VLI_Conversion.BytesToNative(_private, private_key, Constants.NUM_N_BYTES);
             VLI_Conversion.BytesToNative(_public, public_key, num_bytes);
             VLI_Conversion.BytesToNative(_public.Slice(num_words), public_key.Slice(num_bytes), num_bytes);
 
@@ -43,7 +40,7 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             // cannot use a side channel attack to learn the number of leading zeros.
             carry = ECCUtil.regularize_k(_private, _private, tmp);
 
-            ECCPoint.PointMul(_public, _public, p2[Convert.ToUInt64(!Convert.ToBoolean(carry))], num_n_bits + 1);
+            ECCPoint.PointMul(_public, _public, p2[Convert.ToUInt64(!Convert.ToBoolean(carry))], Constants.NUM_N_BITS + 1);
 
             VLI_Conversion.NativeToBytes(secret, num_bytes, _public);
 
