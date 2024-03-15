@@ -244,8 +244,8 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
 
 
             const int num_words = Constants.NUM_WORDS;
-            const int num_bytes = Constants.NUM_N_BYTES;
-            const int num_n_words = Constants.NUM_WORDS;
+            const int num_bytes = Constants.NUM_BYTES;
+            const int num_n_words = Constants.NUM_N_WORDS;
             const int num_n_bits = Constants.NUM_N_BITS;
 
             ulong carry;
