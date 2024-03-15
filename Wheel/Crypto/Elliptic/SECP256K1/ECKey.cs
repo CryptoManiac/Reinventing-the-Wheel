@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
 using Wheel.Crypto.Elliptic.Internal.SECP256K1;
 using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
 using Wheel.Crypto.Hashing.HMAC;
@@ -11,25 +12,36 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
         /// <summary>
         /// Compute the corresponding public key for a private key.
         /// </summary>
-        /// <param name="result">Will be filled in with the corresponding public key</param>
+        /// <param name="public_key">Will be filled in with the corresponding public key</param>
         /// <param name="private_key"> The private key to compute the public key for</param>
         /// <returns>True if the key was computed successfully, False if an error occurred.</returns>
-        public static bool ComputePublicKey(Span<ulong> result, ReadOnlySpan<ulong> private_key)
+        public static bool ComputePublicKey(Span<byte> public_key, ReadOnlySpan<byte> private_key)
         {
-            Span<ulong> tmp1 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
-            Span<ulong> tmp2 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
-            VLI_Common.Picker<ulong> p2 = new(tmp1, tmp2);
+            Span<ulong> _private = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> _public = stackalloc ulong[VLI_Common.ECC_MAX_WORDS * 2];
 
-            ulong carry;
+            VLI_Conversion.BytesToNative(_private, private_key, Constants.NUM_N_BYTES);
 
-            // Regularize the bitcount for the private key so that attackers cannot use a side channel
-            //  attack to learn the number of leading zeros.
-            carry = ECCUtil.regularize_k(private_key, tmp1, tmp2);
+            /* Make sure the private key is in the range [1, n-1]. */
+            if (VLI_Logic.IsZero(_private, Constants.NUM_WORDS))
+            {
+                return false;
+            }
 
-            ECCPoint.PointMul(result, Constants.G, p2[VLI_Logic.ZeroIfNotZero(carry)], Constants.NUM_N_BITS + 1);
+            if (VLI_Logic.Cmp(Constants.n, _private, Constants.NUM_WORDS) != 1)
+            {
+                return false;
+            }
 
-            // Final validation of computed value
-            return !ECCPoint.IsZero(result);
+            /* Compute public key. */
+            if (!ECCPoint.ComputePublicPoint(_public, _private))
+            {
+                return false;
+            }
+
+            VLI_Conversion.NativeToBytes(public_key, Constants.NUM_N_BYTES, _public);
+            VLI_Conversion.NativeToBytes(public_key.Slice(Constants.NUM_N_BYTES), Constants.NUM_N_BYTES, _public.Slice(Constants.NUM_WORDS));
+            return true;
         }
 
         /// <summary>
@@ -195,7 +207,7 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             }
 
             // Public key is computed by multiplication i.e. scalar*G is what we need
-            if (!ComputePublicKey(_s_mul_G, _scalar))
+            if (!ECCPoint.ComputePublicPoint(_s_mul_G, _scalar))
             {
                 return false;
             }

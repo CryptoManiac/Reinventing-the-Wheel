@@ -200,5 +200,30 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
             VLI_Arithmetic.Set(result, Rx[0], num_words);
             VLI_Arithmetic.Set(result.Slice(num_words), Ry[0], num_words);
         }
+
+        /// <summary>
+        /// Compute the corresponding public key for a private key.
+        /// </summary>
+        /// <param name="result">Will be filled in with the corresponding public key</param>
+        /// <param name="private_key"> The private key to compute the public key for</param>
+        /// <returns>True if the key was computed successfully, False if an error occurred.</returns>
+        public static bool ComputePublicPoint(Span<ulong> result, ReadOnlySpan<ulong> private_key)
+        {
+            Span<ulong> tmp1 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> tmp2 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            VLI_Common.Picker<ulong> p2 = new(tmp1, tmp2);
+
+            ulong carry;
+
+            // Regularize the bitcount for the private key so that attackers cannot use a side channel
+            //  attack to learn the number of leading zeros.
+            carry = ECCUtil.regularize_k(private_key, tmp1, tmp2);
+
+            ECCPoint.PointMul(result, Constants.G, p2[VLI_Logic.ZeroIfNotZero(carry)], Constants.NUM_N_BITS + 1);
+
+            // Final validation of computed value
+            return !ECCPoint.IsZero(result);
+        }
+
     }
 }

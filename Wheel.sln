@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test_HMAC", "Test_HMAC\Test
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test_PBKDF2", "Test_PBKDF2\Test_PBKDF2.csproj", "{2FDEB0FA-6E07-4F12-A6BC-829703928391}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test_SECP256K1", "Test_SECP256K1\Test_SECP256K1.csproj", "{FA0A233E-B9C7-467B-A780-024EEC5DB2ED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{2FDEB0FA-6E07-4F12-A6BC-829703928391}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2FDEB0FA-6E07-4F12-A6BC-829703928391}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2FDEB0FA-6E07-4F12-A6BC-829703928391}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA0A233E-B9C7-467B-A780-024EEC5DB2ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA0A233E-B9C7-467B-A780-024EEC5DB2ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA0A233E-B9C7-467B-A780-024EEC5DB2ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA0A233E-B9C7-467B-A780-024EEC5DB2ED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
