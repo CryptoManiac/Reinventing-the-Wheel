@@ -24,10 +24,9 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
         /// <returns></returns>
         public static bool IsValid(ReadOnlySpan<ulong> point)
         {
-
+            Span<ulong> tmp1 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> tmp2 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
             const int num_words = Constants.NUM_WORDS;
-            Span<ulong> tmp1 = stackalloc ulong[num_words];
-            Span<ulong> tmp2 = stackalloc ulong[num_words];
 
             // The point at infinity is invalid.
             if (IsZero(point))
@@ -56,10 +55,11 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
         /// <param name="input_Q"></param>
         public static void PointAdd(Span<ulong> R, Span<ulong> input_P, ReadOnlySpan<ulong> input_Q)
         {
+            Span<ulong> P = stackalloc ulong[VLI_Common.ECC_MAX_WORDS * 2];
+            Span<ulong> Q = stackalloc ulong[VLI_Common.ECC_MAX_WORDS * 2];
+            Span<ulong> z = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+
             const int num_words = Constants.NUM_WORDS;
-            Span<ulong> P = stackalloc ulong[num_words];
-            Span<ulong> Q = stackalloc ulong[num_words];
-            Span<ulong> z = stackalloc ulong[num_words];
 
             VLI_Arithmetic.Set(P, input_P, num_words);
             VLI_Arithmetic.Set(P.Slice(num_words), input_P.Slice(num_words), num_words);
@@ -89,9 +89,8 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
         /// <param name="scalar"></param>
         public static void PointMul(Span<ulong> result, ReadOnlySpan<ulong> point, ReadOnlySpan<ulong> scalar)
         {
-            const int num_words = Constants.NUM_WORDS;
-            Span<ulong> tmp1 = stackalloc ulong[num_words];
-            Span<ulong> tmp2 = stackalloc ulong[num_words];
+            Span<ulong> tmp1 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> tmp2 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
             VLI_Common.Picker<ulong> p2 = new(tmp1, tmp2);
             ulong carry = ECCUtil.regularize_k(scalar, tmp1, tmp2);
             PointMul(result, point, p2[Convert.ToUInt64(!Convert.ToBoolean(carry))], Constants.NUM_N_BITS + 1);
@@ -107,13 +106,12 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
         /// <param name="num_bits"></param>
         public static void PointMul(Span<ulong> result, ReadOnlySpan<ulong> point, ReadOnlySpan<ulong> scalar, ReadOnlySpan<ulong> initial_Z, int num_bits)
         {
-            const int num_words = Constants.NUM_WORDS;
-
             // R0 and R1
-            VLI_Common.Picker<ulong> Rx = new(stackalloc ulong[num_words], stackalloc ulong[num_words]);
-            VLI_Common.Picker<ulong> Ry = new(stackalloc ulong[num_words], stackalloc ulong[num_words]);
-            Span<ulong> z = stackalloc ulong[num_words];
+            VLI_Common.Picker<ulong> Rx = new(stackalloc ulong[VLI_Common.ECC_MAX_WORDS], stackalloc ulong[VLI_Common.ECC_MAX_WORDS]);
+            VLI_Common.Picker<ulong> Ry = new(stackalloc ulong[VLI_Common.ECC_MAX_WORDS], stackalloc ulong[VLI_Common.ECC_MAX_WORDS]);
+            Span<ulong> z = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
 
+            const int num_words = Constants.NUM_WORDS;
             int i;
             ulong nb;
 
@@ -159,12 +157,12 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
         /// <param name="num_bits"></param>
         public static void PointMul(Span<ulong> result, ReadOnlySpan<ulong> point, ReadOnlySpan<ulong> scalar, int num_bits)
         {
-            const int num_words = Constants.NUM_WORDS;
-
             // R0 and R1
-            VLI_Common.Picker<ulong> Rx = new(stackalloc ulong[num_words], stackalloc ulong[num_words]);
-            VLI_Common.Picker<ulong> Ry = new(stackalloc ulong[num_words], stackalloc ulong[num_words]);
-            Span<ulong> z = stackalloc ulong[num_words];
+            VLI_Common.Picker<ulong> Rx = new(stackalloc ulong[VLI_Common.ECC_MAX_WORDS], stackalloc ulong[VLI_Common.ECC_MAX_WORDS]);
+            VLI_Common.Picker<ulong> Ry = new(stackalloc ulong[VLI_Common.ECC_MAX_WORDS], stackalloc ulong[VLI_Common.ECC_MAX_WORDS]);
+            Span<ulong> z = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+
+            const int num_words = Constants.NUM_WORDS;
 
             int i;
             ulong nb;
