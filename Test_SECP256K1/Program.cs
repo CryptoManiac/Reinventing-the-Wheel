@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
 using Wheel.Crypto.Elliptic.SECP256K1;
 using Wheel.Crypto.Hashing.HMAC.SHA2;
 using Wheel.Crypto.Hashing.SHA.SHA256;

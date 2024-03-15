@@ -3,7 +3,7 @@
 	/// <summary>
 	/// Format conversion operations for very long integers (aka VLI)
 	/// </summary>
-	public static class VLI_Conversion
+	internal static class VLI_Conversion
 	{
         /// <summary>
         /// Converts big-endian bytes to an integer in the native format.
