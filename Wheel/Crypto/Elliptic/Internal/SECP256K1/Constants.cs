@@ -8,6 +8,7 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
     internal static class Constants
     {
         public const int NUM_WORDS = VLI_Common.ECC_MAX_WORDS;
+        public const int NUM_BYTES = VLI_Common.ECC_MAX_WORDS * VLI_Common.WORD_SIZE;
         public const int NUM_N_WORDS = VLI_Common.ECC_MAX_WORDS;
         public const int NUM_N_BITS = VLI_Common.ECC_MAX_WORDS * VLI_Common.WORD_BITS;
         public const int NUM_N_BYTES = VLI_Common.ECC_MAX_WORDS * VLI_Common.WORD_BITS / 8;

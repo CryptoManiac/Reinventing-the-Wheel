@@ -15,8 +15,8 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
 		/// <returns>Length of data written or to be written into DER buffer</returns>
 		public static int CompactToDER(Span<byte> der, ReadOnlySpan<byte> compact)
 		{
-			const int lenR = Constants.NUM_N_BYTES;
-            const int lenS = Constants.NUM_N_BYTES;
+			const int lenR = Constants.NUM_BYTES;
+            const int lenS = Constants.NUM_BYTES;
 
 			const int reqLen = 6 + lenS + lenR;
 
@@ -95,7 +95,7 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
                 return false;
             }
             lenbyte = input[pos++];
-            if ((lenbyte & 0x80) != 0)
+            if (Convert.ToBoolean(lenbyte & 0x80))
             {
                 lenbyte -= 0x80;
                 if (lenbyte > inputlen - pos)
@@ -143,7 +143,7 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
                 return false;
             }
             lenbyte = input[pos++];
-            if ((lenbyte & 0x80) != 0)
+            if (Convert.ToBoolean(lenbyte & 0x80))
             {
                 lenbyte -= 0x80;
                 if (lenbyte > inputlen - pos)

@@ -23,12 +23,12 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             VLI_Conversion.BytesToNative(_private, private_key, Constants.NUM_N_BYTES);
 
             /* Make sure the private key is in the range [1, n-1]. */
-            if (VLI_Logic.IsZero(_private, Constants.NUM_WORDS))
+            if (VLI_Logic.IsZero(_private, Constants.NUM_N_WORDS))
             {
                 return false;
             }
 
-            if (VLI_Logic.Cmp(Constants.n, _private, Constants.NUM_WORDS) != 1)
+            if (VLI_Logic.Cmp(Constants.n, _private, Constants.NUM_N_WORDS) != 1)
             {
                 return false;
             }
@@ -39,8 +39,8 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
                 return false;
             }
 
-            VLI_Conversion.NativeToBytes(public_key, Constants.NUM_N_BYTES, _public);
-            VLI_Conversion.NativeToBytes(public_key.Slice(Constants.NUM_N_BYTES), Constants.NUM_N_BYTES, _public.Slice(Constants.NUM_WORDS));
+            VLI_Conversion.NativeToBytes(public_key, Constants.NUM_BYTES, _public);
+            VLI_Conversion.NativeToBytes(public_key.Slice(Constants.NUM_BYTES), Constants.NUM_BYTES, _public.Slice(Constants.NUM_WORDS));
             return true;
         }
 
@@ -56,8 +56,8 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
         {
             Span<ulong> native_point = stackalloc ulong[2 * VLI_Common.ECC_MAX_WORDS];
 
-            VLI_Conversion.BytesToNative(native_point, public_key, Constants.NUM_N_BYTES);
-            VLI_Conversion.BytesToNative(native_point.Slice(Constants.NUM_WORDS), public_key.Slice(Constants.NUM_N_BYTES), Constants.NUM_N_BYTES);
+            VLI_Conversion.BytesToNative(native_point, public_key, Constants.NUM_BYTES);
+            VLI_Conversion.BytesToNative(native_point.Slice(Constants.NUM_WORDS), public_key.Slice(Constants.NUM_BYTES), Constants.NUM_BYTES);
 
             return ECCPoint.IsValid(native_point);
         }
@@ -75,12 +75,12 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             VLI_Conversion.BytesToNative(native_key, private_key, Constants.NUM_N_BYTES);
 
             /* Make sure the private key is in the range [1, n-1]. */
-            if (VLI_Logic.IsZero(native_key, Constants.NUM_WORDS))
+            if (VLI_Logic.IsZero(native_key, Constants.NUM_N_WORDS))
             {
                 return false;
             }
 
-            return VLI_Logic.Cmp(Constants.n, native_key, Constants.NUM_WORDS) == 1;
+            return VLI_Logic.Cmp(Constants.n, native_key, Constants.NUM_N_WORDS) == 1;
         }
 
         /// <summary>
@@ -94,11 +94,11 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
         /// </param>
         public static void Compress(ReadOnlySpan<byte> public_key, Span<byte> compressed)
         {
-            for (int i = 0; i < Constants.NUM_N_BYTES; ++i)
+            for (int i = 0; i < Constants.NUM_BYTES; ++i)
             {
                 compressed[i + 1] = public_key[i];
             }
-            compressed[0] = (byte)(2 + (public_key[Constants.NUM_N_BYTES * 2 - 1] & 0x01));
+            compressed[0] = (byte)(2 + (public_key[Constants.NUM_BYTES * 2 - 1] & 0x01));
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             Span<ulong> point = stackalloc ulong[2 * VLI_Common.ECC_MAX_WORDS];
             Span<ulong> y = point.Slice(Constants.NUM_WORDS);
 
-            VLI_Conversion.BytesToNative(point, compressed.Slice(1), Constants.NUM_N_BYTES);
+            VLI_Conversion.BytesToNative(point, compressed.Slice(1), Constants.NUM_BYTES);
             ECCUtil.x_side(y, point);
             ECCUtil.mod_sqrt_default(y);
 
@@ -120,8 +120,8 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
                 VLI_Arithmetic.Sub(y, Constants.p, y, Constants.NUM_WORDS);
             }
 
-            VLI_Conversion.NativeToBytes(public_key, Constants.NUM_N_BYTES, point);
-            VLI_Conversion.NativeToBytes(public_key.Slice(Constants.NUM_N_BYTES), Constants.NUM_N_BYTES, y);
+            VLI_Conversion.NativeToBytes(public_key, Constants.NUM_BYTES, point);
+            VLI_Conversion.NativeToBytes(public_key.Slice(Constants.NUM_BYTES), Constants.NUM_BYTES, y);
         }
 
         /// <summary>
@@ -141,43 +141,43 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             VLI_Conversion.BytesToNative(_scalar, scalar, Constants.NUM_N_BYTES);
 
             // Make sure the private key is in the range [1, n-1].
-            if (VLI_Logic.IsZero(_private, Constants.NUM_WORDS))
+            if (VLI_Logic.IsZero(_private, Constants.NUM_N_WORDS))
             {
                 return false;
             }
 
-            if (VLI_Logic.Cmp(Constants.n, _private, Constants.NUM_WORDS) != 1)
+            if (VLI_Logic.Cmp(Constants.n, _private, Constants.NUM_N_WORDS) != 1)
             {
                 return false;
             }
 
             // Make sure that scalar is in the range [1, n-1]
-            if (VLI_Logic.IsZero(_scalar, Constants.NUM_WORDS))
+            if (VLI_Logic.IsZero(_scalar, Constants.NUM_N_WORDS))
             {
                 return false;
             }
 
-            if (VLI_Logic.Cmp(Constants.n, _scalar, Constants.NUM_WORDS) != 1)
+            if (VLI_Logic.Cmp(Constants.n, _scalar, Constants.NUM_N_WORDS) != 1)
             {
                 return false;
             }
 
             // Apply scalar addition
             //   r = (a + scalar) % n
-            VLI_Arithmetic.ModAdd(_result, _private, _scalar, Constants.n, Constants.NUM_WORDS);
+            VLI_Arithmetic.ModAdd(_result, _private, _scalar, Constants.n, Constants.NUM_N_WORDS);
 
             /* Check again that the new private key is in the range [1, n-1]. */
-            if (VLI_Logic.IsZero(_result, Constants.NUM_WORDS))
+            if (VLI_Logic.IsZero(_result, Constants.NUM_N_WORDS))
             {
                 return false;
             }
 
-            if (VLI_Logic.Cmp(Constants.n, _result, Constants.NUM_WORDS) != 1)
+            if (VLI_Logic.Cmp(Constants.n, _result, Constants.NUM_N_WORDS) != 1)
             {
                 return false;
             }
 
-            VLI_Conversion.NativeToBytes(result, Constants.NUM_N_BYTES, _result);
+            VLI_Conversion.NativeToBytes(result, Constants.NUM_BYTES, _result);
 
             return true;
         }
@@ -196,8 +196,8 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             Span<ulong> _s_mul_G = stackalloc ulong[VLI_Common.ECC_MAX_WORDS * 2];
             Span<ulong> _scalar = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
 
-            VLI_Conversion.BytesToNative(_public, public_key, Constants.NUM_N_BYTES);
-            VLI_Conversion.BytesToNative(_public.Slice(Constants.NUM_WORDS), public_key.Slice(Constants.NUM_N_BYTES), Constants.NUM_N_BYTES);
+            VLI_Conversion.BytesToNative(_public, public_key, Constants.NUM_BYTES);
+            VLI_Conversion.BytesToNative(_public.Slice(Constants.NUM_WORDS), public_key.Slice(Constants.NUM_BYTES), Constants.NUM_BYTES);
             VLI_Conversion.BytesToNative(_scalar, scalar, Constants.NUM_N_BYTES);
 
             // Make sure that public key is valid
@@ -221,8 +221,8 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
                 return false;
             }
 
-            VLI_Conversion.NativeToBytes(result, Constants.NUM_N_BYTES, _result);
-            VLI_Conversion.NativeToBytes(result.Slice(Constants.NUM_N_BYTES), Constants.NUM_N_BYTES, _result.Slice(Constants.NUM_WORDS));
+            VLI_Conversion.NativeToBytes(result, Constants.NUM_BYTES, _result);
+            VLI_Conversion.NativeToBytes(result.Slice(Constants.NUM_BYTES), Constants.NUM_BYTES, _result.Slice(Constants.NUM_WORDS));
 
             return true;
         }
@@ -237,6 +237,12 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
         /// <returns></returns>
         public static bool SignWithK(Span<byte> signature, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> message_hash, ReadOnlySpan<ulong> K)
         {
+            Span<ulong> p = stackalloc ulong[VLI_Common.ECC_MAX_WORDS * 2];
+            Span<ulong> s = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> tmp = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            VLI_Common.Picker<ulong> k2 = new(tmp, s);
+
+
             const int num_words = Constants.NUM_WORDS;
             const int num_bytes = Constants.NUM_N_BYTES;
             const int num_n_words = Constants.NUM_WORDS;
@@ -244,16 +250,11 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
 
             ulong carry;
 
-            Span<ulong> p = stackalloc ulong[num_words * 2];
-            Span<ulong> s = stackalloc ulong[num_words];
-            Span<ulong> tmp = stackalloc ulong[num_words];
-            VLI_Common.Picker<ulong> k2 = new(tmp, s);
-
             // Make a local copy of K for in-place modification
-            Span<ulong> k = stackalloc ulong[num_words];
+            Span<ulong> k = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
             VLI_Arithmetic.Set(k, K, num_words);
 
-            // Make sure 0 < k < curve_n
+            // Make sure 0 < k < curve_n 
             if (VLI_Logic.IsZero(k, num_words) || VLI_Logic.Cmp(Constants.n, k, num_n_words) != 1)
             {
                 return false;
@@ -277,19 +278,17 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             VLI_Arithmetic.ModInv(k, k, Constants.n, num_n_words);       // k = 1 / k'
             VLI_Arithmetic.ModMult(k, k, tmp, Constants.n, num_n_words); // k = 1 / k
 
-            VLI_Conversion.NativeToBytes(signature, num_bytes, p); // store r
-            VLI_Conversion.BytesToNative(tmp, private_key, num_bytes); // tmp = d
+            VLI_Conversion.NativeToBytes(signature, num_bytes, p); // store r 
+            VLI_Conversion.BytesToNative(tmp, private_key, Constants.NUM_N_BYTES); // tmp = d
 
             s[num_n_words - 1] = 0;
             VLI_Arithmetic.Set(s, p, num_words);
             VLI_Arithmetic.ModMult(s, tmp, s, Constants.n, num_n_words); // s = r*d
 
             BitsToInt(tmp, message_hash, message_hash.Length);
-
-            VLI_Arithmetic.ModAdd(s, tmp, s, Constants.n, num_n_words); // s = e + r*d
-            VLI_Arithmetic.ModMult(s, s, k, Constants.n, num_n_words);  // s = (e + r*d) / k
-
-            if (VLI_Logic.NumBits(s, num_n_words) > num_n_bits)
+            VLI_Arithmetic.ModAdd(s, tmp, s, Constants.n, num_n_words); // s = e + r*d 
+            VLI_Arithmetic.ModMult(s, s, k, Constants.n, num_n_words);  // s = (e + r*d) / k 
+            if (VLI_Logic.NumBits(s, num_n_words) > num_bytes * 8)
             {
                 return false;
             }
@@ -297,7 +296,7 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             if (VLI_Logic.Cmp(s, Constants.half_n, num_words) == 1)
             {
                 // Apply Low-S rule to signature
-                VLI_Arithmetic.Sub(s, Constants.n, s, num_words); // s = n - s
+                VLI_Arithmetic.Sub(s, Constants.n, s, num_words); // s = n - s 
             }
 
             VLI_Conversion.NativeToBytes(signature.Slice(num_bytes), num_bytes, s);
@@ -329,7 +328,7 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             ref long i = ref MemoryMarshal.Cast<byte, long>(sequence)[0];
 
             // Will retry until succeed
-            for (i = 0; i != Int64.MaxValue; ++i)
+            for (i = 0; i != long.MaxValue; ++i)
             {
                 // Init HMAC with private key
                 //  and fill hasher with iteration data

@@ -9,8 +9,13 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
     {
         public static ulong regularize_k(ReadOnlySpan<ulong> k, Span<ulong> k0, Span<ulong> k1)
         {
-            const int num_n_words = Constants.NUM_WORDS;
+            const int num_n_words = Constants.NUM_N_WORDS;
+            const int num_n_bits = Constants.NUM_N_BITS;
             ulong carry = VLI_Arithmetic.Add(k0, k, Constants.n, num_n_words);
+            if (!Convert.ToBoolean(carry))
+            {
+                carry = Convert.ToUInt64(num_n_bits < (num_n_words * VLI_Common.WORD_SIZE * 8) && VLI_Logic.TestBit(k0, num_n_bits));
+            }
             VLI_Arithmetic.Add(k1, k0, Constants.n, num_n_words);
             return carry;
         }
@@ -18,10 +23,11 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
         public static void mod_sqrt_default(Span<ulong> a)
         {
             int i;
-            const int num_words = Constants.NUM_WORDS;
-            Span<ulong> p1 = stackalloc ulong[num_words];
-            Span<ulong> l_result = stackalloc ulong[num_words];
+            Span<ulong> p1 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> l_result = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
             p1[0] = l_result[0] = 1;
+
+            const int num_words = Constants.NUM_WORDS;
 
             // When curve_secp256k1.p == 3 (mod 4), we can compute
             //   sqrt(a) = a^((curve_secp256k1.p + 1) / 4) (mod curve_secp256k1.p).
@@ -52,16 +58,16 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
 
         public static void modSquare_fast(Span<ulong> result, ReadOnlySpan<ulong> left)
         {
+            Span<ulong> product = stackalloc ulong[2 * VLI_Common.ECC_MAX_WORDS];
             const int num_words = Constants.NUM_WORDS;
-            Span<ulong> product = stackalloc ulong[2 * num_words];
             VLI_Arithmetic.Square(product, left, num_words);
             VLI_Arithmetic.MMod(result, product, Constants.p, num_words);
         }
 
         public static void modMult_fast(Span<ulong> result, Span<ulong> left, ReadOnlySpan<ulong> right)
         {
+            Span<ulong> product = stackalloc ulong[2 * VLI_Common.ECC_MAX_WORDS];
             const int num_words = Constants.NUM_WORDS;
-            Span<ulong> product = stackalloc ulong[2 * num_words];
             VLI_Arithmetic.Mult(product, left, right, num_words);
             VLI_Arithmetic.MMod(result, product, Constants.p, num_words);
         }
@@ -85,14 +91,14 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
         {
             const int num_words = Constants.NUM_WORDS;
 
+            // t1 = X, t2 = Y, t3 = Z
+            Span<ulong> t4 = stackalloc ulong[num_words];
+            Span<ulong> t5 = stackalloc ulong[num_words];
+
             if (VLI_Logic.IsZero(Z1, num_words))
             {
                 return;
             }
-
-            // t1 = X, t2 = Y, t3 = Z
-            Span<ulong> t4 = stackalloc ulong[num_words];
-            Span<ulong> t5 = stackalloc ulong[num_words];
 
             modSquare_fast(t5, Y1);   // t5 = y1^2
             modMult_fast(t4, X1, t5); // t4 = x1*y1^2 = A
@@ -110,7 +116,7 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
             }
             else
             {
-                VLI_Arithmetic.RShift1(Y1, Constants.NUM_WORDS);
+                VLI_Arithmetic.RShift1(Y1, num_words);
             }
             // t2 = 3/2*(x1^2) = B
 
@@ -126,8 +132,9 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
         // P = (x1, y1) => 2P, (x2, y2) => P'
         public static void XYcZ_initial_double(Span<ulong> X1, Span<ulong> Y1, Span<ulong> X2, Span<ulong> Y2, ReadOnlySpan<ulong> initial_Z)
         {
+            Span<ulong> z = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+
             const int num_words = Constants.NUM_WORDS;
-            Span<ulong> z = stackalloc ulong[num_words];
 
             // Setting Z as it is provided
             VLI_Arithmetic.Set(z, initial_Z, num_words);
@@ -143,8 +150,9 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
         // P = (x1, y1) => 2P, (x2, y2) => P'
         public static void XYcZ_double(Span<ulong> X1, Span<ulong> Y1, Span<ulong> X2, Span<ulong> Y2)
         {
+            Span<ulong> z = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+
             const int num_words = Constants.NUM_WORDS;
-            Span<ulong> z = stackalloc ulong[num_words];
 
             // Version without initial_Z
             VLI_Arithmetic.Clear(z, num_words);
@@ -163,10 +171,10 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
         //   or P => P', Q => P + Q
         public static void XYcZ_add(Span<ulong> X1, Span<ulong> Y1, Span<ulong> X2, Span<ulong> Y2)
         {
-            const int num_words = Constants.NUM_WORDS;
-
             // t1 = X1, t2 = Y1, t3 = X2, t4 = Y2
-            Span<ulong> t5 = stackalloc ulong[num_words];
+            Span<ulong> t5 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+
+            const int num_words = Constants.NUM_WORDS;
 
             VLI_Arithmetic.ModSub(t5, X2, X1, Constants.p, num_words); // t5 = x2 - x1
             modSquare_fast(t5, t5);                  // t5 = (x2 - x1)^2 = A
@@ -190,12 +198,12 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
         //   or P => P - Q, Q => P + Q
         public static void XYcZ_addC(Span<ulong> X1, Span<ulong> Y1, Span<ulong> X2, Span<ulong> Y2)
         {
-            const int num_words = Constants.NUM_WORDS;
-
             // t1 = X1, t2 = Y1, t3 = X2, t4 = Y2
-            Span<ulong> t5 = stackalloc ulong[num_words];
-            Span<ulong> t6 = stackalloc ulong[num_words];
-            Span<ulong> t7 = stackalloc ulong[num_words];
+            Span<ulong> t5 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> t6 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> t7 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+
+            const int num_words = Constants.NUM_WORDS;
 
             VLI_Arithmetic.ModSub(t5, X2, X1, Constants.p, num_words); // t5 = x2 - x1
             modSquare_fast(t5, t5);                  // t5 = (x2 - x1)^2 = A
