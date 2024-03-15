@@ -50,7 +50,7 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
                 ulong sum = left[i] + right[i] + carry;
                 if (sum != left[i])
                 {
-                    carry = VLI_Logic.OneIfTrue(sum < left[i]);
+                    carry = Convert.ToUInt64(sum < left[i]);
                 }
                 result[i] = sum;
             }
@@ -68,7 +68,7 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
                 ulong diff = left[i] - right[i] - borrow;
                 if (diff != left[i])
                 {
-                    borrow = VLI_Logic.OneIfTrue(diff > left[i]);
+                    borrow = Convert.ToUInt64(diff > left[i]);
                 }
                 result[i] = diff;
             }
@@ -254,7 +254,7 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
                     }
                     v[1 - index][i] = diff;
                 }
-                index = VLI_Logic.ZeroIfNotZero(index ^ borrow); /* Swap the index if there was no borrow */
+                index = Convert.ToUInt64(!Convert.ToBoolean(index ^ borrow)); /* Swap the index if there was no borrow */
                 RShift1(mod_multiple, num_words);
                 mod_multiple[num_words - 1] |= mod_multiple[num_words] << (VLI_Common.WORD_BITS - 1);
                 RShift1(mod_multiple.Slice(num_words), num_words);
@@ -385,8 +385,8 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
             p1 = i3 + (i2 >> 32);
 
             r0 += p0;
-            r1 += p1 + VLI_Logic.OneIfTrue(r0 < p0);
-            r2 += VLI_Logic.OneIfTrue((r1 < p1) || (r1 == p1 && r0 < p0));
+            r1 += p1 + Convert.ToUInt64(r0 < p0);
+            r2 += Convert.ToUInt64((r1 < p1) || (r1 == p1 && r0 < p0));
         }
 
         public static void mul2add(ulong a, ulong b, ref ulong r0, ref ulong r1, ref ulong r2)
@@ -419,8 +419,8 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
             p0 <<= 1;
 
             r0 += p0;
-            r1 += p1 + VLI_Logic.OneIfTrue(r0 < p0);
-            r2 += VLI_Logic.OneIfTrue((r1 < p1) || (r1 == p1 && r0 < p0));
+            r1 += p1 + Convert.ToUInt64(r0 < p0);
+            r2 += Convert.ToUInt64((r1 < p1) || (r1 == p1 && r0 < p0));
         }
 
         public static void modInv_update(Span<ulong> uv, ReadOnlySpan<ulong> mod, int num_words)

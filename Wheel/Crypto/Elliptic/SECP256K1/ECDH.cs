@@ -43,7 +43,7 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             // cannot use a side channel attack to learn the number of leading zeros.
             carry = ECCUtil.regularize_k(_private, _private, tmp);
 
-            ECCPoint.PointMul(_public, _public, p2[VLI_Logic.ZeroIfNotZero(carry)], num_n_bits + 1);
+            ECCPoint.PointMul(_public, _public, p2[Convert.ToUInt64(!Convert.ToBoolean(carry))], num_n_bits + 1);
 
             VLI_Conversion.NativeToBytes(secret, num_bytes, _public);
 

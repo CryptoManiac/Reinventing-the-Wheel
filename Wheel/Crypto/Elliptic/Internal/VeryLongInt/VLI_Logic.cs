@@ -16,89 +16,18 @@
         }
 
         /// <summary>
-        /// Returns 1 if the provided number has non-zero bits set
-        /// </summary>
-        /// <param name="n"></param>
-        /// <returns></returns>
-        public static int OneIfNotZero(int n)
-        {
-            return 1 - (((n - 1) >> (sizeof(int) - 1)) & 1);
-        }
-
-        /// <summary>
-        /// Returns 0 if the provided number has non-zero bits set
-        /// </summary>
-        /// <param name="n"></param>
-        /// <returns></returns>
-        public static int ZeroIfNotZero(int n)
-        {
-            return ((n - 1) >> (sizeof(int) - 1)) & 1;
-        }
-
-        /// <summary>
-        /// Returns 1 if the provided number has non-zero bits set
-        /// </summary>
-        /// <param name="n"></param>
-        /// <returns></returns>
-        public static ulong OneIfNotZero(ulong n)
-        {
-            return 1 - (((n - 1) >> (sizeof(ulong) - 1)) & 1);
-        }
-
-        /// <summary>
-        /// Returns 0 if the provided number has non-zero bits set
-        /// </summary>
-        /// <param name="n"></param>
-        /// <returns></returns>
-        public static ulong ZeroIfNotZero(ulong n)
-        {
-            return ((n - 1) >> (sizeof(ulong) - 1)) & 1;
-        }
-
-        /// <summary>
-        /// To use instead of casting
-        /// </summary>
-        /// <param name="what"></param>
-        /// <returns>1 if true, zero if false</returns>
-        public static ulong OneIfTrue(bool what)
-        {
-            return what ? 1u : 0;
-        }
-
-        /// <summary>
-        /// To use instead of casting
-        /// </summary>
-        /// <param name="what"></param>
-        /// <returns>0 if true, 1 if false</returns>
-        public static ulong OneIfFalse(bool what)
-        {
-            return what ? 0 : 1u;
-        }
-
-        /// <summary>
         /// Constant-time comparison to zero
         /// </summary>
         /// <param name="words">Long integer words</param>
         /// <returns>True if zero</returns>
         public static bool IsZero(ReadOnlySpan<ulong> words, int num_words)
         {
-            return GetBits(words, num_words) == 0;
-        }
-
-        /// <summary>
-        /// Accumulate and return non-zero bits
-        /// </summary>
-        /// <param name="words"></param>
-        /// <param name="num_words"></param>
-        /// <returns></returns>
-        private static ulong GetBits(ReadOnlySpan<ulong> words, int num_words)
-        {
             ulong bits = 0;
             for (int i = 0; i < num_words; ++i)
             {
                 bits |= words[i];
             }
-            return bits;
+            return !Convert.ToBoolean(bits);
         }
 
         /// <summary>
@@ -109,7 +38,7 @@
         /// <returns>True if bit 'bit' is set</returns>
         public static bool TestBit(ReadOnlySpan<ulong> words, int bit)
         {
-            return 0 != (words[bit >> VLI_Common.WORD_BITS_SHIFT] & (VLI_Common.LOW_BIT_SET << (bit & VLI_Common.WORD_BITS_MASK)));
+            return Convert.ToBoolean(words[bit >> VLI_Common.WORD_BITS_SHIFT] & (VLI_Common.LOW_BIT_SET << (bit & VLI_Common.WORD_BITS_MASK)));
         }
 
         /// <summary>
@@ -162,7 +91,7 @@
             {
                 diff |= left[i] ^ right[i];
             }
-            return (diff == 0);
+            return Convert.ToBoolean(diff);
         }
 
         /// <summary>
@@ -175,9 +104,9 @@
         public static int Cmp(ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right, int num_words)
         {
             Span<ulong> tmp = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
-            ulong borrow = VLI_Arithmetic.Sub(tmp, left, right, num_words);
-            ulong bits = GetBits(tmp, num_words);
-            return (int) (OneIfNotZero(bits) - 2 * OneIfNotZero(borrow));
+            bool neg = Convert.ToBoolean(VLI_Arithmetic.Sub(tmp, left, right, num_words));
+            bool equal = IsZero(tmp, num_words);
+            return (Convert.ToInt32(!equal) - 2 * Convert.ToInt32(neg));
         }
 
         /// <summary>

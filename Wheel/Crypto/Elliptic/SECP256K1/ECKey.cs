@@ -260,7 +260,7 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             }
 
             carry = ECCUtil.regularize_k(k, tmp, s);
-            ECCPoint.PointMul(p, Constants.G, k2[VLI_Logic.ZeroIfNotZero(carry)], num_n_bits + 1);
+            ECCPoint.PointMul(p, Constants.G, k2[Convert.ToUInt64(!Convert.ToBoolean(carry))], num_n_bits + 1);
             if (VLI_Logic.IsZero(p, num_words))
             {
                 return false;

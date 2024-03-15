@@ -94,7 +94,7 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
             Span<ulong> tmp2 = stackalloc ulong[num_words];
             VLI_Common.Picker<ulong> p2 = new(tmp1, tmp2);
             ulong carry = ECCUtil.regularize_k(scalar, tmp1, tmp2);
-            PointMul(result, point, p2[VLI_Logic.ZeroIfNotZero(carry)], Constants.NUM_N_BITS + 1);
+            PointMul(result, point, p2[Convert.ToUInt64(!Convert.ToBoolean(carry))], Constants.NUM_N_BITS + 1);
         }
 
         /// <summary>
@@ -124,12 +124,12 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
 
             for (i = num_bits - 2; i > 0; --i)
             {
-                nb = VLI_Logic.OneIfFalse(VLI_Logic.TestBit(scalar, i));
+                nb = Convert.ToUInt64(!VLI_Logic.TestBit(scalar, i));
                 ECCUtil.XYcZ_addC(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
                 ECCUtil.XYcZ_add(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);
             }
 
-            nb = VLI_Logic.OneIfFalse(VLI_Logic.TestBit(scalar, 0));
+            nb = Convert.ToUInt64(!VLI_Logic.TestBit(scalar, 0));
             ECCUtil.XYcZ_addC(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
 
             // Find final 1/Z value.
@@ -176,12 +176,12 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
 
             for (i = num_bits - 2; i > 0; --i)
             {
-                nb = VLI_Logic.OneIfFalse(VLI_Logic.TestBit(scalar, i));
+                nb = Convert.ToUInt64(!VLI_Logic.TestBit(scalar, i));
                 ECCUtil.XYcZ_addC(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
                 ECCUtil.XYcZ_add(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);
             }
 
-            nb = VLI_Logic.OneIfFalse(VLI_Logic.TestBit(scalar, 0));
+            nb = Convert.ToUInt64(!VLI_Logic.TestBit(scalar, 0));
             ECCUtil.XYcZ_addC(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
 
             // Find final 1/Z value.
@@ -219,10 +219,10 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
             //  attack to learn the number of leading zeros.
             carry = ECCUtil.regularize_k(private_key, tmp1, tmp2);
 
-            ECCPoint.PointMul(result, Constants.G, p2[VLI_Logic.ZeroIfNotZero(carry)], Constants.NUM_N_BITS + 1);
+            PointMul(result, Constants.G, p2[Convert.ToUInt64(!Convert.ToBoolean(carry))], Constants.NUM_N_BITS + 1);
 
             // Final validation of computed value
-            return !ECCPoint.IsZero(result);
+            return !IsZero(result);
         }
 
     }
