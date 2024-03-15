@@ -267,6 +267,7 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             }
 
             // Stub: No RNG function is actually used here
+            // TODO: Revisit this piece after implementation of DRBG will be added to crypto primitives
             VLI_Arithmetic.Clear(tmp, num_n_words);
             tmp[0] = 1;
 
