@@ -157,11 +157,10 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
         /// </summary>
         /// <param name="words"></param>
         /// <param name="num_words"></param>
-        public static void RShift1(Span<ulong> words, int num_words)
+        public static unsafe void RShift1(Span<ulong> words, int num_words)
         {
             ulong carry = 0;
-            int i = num_words - 1;
-            while (i-- >= 0)
+            for (int i = num_words - 1; i >= 0; --i)
             {
                 ulong temp = words[i];
                 words[i] = (temp >> 1) | carry;

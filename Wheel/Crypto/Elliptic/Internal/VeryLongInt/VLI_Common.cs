@@ -27,7 +27,7 @@
             }
             public Span<ulong> this[T index]
             {
-                readonly get => index.CompareTo(0) == 0 ? s0 : s1;
+                readonly get => index.CompareTo(UInt64.MinValue) == 0 ? s0 : s1;
                 set => throw new InvalidOperationException("Not supported");
             }
         }

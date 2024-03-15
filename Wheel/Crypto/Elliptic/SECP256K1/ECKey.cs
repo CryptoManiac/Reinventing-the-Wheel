@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 using Wheel.Crypto.Elliptic.Internal.SECP256K1;
 using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
 using Wheel.Crypto.Hashing.HMAC;
@@ -372,9 +373,8 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             }
 
             ulong carry = 0;
-            int index = num_n_words - 1;
             int shift = bits_size * 8 - num_n_bits;
-            while (index-- >= 0)
+            for (int index = num_n_words - 1; index >= 0; --index)
             {
                 ulong temp = native[index];
                 native[index] = (temp >> shift) | carry;
