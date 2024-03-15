@@ -316,29 +316,27 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
         /// <param name="signature">Will be filled in with the signature value</param>
         /// <param name="private_key">Your private key</param>
         /// <param name="message_hash">The hash of the message to sign</param>
+        /// <param name="entropy">Additional entropy for K generation</param>
         /// <param name="hasher">A hasher to use</param>
         /// <returns></returns>
-        public static bool SignDeterministic(Span<byte> signature, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> message_hash, IMac hasher)
+        public static bool SignDeterministic(Span<byte> signature, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> message_hash, ReadOnlySpan<byte> entropy, IMac hasher)
         {
             // Allocate buffer for HMAC results
             Span<byte> K = stackalloc byte[hasher.HashSz];
 
             // Sequence of iteration is encoded here
-            Span<byte> n = stackalloc byte[sizeof(long)];
+            Span<byte> sequence = stackalloc byte[sizeof(long)];
+            ref long i = ref MemoryMarshal.Cast<byte, long>(sequence)[0];
 
             // Will retry until succeed
-            for (long i = 0; i != Int64.MaxValue; ++i)
+            for (i = 0; i != Int64.MaxValue; ++i)
             {
-
                 // Init HMAC with private key
+                //  and fill hasher with iteration data
                 hasher.Init(private_key);
-
-                // Add message hash
+                hasher.Update(entropy);
                 hasher.Update(message_hash);
-
-                // Encode and add iteration sequence
-                MemoryMarshal.Cast<byte, long>(n)[0] = i;
-                hasher.Update(n);
+                hasher.Update(sequence);
 
                 // Hash is then used as K parameter
                 hasher.Digest(K);

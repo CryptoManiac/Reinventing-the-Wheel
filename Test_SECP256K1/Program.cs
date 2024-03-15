@@ -10,11 +10,14 @@ string private_key_hex = "80eaba734c283aba9f2f8a96e1152c97aa8357357e83b1f91b60dc
 
 static void SignData(Span<byte> signature, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> message)
 {
+    // Empty for tests
+    Span<byte> additional_entropy = stackalloc byte[0];
+
     Span<byte> message_hash = stackalloc byte[32];
     SHA256.Hash(message_hash, message);
     Console.WriteLine("Signing hash: {0}", Convert.ToHexString(message_hash));
     Span<byte> signature_compact = stackalloc byte[64];
-    ECKey.SignDeterministic(signature_compact, private_key, message_hash, new HMAC_SHA256());
+    ECKey.SignDeterministic(signature_compact, private_key, message_hash, additional_entropy, new HMAC_SHA256());
     if (signature.Length < ECSig.CompactToDER(signature, signature_compact))
     {
         throw new Exception("Signature buffer is too short");
