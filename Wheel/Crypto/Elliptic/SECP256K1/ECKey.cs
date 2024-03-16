@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
 using Wheel.Crypto.Elliptic.Internal.SECP256K1;
 using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
 using Wheel.Crypto.Hashing.HMAC;
-using Wheel.Crypto.Hashing.HMAC.SHA2;
 
 namespace Wheel.Crypto.Elliptic.SECP256K1
 {
@@ -315,7 +313,7 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <param name="entropy">Additional entropy for K generation</param>
         /// <returns></returns>
-        public static bool SignDeterministic(Span<byte> signature, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> message_hash, ReadOnlySpan<byte> entropy)
+        public static bool SignDeterministic<HMAC_IMPL>(Span<byte> signature, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> message_hash, ReadOnlySpan<byte> entropy) where HMAC_IMPL : unmanaged, IMac
         {
             // Secret K will be written here
             Span<ulong> K = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
@@ -323,7 +321,7 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             // Will retry until succeed
             for (long i = 0; i != long.MaxValue; ++i)
             {
-                GenerateK(K, private_key, message_hash, entropy, i);
+                GenerateK<HMAC_IMPL>(K, private_key, message_hash, entropy, i);
 
                 // Try to sign
                 if (SignWithK(signature, private_key, message_hash, K))
@@ -343,12 +341,12 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
         /// <param name="message_hash"></param>
         /// <param name="entropy"></param>
         /// <param name="sequence"></param>
-        private static void GenerateK(Span<ulong> secret, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> message_hash, ReadOnlySpan<byte> entropy, long sequence)
+        private static void GenerateK<HMAC_IMPL>(Span<ulong> secret, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> message_hash, ReadOnlySpan<byte> entropy, long sequence) where HMAC_IMPL : unmanaged, IMac
         {
             // See 3..2 of the RFC 6979 to get what is going on here
             // We're not following it to the letter, but our algorithm is very similar
 
-            HMAC_SHA256 hmac = new();
+            HMAC_IMPL hmac = new();
             Span<byte> separator_00 = stackalloc byte[1] { 0x00 };
             Span<byte> separator_01 = stackalloc byte[1] { 0x01 };
             Span<byte> sequence_data = stackalloc byte[sizeof(long)];
@@ -411,8 +409,11 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
                 hmac.Digest(V);
 
                 // T = T || V
-                V.CopyTo(secret_data.Slice(secret_byte_index));
-                secret_byte_index += V.Length;
+                var src = V.Slice(0, Math.Min(V.Length, secret_data.Length - secret_byte_index));
+                var target = secret_data.Slice(secret_byte_index);
+
+                src.CopyTo(target);
+                secret_byte_index += src.Length;
 
                 if (secret_byte_index >= Constants.NUM_N_BYTES)
                 {
