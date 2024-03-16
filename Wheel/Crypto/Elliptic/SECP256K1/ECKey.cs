@@ -4,6 +4,7 @@ using System.Security.Cryptography.X509Certificates;
 using Wheel.Crypto.Elliptic.Internal.SECP256K1;
 using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
 using Wheel.Crypto.Hashing.HMAC;
+using Wheel.Crypto.Hashing.HMAC.SHA2;
 
 namespace Wheel.Crypto.Elliptic.SECP256K1
 {
@@ -306,11 +307,8 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
 
         /// <summary>
         /// Generate an ECDSA signature for a given hash value, using a deterministic algorithm
-        /// (see RFC 6979).
         /// 
-        /// Usage: Compute a hash of the data you wish to sign and pass it to
-        /// this function along with your private key and a hash context. Note that the message_hash
-        /// does not need to be computed with the same hash function used by hash_context.
+        /// Usage: Compute a hash of the data you wish to sign and pass it to this function along with your private key and entropy bytes. The entropy bytes argument may be set to empty array if you don't need this feature.
         /// </summary>
         /// <param name="signature">Will be filled in with the signature value</param>
         /// <param name="private_key">Your private key</param>
@@ -318,36 +316,118 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
         /// <param name="entropy">Additional entropy for K generation</param>
         /// <param name="hasher">A hasher to use</param>
         /// <returns></returns>
-        public static bool SignDeterministic(Span<byte> signature, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> message_hash, ReadOnlySpan<byte> entropy, IMac hasher)
+        public static bool SignDeterministic(Span<byte> signature, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> message_hash, ReadOnlySpan<byte> entropy)
         {
             // Allocate buffer for HMAC results
-            Span<byte> K = stackalloc byte[hasher.HashSz];
-
-            // Sequence of iteration is encoded here
-            Span<byte> sequence = stackalloc byte[sizeof(long)];
-            ref long i = ref MemoryMarshal.Cast<byte, long>(sequence)[0];
+            Span<ulong> K = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
 
             // Will retry until succeed
-            for (i = 0; i != long.MaxValue; ++i)
+            for (long i = 0; i != long.MaxValue; ++i)
             {
-                // Init HMAC with private key
-                //  and fill hasher with iteration data
-                hasher.Init(private_key);
-                hasher.Update(entropy);
-                hasher.Update(message_hash);
-                hasher.Update(sequence);
-
-                // Hash is then used as K parameter
-                hasher.Digest(K);
+                GenerateK(K, private_key, message_hash, entropy, i);
 
                 // Try to sign
-                if (SignWithK(signature, private_key, message_hash, MemoryMarshal.Cast<byte, ulong>(K)))
+                if (SignWithK(signature, private_key, message_hash, K))
                 {
                     return true;
                 }
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Generate deterministic K value for signing
+        /// </summary>
+        /// <param name="secret"></param>
+        /// <param name="private_key"></param>
+        /// <param name="message_hash"></param>
+        /// <param name="entropy"></param>
+        /// <param name="sequence"></param>
+        private static void GenerateK(Span<ulong> secret, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> message_hash, ReadOnlySpan<byte> entropy, long sequence)
+        {
+            // See 3..2 of the RFC 6979 to get what is going on here
+            // We're not following it to the letter, but our algorithm is very similar
+
+            HMAC_SHA256 hmac = new();
+            Span<byte> separator_00 = stackalloc byte[1] { 0x00 };
+            Span<byte> separator_01 = stackalloc byte[1] { 0x01 };
+            Span<byte> sequence_data = stackalloc byte[sizeof(long)];
+
+            // Convert sequence to bytes
+            MemoryMarshal.Cast<byte, long>(sequence_data)[0] = sequence;
+
+            // Allocate buffer for HMAC results
+            Span<byte> K = stackalloc byte[hmac.HashSz];
+            Span<byte> V = stackalloc byte[hmac.HashSz];
+
+            // B
+            K.Fill(0); // K = 00 00 00 ..
+
+            // C
+            V.Fill(0x01); // V = 01 01 01 ..
+
+            // D
+            hmac.Init(K); // K = HMAC_K(V || 00 || entropy || 00 || sequence || 00 || private_key || message_hash)
+            hmac.Update(V);
+            hmac.Update(separator_00);
+            hmac.Update(entropy);
+            hmac.Update(separator_00);
+            hmac.Update(sequence_data);
+            hmac.Update(separator_00);
+            hmac.Update(private_key);
+            hmac.Update(message_hash);
+            hmac.Digest(K);
+
+            // E
+            hmac.Init(K); // V = HMAC_K(V)
+            hmac.Update(V);
+            hmac.Digest(V);
+
+            // F
+            hmac.Init(K); // K = HMAC_K(V || 01 || entropy || 01 || sequence || 01 || private_key || message_hash)
+            hmac.Update(V);
+            hmac.Update(separator_01);
+            hmac.Update(entropy);
+            hmac.Update(separator_01);
+            hmac.Update(sequence_data);
+            hmac.Update(separator_01);
+            hmac.Update(private_key);
+            hmac.Update(message_hash);
+            hmac.Digest(K);
+
+            // G
+            hmac.Init(K); // V = HMAC_K(V)
+            hmac.Update(V);
+            hmac.Digest(V);
+
+            // H
+            while (true)
+            {
+                // H2
+                hmac.Init(K); // V = HMAC_K(V)
+                hmac.Update(V);
+                hmac.Digest(V);
+
+                if (IsValidPrivateKey(V))
+                {
+                    MemoryMarshal.Cast<byte, ulong>(V).CopyTo(secret);
+                    return;
+                }
+
+                // H3
+                hmac.Init(K);  // K = HMAC_K(V || 00 || entropy || 00 || sequence)
+                hmac.Update(V);
+                hmac.Update(separator_00);
+                hmac.Update(entropy);
+                hmac.Update(separator_00);
+                hmac.Update(sequence_data);
+                hmac.Digest(K);
+
+                hmac.Init(K);
+                hmac.Update(V);
+                hmac.Digest(V);
+            }
         }
 
         /// <summary>

@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using Wheel.Crypto.Elliptic.SECP256K1;
-using Wheel.Crypto.Hashing.HMAC.SHA2;
 using Wheel.Crypto.Hashing.SHA.SHA256;
 
 string message = "aaa";
@@ -17,7 +16,7 @@ static void SignData(Span<byte> signature, ReadOnlySpan<byte> private_key, ReadO
     SHA256.Hash(message_hash, message);
     Console.WriteLine("Signing hash: {0}", Convert.ToHexString(message_hash));
     Span<byte> signature_compact = stackalloc byte[64];
-    ECKey.SignDeterministic(signature_compact, private_key, message_hash, additional_entropy, new HMAC_SHA256());
+    ECKey.SignDeterministic(signature_compact, private_key, message_hash, additional_entropy);
     if (signature.Length < ECSig.CompactToDER(signature, signature_compact))
     {
         throw new Exception("Signature buffer is too short");
