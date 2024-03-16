@@ -56,22 +56,6 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
             VLI_Arithmetic.ModAdd(result, result, Constants.b, Constants.p, Constants.NUM_WORDS); // r = x^3 + b
         }
 
-        public static void modSquare_fast(Span<ulong> result, ReadOnlySpan<ulong> left)
-        {
-            Span<ulong> product = stackalloc ulong[2 * VLI_Common.ECC_MAX_WORDS];
-            const int num_words = Constants.NUM_WORDS;
-            VLI_Arithmetic.Square(product, left, num_words);
-            VLI_Arithmetic.MMod(result, product, Constants.p, num_words);
-        }
-
-        public static void modMult_fast(Span<ulong> result, Span<ulong> left, ReadOnlySpan<ulong> right)
-        {
-            Span<ulong> product = stackalloc ulong[2 * VLI_Common.ECC_MAX_WORDS];
-            const int num_words = Constants.NUM_WORDS;
-            VLI_Arithmetic.Mult(product, left, right, num_words);
-            VLI_Arithmetic.MMod(result, product, Constants.p, num_words);
-        }
-
         /// <summary>
         /// Modify (x1, y1) => (x1 * z^2, y1 * z^3)
         /// </summary>
@@ -85,48 +69,6 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
             modMult_fast(X1, X1, t1); // x1 * z^2
             modMult_fast(t1, t1, Z);  // z^3
             modMult_fast(Y1, Y1, t1); // y1 * z^3
-        }
-
-        public static void double_jacobian(Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1)
-        {
-            const int num_words = Constants.NUM_WORDS;
-
-            // t1 = X, t2 = Y, t3 = Z
-            Span<ulong> t4 = stackalloc ulong[num_words];
-            Span<ulong> t5 = stackalloc ulong[num_words];
-
-            if (VLI_Logic.IsZero(Z1, num_words))
-            {
-                return;
-            }
-
-            modSquare_fast(t5, Y1);   // t5 = y1^2
-            modMult_fast(t4, X1, t5); // t4 = x1*y1^2 = A
-            modSquare_fast(X1, X1);   // t1 = x1^2 
-            modSquare_fast(t5, t5);   // t5 = y1^4 
-            modMult_fast(Z1, Y1, Z1); // t3 = y1*z1 = z3 
-
-            VLI_Arithmetic.ModAdd(Y1, X1, X1, Constants.p, num_words); // t2 = 2*x1^2
-            VLI_Arithmetic.ModAdd(Y1, Y1, X1, Constants.p, num_words); // t2 = 3*x1^2
-            if (VLI_Logic.TestBit(Y1, 0))
-            {
-                ulong carry = VLI_Arithmetic.Add(Y1, Y1, Constants.p, num_words);
-                VLI_Arithmetic.RShift1(Y1, num_words);
-                Y1[Constants.NUM_WORDS - 1] |= carry << VLI_Common.WORD_BITS - 1;
-            }
-            else
-            {
-                VLI_Arithmetic.RShift1(Y1, num_words);
-            }
-            // t2 = 3/2*(x1^2) = B
-
-            modSquare_fast(X1, Y1);                     // t1 = B^2
-            VLI_Arithmetic.ModSub(X1, X1, t4, Constants.p, num_words); // t1 = B^2 - A
-            VLI_Arithmetic.ModSub(X1, X1, t4, Constants.p, num_words); // t1 = B^2 - 2A = x3
-
-            VLI_Arithmetic.ModSub(t4, t4, X1, Constants.p, num_words); // t4 = A - x3
-            modMult_fast(Y1, Y1, t4);                   // t2 = B * (A - x3)
-            VLI_Arithmetic.ModSub(Y1, Y1, t5, Constants.p, num_words); // t2 = B * (A - x3) - y1^4 = y3
         }
 
         // P = (x1, y1) => 2P, (x2, y2) => P'
@@ -229,6 +171,120 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
             VLI_Arithmetic.ModSub(Y1, t6, Y1, Constants.p, num_words); // t2 = (y2+y1)*(x3' - B) - E = y3'
 
             VLI_Arithmetic.Set(X1, t7, num_words);
+        }
+
+        /// <summary>
+        /// Double in place
+        /// </summary>
+        /// <param name="X1"></param>
+        /// <param name="Y1"></param>
+        /// <param name="Z1"></param>
+        private static void double_jacobian(Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1)
+        {
+            const int num_words = Constants.NUM_WORDS;
+
+            // t1 = X, t2 = Y, t3 = Z
+            Span<ulong> t4 = stackalloc ulong[num_words];
+            Span<ulong> t5 = stackalloc ulong[num_words];
+
+            if (VLI_Logic.IsZero(Z1, num_words))
+            {
+                return;
+            }
+
+            modSquare_fast(t5, Y1);   // t5 = y1^2
+            modMult_fast(t4, X1, t5); // t4 = x1*y1^2 = A
+            modSquare_fast(X1, X1);   // t1 = x1^2 
+            modSquare_fast(t5, t5);   // t5 = y1^4 
+            modMult_fast(Z1, Y1, Z1); // t3 = y1*z1 = z3 
+
+            VLI_Arithmetic.ModAdd(Y1, X1, X1, Constants.p, num_words); // t2 = 2*x1^2
+            VLI_Arithmetic.ModAdd(Y1, Y1, X1, Constants.p, num_words); // t2 = 3*x1^2
+            if (VLI_Logic.TestBit(Y1, 0))
+            {
+                ulong carry = VLI_Arithmetic.Add(Y1, Y1, Constants.p, num_words);
+                VLI_Arithmetic.RShift1(Y1, num_words);
+                Y1[Constants.NUM_WORDS - 1] |= carry << VLI_Common.WORD_BITS - 1;
+            }
+            else
+            {
+                VLI_Arithmetic.RShift1(Y1, num_words);
+            }
+            // t2 = 3/2*(x1^2) = B
+
+            modSquare_fast(X1, Y1);                     // t1 = B^2
+            VLI_Arithmetic.ModSub(X1, X1, t4, Constants.p, num_words); // t1 = B^2 - A
+            VLI_Arithmetic.ModSub(X1, X1, t4, Constants.p, num_words); // t1 = B^2 - 2A = x3
+
+            VLI_Arithmetic.ModSub(t4, t4, X1, Constants.p, num_words); // t4 = A - x3
+            modMult_fast(Y1, Y1, t4);                   // t2 = B * (A - x3)
+            VLI_Arithmetic.ModSub(Y1, Y1, t5, Constants.p, num_words); // t2 = B * (A - x3) - y1^4 = y3
+        }
+
+        public static void modSquare_fast(Span<ulong> result, ReadOnlySpan<ulong> left)
+        {
+            Span<ulong> product = stackalloc ulong[2 * VLI_Common.ECC_MAX_WORDS];
+            const int num_words = Constants.NUM_WORDS;
+            VLI_Arithmetic.Square(product, left, num_words);
+            //VLI_Arithmetic.MMod(result, product, Constants.p, num_words);
+            mmod_fast(result, product);
+        }
+
+        public static void modMult_fast(Span<ulong> result, Span<ulong> left, ReadOnlySpan<ulong> right)
+        {
+            Span<ulong> product = stackalloc ulong[2 * VLI_Common.ECC_MAX_WORDS];
+            const int num_words = Constants.NUM_WORDS;
+            VLI_Arithmetic.Mult(product, left, right, num_words);
+            // VLI_Arithmetic.MMod(result, product, Constants.p, num_words);
+            mmod_fast(result, product);
+        }
+
+        private static void mmod_fast(Span<ulong> result, Span<ulong> product)
+        {
+            Span<ulong> tmp = stackalloc ulong[2 * VLI_Common.ECC_MAX_WORDS];
+            ulong carry;
+
+            const int num_words = Constants.NUM_WORDS;
+
+            VLI_Arithmetic.Clear(tmp, num_words);
+            VLI_Arithmetic.Clear(tmp.Slice(num_words), num_words);
+
+            omega_mult(tmp, product.Slice(num_words)); // (Rq, q) = q * c
+
+            carry = VLI_Arithmetic.Add(result, product, tmp, num_words); // (C, r) = r + q
+            VLI_Arithmetic.Clear(product, num_words);
+            omega_mult(product, tmp.Slice(num_words)); // Rq*c
+            carry += VLI_Arithmetic.Add(result, result, product, num_words); // (C1, r) = r + Rq*c
+
+            while (carry > 0)
+            {
+                --carry;
+                VLI_Arithmetic.Sub(result, result, Constants.p, num_words);
+            }
+            if (VLI_Logic.CmpUnsafe(result, Constants.p, num_words) > 0)
+            {
+                VLI_Arithmetic.Sub(result, result, Constants.p, num_words);
+            }
+        }
+
+        private static void omega_mult(Span<ulong> result, ReadOnlySpan<ulong> right) {
+            ulong r0 = 0;
+            ulong r1 = 0;
+            ulong r2 = 0;
+            int k;
+
+            const int num_words = Constants.NUM_WORDS;
+
+            /* Multiply by (2^32 + 2^9 + 2^8 + 2^7 + 2^6 + 2^4 + 1). */
+            for (k = 0; k < num_words; ++k)
+            {
+                VLI_Arithmetic.muladd(0x1000003D1, right[k], ref r0, ref r1, ref r2);
+                result[k] = r0;
+                r0 = r1;
+                r1 = r2;
+                r2 = 0;
+            }
+            result[num_words] = r0;
         }
     }
 }
