@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using Wheel.Crypto.Elliptic.Internal.SECP256K1;
 using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
 using Wheel.Crypto.Hashing.HMAC;
@@ -453,6 +454,67 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
         /// <returns></returns>
         public static bool VerifySignature(ReadOnlySpan<byte> signature, ReadOnlySpan<byte> public_key, ReadOnlySpan<byte> message_hash)
         {
+            Span<ulong> u1 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> u2 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> z = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> sum = stackalloc ulong[VLI_Common.ECC_MAX_WORDS * 2];
+
+            Span<ulong> rx = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> ry = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> tx = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> ty = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> tz = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+
+            Span<ulong> r = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> s = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+
+            Span<ulong> _public = stackalloc ulong[VLI_Common.ECC_MAX_WORDS * 2];
+
+            const int num_bytes = Constants.NUM_BYTES;
+            const int num_words = Constants.NUM_WORDS;
+            const int num_n_words = Constants.NUM_N_WORDS;
+
+            int num_bits;
+            int i;
+
+            VLI_Conversion.BytesToNative(_public, public_key, num_bytes);
+            VLI_Conversion.BytesToNative(_public.Slice(num_words), public_key.Slice(num_bytes), num_bytes);
+            VLI_Conversion.BytesToNative(r, signature, num_bytes);
+            VLI_Conversion.BytesToNative(s, signature.Slice(num_bytes), num_bytes);
+
+            // r, s must not be 0
+            if (VLI_Logic.IsZero(r, num_words) || VLI_Logic.IsZero(s, num_words))
+            {
+                return false;
+            }
+
+            // r, s must be < n.
+            if (VLI_Logic.CmpUnsafe(Constants.n, r, num_n_words) != 1 || VLI_Logic.CmpUnsafe(Constants.n, s, num_n_words) != 1)
+            {
+                return false;
+            }
+
+            // Calculate u1 and u2.
+            VLI_Arithmetic.ModInv(z, s, Constants.n, num_n_words); // z = 1/s
+            u1[num_n_words - 1] = 0;
+            BitsToInt(u1, message_hash, message_hash.Length);
+            VLI_Arithmetic.ModMult(u1, u1, z, Constants.n, num_n_words); // u1 = e/s
+            VLI_Arithmetic.ModMult(u2, r, z, Constants.n, num_n_words); // u2 = r/s
+
+            // Calculate sum = G + Q.
+            VLI_Arithmetic.Set(sum, _public, num_words);
+            VLI_Arithmetic.Set(sum.Slice(num_words), _public.Slice(num_words), num_words);
+            VLI_Arithmetic.Set(tx, Constants.G, num_words);
+            VLI_Arithmetic.Set(ty, Constants.G.AsSpan().Slice(num_words), num_words);
+            VLI_Arithmetic.ModSub(z, sum, tx, Constants.p, num_words); // z = x2 - x1
+            ECCUtil.XYcZ_Add_SECP256K1(tx, ty, sum, sum.Slice(num_words));
+            VLI_Arithmetic.ModInv(z, z, Constants.p, num_words); // z = 1/z
+            ECCUtil.ApplyZ_SECP256K1(sum, sum.Slice(num_words), z);
+
+            // To be continued...
+
+
+
             throw new Exception("Not yet implemented");
         }
 
