@@ -318,7 +318,7 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
         /// <returns></returns>
         public static bool SignDeterministic(Span<byte> signature, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> message_hash, ReadOnlySpan<byte> entropy)
         {
-            // Allocate buffer for HMAC results
+            // Secret K will be written here
             Span<ulong> K = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
 
             // Will retry until succeed
@@ -353,6 +353,7 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             Span<byte> separator_00 = stackalloc byte[1] { 0x00 };
             Span<byte> separator_01 = stackalloc byte[1] { 0x01 };
             Span<byte> sequence_data = stackalloc byte[sizeof(long)];
+            Span<byte> secret_data = MemoryMarshal.Cast<ulong, byte>(secret);
 
             // Convert sequence to bytes
             MemoryMarshal.Cast<byte, long>(sequence_data)[0] = sequence;
@@ -402,6 +403,7 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             hmac.Digest(V);
 
             // H
+            int secret_byte_index = 0;
             while (true)
             {
                 // H2
@@ -409,10 +411,21 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
                 hmac.Update(V);
                 hmac.Digest(V);
 
-                if (IsValidPrivateKey(V))
+                // T = T || V
+                V.CopyTo(secret_data.Slice(secret_byte_index));
+                secret_byte_index += V.Length;
+
+                if (secret_byte_index >= Constants.NUM_N_BYTES)
                 {
-                    MemoryMarshal.Cast<byte, ulong>(V).CopyTo(secret);
-                    return;
+                    if (IsValidPrivateKey(secret_data))
+                    {
+                        return;
+                    }
+
+                    // Doesn't meet the curve criteria,
+                    // start filling from zero
+                    secret_data.Clear();
+                    secret_byte_index = 0;
                 }
 
                 // H3
