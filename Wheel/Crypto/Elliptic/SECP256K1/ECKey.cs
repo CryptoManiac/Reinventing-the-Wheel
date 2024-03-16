@@ -314,7 +314,6 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
         /// <param name="private_key">Your private key</param>
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <param name="entropy">Additional entropy for K generation</param>
-        /// <param name="hasher">A hasher to use</param>
         /// <returns></returns>
         public static bool SignDeterministic(Span<byte> signature, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> message_hash, ReadOnlySpan<byte> entropy)
         {
