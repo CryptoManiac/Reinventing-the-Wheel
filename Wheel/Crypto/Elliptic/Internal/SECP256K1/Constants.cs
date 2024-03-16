@@ -3,6 +3,29 @@
 namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
 {
     /// <summary>
+    /// Properties and methods every EC implementation must provide
+    /// </summary>
+    internal interface ICurve
+    {
+        public int NUM_WORDS { get; }
+        public int NUM_BYTES { get; }
+        public int NUM_BITS { get; }
+        public int NUM_N_WORDS { get; }
+        public int NUM_N_BYTES { get; }
+        public int NUM_N_BITS { get; }
+
+        public ReadOnlySpan<ulong> p { get; }
+        public ReadOnlySpan<ulong> n { get; }
+        public ReadOnlySpan<ulong> half_n { get; }
+        public ReadOnlySpan<ulong> G { get; }
+        public ReadOnlySpan<ulong> b { get; }
+
+        public void ModSQRT(Span<ulong> a);
+        public void XSide(Span<ulong> result, ReadOnlySpan<ulong> x);
+        public void MMod(Span<ulong> result, Span<ulong> product);
+    }
+
+    /// <summary>
     /// SECP256K1 curve constants
     /// </summary>
     internal static class Constants

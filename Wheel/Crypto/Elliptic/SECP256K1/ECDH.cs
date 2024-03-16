@@ -38,7 +38,7 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
 
             // Regularize the bitcount for the private key so that attackers
             // cannot use a side channel attack to learn the number of leading zeros.
-            carry = ECCUtil.regularize_k(_private, _private, tmp);
+            carry = ECCUtil.RegularizeK(_private, _private, tmp);
 
             ECCPoint.PointMul(_public, _public, p2[Convert.ToUInt64(!Convert.ToBoolean(carry))], Constants.NUM_N_BITS + 1);
 

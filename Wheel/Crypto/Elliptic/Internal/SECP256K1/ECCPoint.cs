@@ -40,8 +40,8 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
                 return false;
             }
 
-            ECCUtil.modSquare_fast(tmp1, point.Slice(num_words));
-            ECCUtil.x_side(tmp2, point); // tmp2 = x^3 + ax + b 
+            ECCUtil.ModSquare_SECP256K1(tmp1, point.Slice(num_words));
+            ECCUtil.XSide_SECP256K1(tmp2, point); // tmp2 = x^3 + ax + b 
 
             // Make sure that y^2 == x^3 + ax + b
             return VLI_Logic.Equal(tmp1, tmp2, num_words);
@@ -66,16 +66,16 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
             VLI_Arithmetic.Set(Q, input_Q, num_words);
             VLI_Arithmetic.Set(Q.Slice(num_words), input_Q.Slice(num_words), num_words);
 
-            ECCUtil.XYcZ_add(P, P.Slice(num_words), Q, Q.Slice(num_words));
+            ECCUtil.XYcZ_Add_SECP256K1(P, P.Slice(num_words), Q, Q.Slice(num_words));
 
             // Find final 1/Z value.
-            ECCUtil.modMult_fast(z, input_P, P.Slice(num_words));
+            ECCUtil.ModMult_SECP256K1(z, input_P, P.Slice(num_words));
             VLI_Arithmetic.ModInv(z, z, Constants.p, num_words);
-            ECCUtil.modMult_fast(z, z, P);
-            ECCUtil.modMult_fast(z, z, input_P.Slice(num_words));
+            ECCUtil.ModMult_SECP256K1(z, z, P);
+            ECCUtil.ModMult_SECP256K1(z, z, input_P.Slice(num_words));
             // End 1/Z calculation
 
-            ECCUtil.apply_z(Q, Q.Slice(num_words), z);
+            ECCUtil.ApplyZ_SECP256K1(Q, Q.Slice(num_words), z);
 
             VLI_Arithmetic.Set(R, Q, num_words);
             VLI_Arithmetic.Set(R.Slice(num_words), Q.Slice(num_words), num_words);
@@ -92,7 +92,7 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
             Span<ulong> tmp1 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
             Span<ulong> tmp2 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
             VLI_Common.Picker<ulong> p2 = new(tmp1, tmp2);
-            ulong carry = ECCUtil.regularize_k(scalar, tmp1, tmp2);
+            ulong carry = ECCUtil.RegularizeK(scalar, tmp1, tmp2);
             PointMul(result, point, p2[Convert.ToUInt64(!Convert.ToBoolean(carry))], Constants.NUM_N_BITS + 1);
         }
 
@@ -118,30 +118,30 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
             VLI_Arithmetic.Set(Rx[1], point, num_words);
             VLI_Arithmetic.Set(Ry[1], point.Slice(num_words), num_words);
 
-            ECCUtil.XYcZ_initial_double(Rx[1], Ry[1], Rx[0], Ry[0], initial_Z);
+            ECCUtil.XYcZ_Initial_Double_SECP256K1(Rx[1], Ry[1], Rx[0], Ry[0], initial_Z);
 
             for (i = num_bits - 2; i > 0; --i)
             {
                 nb = Convert.ToUInt64(!VLI_Logic.TestBit(scalar, i));
-                ECCUtil.XYcZ_addC(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
-                ECCUtil.XYcZ_add(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);
+                ECCUtil.XYcZ_addC_SECP256K1(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
+                ECCUtil.XYcZ_Add_SECP256K1(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);
             }
 
             nb = Convert.ToUInt64(!VLI_Logic.TestBit(scalar, 0));
-            ECCUtil.XYcZ_addC(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
+            ECCUtil.XYcZ_addC_SECP256K1(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
 
             // Find final 1/Z value.
             VLI_Arithmetic.ModSub(z, Rx[1], Rx[0], Constants.p, num_words); // X1 - X0
-            ECCUtil.modMult_fast(z, z, Ry[1 - nb]);               // Yb * (X1 - X0)
-            ECCUtil.modMult_fast(z, z, point);                    // xP * Yb * (X1 - X0)
+            ECCUtil.ModMult_SECP256K1(z, z, Ry[1 - nb]);               // Yb * (X1 - X0)
+            ECCUtil.ModMult_SECP256K1(z, z, point);                    // xP * Yb * (X1 - X0)
             VLI_Arithmetic.ModInv(z, z, Constants.p, num_words);            // 1 / (xP * Yb * (X1 - X0))
             // yP / (xP * Yb * (X1 - X0))
-            ECCUtil.modMult_fast(z, z, point.Slice(num_words));
-            ECCUtil.modMult_fast(z, z, Rx[1 - nb]); // Xb * yP / (xP * Yb * (X1 - X0))
+            ECCUtil.ModMult_SECP256K1(z, z, point.Slice(num_words));
+            ECCUtil.ModMult_SECP256K1(z, z, Rx[1 - nb]); // Xb * yP / (xP * Yb * (X1 - X0))
             /* End 1/Z calculation */
 
-            ECCUtil.XYcZ_add(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);
-            ECCUtil.apply_z(Rx[0], Ry[0], z);
+            ECCUtil.XYcZ_Add_SECP256K1(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);
+            ECCUtil.ApplyZ_SECP256K1(Rx[0], Ry[0], z);
 
             VLI_Arithmetic.Set(result, Rx[0], num_words);
             VLI_Arithmetic.Set(result.Slice(num_words), Ry[0], num_words);
@@ -170,30 +170,30 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
             VLI_Arithmetic.Set(Rx[1], point, num_words);
             VLI_Arithmetic.Set(Ry[1], point.Slice(num_words), num_words);
 
-            ECCUtil.XYcZ_double(Rx[1], Ry[1], Rx[0], Ry[0]);
+            ECCUtil.XYcZ_Double_SECP256K1(Rx[1], Ry[1], Rx[0], Ry[0]);
 
             for (i = num_bits - 2; i > 0; --i)
             {
                 nb = Convert.ToUInt64(!VLI_Logic.TestBit(scalar, i));
-                ECCUtil.XYcZ_addC(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
-                ECCUtil.XYcZ_add(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);
+                ECCUtil.XYcZ_addC_SECP256K1(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
+                ECCUtil.XYcZ_Add_SECP256K1(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);
             }
 
             nb = Convert.ToUInt64(!VLI_Logic.TestBit(scalar, 0));
-            ECCUtil.XYcZ_addC(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
+            ECCUtil.XYcZ_addC_SECP256K1(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
 
             // Find final 1/Z value.
             VLI_Arithmetic.ModSub(z, Rx[1], Rx[0], Constants.p, num_words); // X1 - X0
-            ECCUtil.modMult_fast(z, z, Ry[1 - nb]);               // Yb * (X1 - X0)
-            ECCUtil.modMult_fast(z, z, point);                    // xP * Yb * (X1 - X0)
+            ECCUtil.ModMult_SECP256K1(z, z, Ry[1 - nb]);               // Yb * (X1 - X0)
+            ECCUtil.ModMult_SECP256K1(z, z, point);                    // xP * Yb * (X1 - X0)
             VLI_Arithmetic.ModInv(z, z, Constants.p, num_words);            // 1 / (xP * Yb * (X1 - X0))
             // yP / (xP * Yb * (X1 - X0))
-            ECCUtil.modMult_fast(z, z, point.Slice(num_words));
-            ECCUtil.modMult_fast(z, z, Rx[1 - nb]); // Xb * yP / (xP * Yb * (X1 - X0))
+            ECCUtil.ModMult_SECP256K1(z, z, point.Slice(num_words));
+            ECCUtil.ModMult_SECP256K1(z, z, Rx[1 - nb]); // Xb * yP / (xP * Yb * (X1 - X0))
             /* End 1/Z calculation */
 
-            ECCUtil.XYcZ_add(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);
-            ECCUtil.apply_z(Rx[0], Ry[0], z);
+            ECCUtil.XYcZ_Add_SECP256K1(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);
+            ECCUtil.ApplyZ_SECP256K1(Rx[0], Ry[0], z);
 
             VLI_Arithmetic.Set(result, Rx[0], num_words);
             VLI_Arithmetic.Set(result.Slice(num_words), Ry[0], num_words);
@@ -215,7 +215,7 @@ namespace Wheel.Crypto.Elliptic.Internal.SECP256K1
 
             // Regularize the bitcount for the private key so that attackers cannot use a side channel
             //  attack to learn the number of leading zeros.
-            carry = ECCUtil.regularize_k(private_key, tmp1, tmp2);
+            carry = ECCUtil.RegularizeK(private_key, tmp1, tmp2);
 
             PointMul(result, Constants.G, p2[Convert.ToUInt64(!Convert.ToBoolean(carry))], Constants.NUM_N_BITS + 1);
 

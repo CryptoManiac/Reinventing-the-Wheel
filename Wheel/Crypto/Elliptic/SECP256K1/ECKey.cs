@@ -111,8 +111,8 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             Span<ulong> y = point.Slice(Constants.NUM_WORDS);
 
             VLI_Conversion.BytesToNative(point, compressed.Slice(1), Constants.NUM_BYTES);
-            ECCUtil.x_side(y, point);
-            ECCUtil.mod_sqrt_default(y);
+            ECCUtil.XSide_SECP256K1(y, point);
+            ECCUtil.ModSQRT_SECP256K1(y);
 
             if ((y[0] & 0x01) != ((ulong)compressed[0] & 0x01))
             {
@@ -259,7 +259,7 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
                 return false;
             }
 
-            carry = ECCUtil.regularize_k(k, tmp, s);
+            carry = ECCUtil.RegularizeK(k, tmp, s);
             ECCPoint.PointMul(p, Constants.G, k2[Convert.ToUInt64(!Convert.ToBoolean(carry))], num_n_bits + 1);
             if (VLI_Logic.IsZero(p, num_words))
             {
