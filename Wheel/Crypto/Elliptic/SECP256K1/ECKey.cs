@@ -436,7 +436,7 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
                 hmac.Update(sequence_data);
                 hmac.Digest(K);
 
-                hmac.Init(K);
+                hmac.Init(K); // V = HMAC_K(V)
                 hmac.Update(V);
                 hmac.Digest(V);
             }
