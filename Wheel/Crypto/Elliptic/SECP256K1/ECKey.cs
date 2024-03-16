@@ -409,9 +409,8 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
                 hmac.Digest(V);
 
                 // T = T || V
-                var src = V.Slice(0, Math.Min(V.Length, secret_data.Length - secret_byte_index));
-                var target = secret_data.Slice(secret_byte_index);
-
+                Span<byte> src = V.Slice(0, Math.Min(V.Length, secret_data.Length - secret_byte_index));
+                Span<byte> target = secret_data.Slice(secret_byte_index);
                 src.CopyTo(target);
                 secret_byte_index += src.Length;
 
