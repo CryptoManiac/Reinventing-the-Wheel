@@ -34,7 +34,7 @@ namespace Wheel.Crypto.Elliptic
         /// Construct the empty signature
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        public unsafe DERSignature(ECCurve curve)
+        public DERSignature(ECCurve curve)
         {
             this.curve = curve;
 
@@ -44,11 +44,20 @@ namespace Wheel.Crypto.Elliptic
                 throw new SystemException("The configured curve point coordinate size is unexpectedly big");
             }
 
-            fixed(ulong* ptr = &signature_data[0])
+            Span<ulong> buffer;
+
+            unsafe
             {
-                r = new Span<ulong>(ptr, curve.NUM_WORDS);
-                s = new Span<ulong>(ptr + curve.NUM_WORDS, curve.NUM_WORDS);
+                fixed (ulong* ptr = &signature_data[0])
+                {
+                    buffer = new(ptr, 2 * VLI_Common.ECC_MAX_WORDS);
+                }
             }
+
+            // Initialize and make slices
+            buffer.Clear();
+            r = buffer.Slice(0, curve.NUM_WORDS);
+            s = buffer.Slice(curve.NUM_WORDS, curve.NUM_WORDS);
         }
 
         /// <summary>
@@ -262,7 +271,7 @@ namespace Wheel.Crypto.Elliptic
         /// Construct the empty signature
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        public unsafe CompactSignature(ECCurve curve)
+        public CompactSignature(ECCurve curve)
         {
             this.curve = curve;
             // Sanity check constraint
@@ -271,11 +280,20 @@ namespace Wheel.Crypto.Elliptic
                 throw new SystemException("The configured curve point coordinate size is unexpectedly big");
             }
 
-            fixed (ulong* ptr = &signature_data[0])
+            Span<ulong> buffer;
+
+            unsafe
             {
-                r = new Span<ulong>(ptr, curve.NUM_WORDS);
-                s = new Span<ulong>(ptr + curve.NUM_WORDS, curve.NUM_WORDS);
+                fixed (ulong* ptr = &signature_data[0])
+                {
+                    buffer = new(ptr, 2 * VLI_Common.ECC_MAX_WORDS);
+                }
             }
+
+            // Initialize and make slices
+            buffer.Clear();
+            r = buffer.Slice(0, curve.NUM_WORDS);
+            s = buffer.Slice(curve.NUM_WORDS, curve.NUM_WORDS);
         }
 
         /// <summary>
