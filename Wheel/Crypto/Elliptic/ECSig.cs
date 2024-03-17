@@ -10,7 +10,7 @@ namespace Wheel.Crypto.Elliptic
     /// Notice on the non-deterministic behaviour:
     ///
     ///  Unless you're providing the buffers to constructor explicitly,
-    ///   the construction of this object WILL result heap allocations
+    ///   the construction of this object WILL result with heap allocations
     /// </summary>
     public ref struct DERSignature
     {
@@ -256,7 +256,7 @@ namespace Wheel.Crypto.Elliptic
     /// Notice on the non-deterministic behaviour:
     ///
     ///  Unless you're providing the buffers to constructor explicitly,
-    ///   the construction of this object WILL result heap allocations
+    ///   the construction of this object WILL result with heap allocations
     /// </summary>
     public ref struct CompactSignature
     {
