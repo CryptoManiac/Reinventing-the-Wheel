@@ -72,10 +72,24 @@ Console.WriteLine("Generated SECP256K1 signatures:");
 SignData<HMAC_SHA224>(signature, private_key_hex, message, curve);
 CompareSig("HMAC_SHA224", signature);
 
-Console.WriteLine(VerifySignature(signature, message, public_key_uncompressed, curve));
+if (!VerifySignature(signature, message, public_key_uncompressed, curve))
+{
+    throw new SystemException("Signature verification failure");
+}
 
 SignData<HMAC_SHA256>(signature, private_key_hex, message, curve);
 CompareSig("HMAC_SHA256", signature);
+
+if (!VerifySignature(signature, message, public_key_uncompressed, curve))
+{
+    throw new SystemException("Signature verification failure");
+}
+
+
 SignData<HMAC_SHA512>(signature, private_key_hex, message, curve);
 CompareSig("HMAC_SHA512", signature);
 
+if (!VerifySignature(signature, message, public_key_uncompressed, curve))
+{
+    throw new SystemException("Signature verification failure");
+}
