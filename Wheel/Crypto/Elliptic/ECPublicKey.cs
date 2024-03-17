@@ -17,27 +17,32 @@ namespace Wheel.Crypto.Elliptic
         private ECCurve curve { get; }
 
         /// <summary>
+        /// Access to native point data
+        /// </summary>
+        private Span<ulong> native_point { get; }
+
+        /// <summary>
         /// Construct the empty key
         /// </summary>
         /// <param name="curve">ECC implementation</param>
         public ECPublicKey(ECCurve curve)
 		{
             this.curve = curve;
-		}
+            unsafe
+            {
+                fixed (ulong* ptr = &public_key_data[0])
+                {
+                    native_point = new(ptr, curve.NUM_BYTES * 2);
+                }
+            }
+        }
 
         /// <summary>
         /// Does this instance contain a valid key or not
         /// </summary>
-        public unsafe readonly bool IsValid
+        public readonly bool IsValid
         {
-            get
-            {
-                fixed (ulong* ptr = &public_key_data[0])
-                {
-                    Span<ulong> native_point = new(ptr, curve.NUM_WORDS * 2);
-                    return ECCPoint.IsValid(curve, native_point);
-                }
-            }
+            get => ECCPoint.IsValid(curve, native_point);
         }
 
         /// <summary>
@@ -45,13 +50,8 @@ namespace Wheel.Crypto.Elliptic
         /// </summary>
         public unsafe void Reset()
         {
-
-            fixed (ulong* ptr = &public_key_data[0])
-            {
-                Span<ulong> native_point = new(ptr, curve.NUM_WORDS * 2);
-                // Erase current data
-                VLI_Arithmetic.Clear(native_point, curve.NUM_WORDS);
-            }
+            // Erase current data
+            VLI_Arithmetic.Clear(native_point, curve.NUM_WORDS);
         }
 
         /// <summary>
@@ -66,14 +66,7 @@ namespace Wheel.Crypto.Elliptic
                 return false;
             }
 
-            unsafe
-            {
-                fixed (ulong* ptr = &public_key_data[0])
-                {
-                    Span<ulong> native_point = new(ptr, curve.NUM_WORDS * 2);
-                    VLI_Arithmetic.Set(native_out, native_point, curve.NUM_WORDS * 2);
-                }
-            }
+            VLI_Arithmetic.Set(native_out, native_point, curve.NUM_WORDS * 2);
 
             return true;
         }
@@ -120,15 +113,8 @@ namespace Wheel.Crypto.Elliptic
                 return false;
             }
 
-            unsafe
-            {
-                fixed (ulong* ptr = &public_key_data[0])
-                {
-                    Span<ulong> native_point = new(ptr, curve.NUM_WORDS * 2);
-                    // Set new public key
-                    VLI_Arithmetic.Set(native_point, _public, curve.NUM_WORDS * 2);
-                }
-            }
+            // Set new public key
+            VLI_Arithmetic.Set(native_point, _public, curve.NUM_WORDS * 2);
 
             return true;
         }
@@ -160,15 +146,8 @@ namespace Wheel.Crypto.Elliptic
                 return false;
             }
 
-            unsafe
-            {
-                fixed (ulong* ptr = &public_key_data[0])
-                {
-                    Span<ulong> native_point = new(ptr, curve.NUM_WORDS * 2);
-                    // Set new public key
-                    VLI_Arithmetic.Set(native_point, point, curve.NUM_WORDS * 2);
-                }
-            }
+            // Set new public key
+            VLI_Arithmetic.Set(native_point, point, curve.NUM_WORDS * 2);
 
             return true;
         }
@@ -185,15 +164,8 @@ namespace Wheel.Crypto.Elliptic
                 return false;
             }
 
-            unsafe
-            {
-                fixed (ulong* ptr = &public_key_data[0])
-                {
-                    Span<ulong> native_point = new(ptr, curve.NUM_WORDS * 2);
-                    VLI_Conversion.NativeToBytes(serialized, curve.NUM_BYTES, native_point);
-                    VLI_Conversion.NativeToBytes(serialized.Slice(curve.NUM_BYTES), curve.NUM_BYTES, native_point.Slice(curve.NUM_WORDS));
-                }
-            }
+            VLI_Conversion.NativeToBytes(serialized, curve.NUM_BYTES, native_point);
+            VLI_Conversion.NativeToBytes(serialized.Slice(curve.NUM_BYTES), curve.NUM_BYTES, native_point.Slice(curve.NUM_WORDS));
 
             return true;
         }
@@ -253,15 +225,8 @@ namespace Wheel.Crypto.Elliptic
                 return false;
             }
 
-            unsafe
-            {
-                fixed (ulong* ptr = &public_key_data[0])
-                {
-                    Span<ulong> _public = new(ptr, curve.NUM_WORDS * 2);
-                    // R = A + scalar*G
-                    ECCPoint.PointAdd(curve, _result, _public, _s_mul_G);
-                }
-            }
+            // R = A + scalar*G
+            ECCPoint.PointAdd(curve, _result, native_point, _s_mul_G);
 
             // Ensure that new public key is valid as well
             if (!ECCPoint.IsValid(curve, _result))
@@ -269,15 +234,8 @@ namespace Wheel.Crypto.Elliptic
                 return false;
             }
 
-            unsafe
-            {
-                fixed (ulong* ptr = &result.public_key_data[0])
-                {
-                    Span<ulong> target = new(ptr, curve.NUM_WORDS * 2);
-                    // Copy calculated key
-                    VLI_Arithmetic.Set(target, _result, curve.NUM_BYTES * 2);
-                }
-            }
+            // Copy calculated key
+            VLI_Arithmetic.Set(result.native_point, _result, curve.NUM_BYTES * 2);
 
             return true;
         }
@@ -306,17 +264,6 @@ namespace Wheel.Crypto.Elliptic
             Span<ulong> ty = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
             Span<ulong> tz = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
 
-            // Make a local copy for simplicity
-            Span<ulong> _public = stackalloc ulong[VLI_Common.ECC_MAX_WORDS * 2];
-            unsafe
-            {
-                fixed (ulong* ptr = &public_key_data[0])
-                {
-                    Span<ulong> native_point = new(ptr, curve.NUM_WORDS * 2);
-                    VLI_Arithmetic.Set(_public, native_point, curve.NUM_N_WORDS * 2);
-                }
-            }
-
             int num_bytes = curve.NUM_BYTES;
             int num_words = curve.NUM_WORDS;
             int num_n_words = curve.NUM_N_WORDS;
@@ -341,8 +288,8 @@ namespace Wheel.Crypto.Elliptic
             VLI_Arithmetic.ModMult(u2, r, z, curve.n, num_n_words); // u2 = r/s
 
             // Calculate sum = G + Q.
-            VLI_Arithmetic.Set(sum, _public, num_words);
-            VLI_Arithmetic.Set(sum.Slice(num_words), _public.Slice(num_words), num_words);
+            VLI_Arithmetic.Set(sum, native_point, num_words);
+            VLI_Arithmetic.Set(sum.Slice(num_words), native_point.Slice(num_words), num_words);
             VLI_Arithmetic.Set(tx, curve.G, num_words);
             VLI_Arithmetic.Set(ty, curve.G.Slice(num_words), num_words);
             VLI_Arithmetic.ModSub(z, sum, tx, curve.p, num_words); // z = x2 - x1
@@ -351,7 +298,7 @@ namespace Wheel.Crypto.Elliptic
             ECCUtil.ApplyZ(curve, sum, sum.Slice(num_words), z);
 
             /* Use Shamir's trick to calculate u1*G + u2*Q */
-            VLI_Common.QuadPicker points = new(null, curve.G, _public, sum);
+            VLI_Common.QuadPicker points = new(null, curve.G, native_point, sum);
             int num_bits = int.Max(VLI_Logic.NumBits(u1, num_n_words), VLI_Logic.NumBits(u2, num_n_words));
 
             ReadOnlySpan<ulong> point = points[Convert.ToUInt64(VLI_Logic.TestBit(u1, num_bits - 1)) | (Convert.ToUInt64(VLI_Logic.TestBit(u2, num_bits - 1)) << 1)];

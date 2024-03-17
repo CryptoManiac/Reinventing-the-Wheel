@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 using Wheel.Crypto.Elliptic.Internal;
 using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
 using Wheel.Crypto.Hashing.HMAC;
@@ -18,12 +19,25 @@ namespace Wheel.Crypto.Elliptic
         private ECCurve curve { get; }
 
         /// <summary>
+        /// Access to the private scalar data
+        /// </summary>
+        private Span<ulong> secret_x { get; }
+
+        /// <summary>
         /// Construct the empty key
         /// </summary>
         /// <param name="curve">ECC implementation</param>
         public ECPrivateKey(ECCurve curve)
 		{
             this.curve = curve;
+
+            unsafe
+            {
+                fixed (ulong* ptr = &private_key_data[0])
+                {
+                    secret_x = new(ptr, curve.NUM_BYTES);
+                }
+            }
         }
 
         /// <summary>
@@ -31,14 +45,7 @@ namespace Wheel.Crypto.Elliptic
         /// </summary>
         public unsafe readonly bool IsValid
         {
-            get
-            {
-                fixed(ulong* ptr = &private_key_data[0])
-                {
-                    Span<ulong> secret_x = new(ptr, curve.NUM_WORDS);
-                    return !VLI_Logic.IsZero(secret_x, curve.NUM_N_WORDS) && VLI_Logic.Cmp(curve.n, secret_x, curve.NUM_N_WORDS) == 1;
-                }
-            }
+            get => !VLI_Logic.IsZero(secret_x, curve.NUM_N_WORDS) && VLI_Logic.Cmp(curve.n, secret_x, curve.NUM_N_WORDS) == 1;
         }
 
         /// <summary>
@@ -46,15 +53,7 @@ namespace Wheel.Crypto.Elliptic
         /// </summary>
         public void Reset()
         {
-            unsafe
-            {
-                fixed (ulong* ptr = &private_key_data[0])
-                {
-                    Span<ulong> native_point = new(ptr, curve.NUM_WORDS);
-                    // Erase current data
-                    VLI_Arithmetic.Clear(native_point, curve.NUM_WORDS);
-                }
-            }
+            VLI_Arithmetic.Clear(secret_x, curve.NUM_WORDS);
         }
 
         /// <summary>
@@ -69,15 +68,7 @@ namespace Wheel.Crypto.Elliptic
                 return false;
             }
 
-            unsafe
-            {
-                fixed (ulong* ptr = &private_key_data[0])
-                {
-                    Span<ulong> native_point = new(ptr, curve.NUM_WORDS * 2);
-                    VLI_Arithmetic.Set(native_out, native_point, curve.NUM_WORDS * 2);
-                }
-            }
-
+            secret_x.CopyTo(native_out);
             return true;
         }
 
@@ -114,14 +105,7 @@ namespace Wheel.Crypto.Elliptic
                 return false;
             }
 
-            unsafe
-            {
-                fixed (ulong* ptr = &private_key_data[0])
-                {
-                    Span<ulong> secret_x = new(ptr, curve.NUM_WORDS);
-                    VLI_Conversion.NativeToBytes(secret_scalar, curve.NUM_N_BYTES, secret_x);
-                }
-            }
+            VLI_Conversion.NativeToBytes(secret_scalar, curve.NUM_N_BYTES, secret_x);
 
             return true;
         }
@@ -145,14 +129,7 @@ namespace Wheel.Crypto.Elliptic
                 return false;
             }
 
-            unsafe
-            {
-                fixed (ulong* ptr = &private_key_data[0])
-                {
-                    Span<ulong> secret_x = new(ptr, curve.NUM_WORDS);
-                    VLI_Arithmetic.Set(secret_x, native_key, curve.NUM_WORDS);
-                }
-            }
+            VLI_Arithmetic.Set(secret_x, native_key, curve.NUM_WORDS);
             return true;
         }
 
@@ -171,18 +148,14 @@ namespace Wheel.Crypto.Elliptic
 
             Span<ulong> _public = stackalloc ulong[VLI_Common.ECC_MAX_WORDS * 2];
 
+            // Compute public key.
+            if (!ECCPoint.ComputePublicPoint(curve, _public, secret_x))
+            {
+                return false;
+            }
+
             unsafe
             {
-                fixed (ulong* ptr = &private_key_data[0])
-                {
-                    Span<ulong> native = new(ptr, curve.NUM_WORDS);
-                    // Compute public key.
-                    if (!ECCPoint.ComputePublicPoint(curve, _public, native))
-                    {
-                        return false;
-                    }
-                }
-
                 fixed(ulong* ptr = &public_key.public_key_data[0])
                 {
                     Span<ulong> native_target_point = new(ptr, curve.NUM_WORDS * 2);
@@ -222,16 +195,10 @@ namespace Wheel.Crypto.Elliptic
                 return false;
             }
 
-            unsafe
-            {
-                fixed (ulong* ptr = &private_key_data[0])
-                {
-                    Span<ulong> secret_x = new(ptr, curve.NUM_WORDS);
-                    // Apply scalar addition
-                    //   r = (a + scalar) % n
-                    VLI_Arithmetic.ModAdd(_result, secret_x, _scalar, curve.n, curve.NUM_N_WORDS);
-                }
-            }
+            // Apply scalar addition
+            //   r = (a + scalar) % n
+            VLI_Arithmetic.ModAdd(_result, secret_x, _scalar, curve.n, curve.NUM_N_WORDS);
+
 
             // Check again that the new private key is in the range [1, n-1].
             if (VLI_Logic.IsZero(_result, curve.NUM_N_WORDS))
@@ -244,15 +211,8 @@ namespace Wheel.Crypto.Elliptic
                 return false;
             }
 
-            unsafe
-            {
-                fixed(ulong* ptr = &result.private_key_data[0])
-                {
-                    Span<ulong> target_secret_x = new(ptr, curve.NUM_WORDS);
-                    // Copy resulting key data
-                    _result.CopyTo(target_secret_x);
-                }
-            }
+            // Copy resulting key data
+            _result.CopyTo(result.secret_x);
 
             return true;
         }
@@ -305,15 +265,7 @@ namespace Wheel.Crypto.Elliptic
             VLI_Arithmetic.ModMult(k, k, tmp, curve.n, num_n_words); // k = 1 / k
 
             VLI_Arithmetic.Set(r, p, num_words); // store r
-
-            unsafe
-            {
-                fixed (ulong* ptr = &private_key_data[0])
-                {
-                    Span<ulong> secret_x = new(ptr, curve.NUM_WORDS);
-                    VLI_Arithmetic.Set(tmp, secret_x, curve.NUM_N_WORDS); // tmp = private key
-                }
-            }
+            VLI_Arithmetic.Set(tmp, secret_x, curve.NUM_N_WORDS); // tmp = private key
 
             s[num_n_words - 1] = 0;
             VLI_Arithmetic.Set(s, p, num_words);
@@ -418,15 +370,8 @@ namespace Wheel.Crypto.Elliptic
             Span<byte> sequence_data = stackalloc byte[sizeof(long)];
             Span<byte> secret_data = MemoryMarshal.Cast<ulong, byte>(result);
 
-            unsafe
-            {
-                fixed (ulong* ptr = &private_key_data[0])
-                {
-                    Span<ulong> secret_x = new(ptr, curve.NUM_WORDS);
-                    // Serialize secret key into big endian for hashing
-                    VLI_Conversion.NativeToBytes(secret_scalar, curve.NUM_N_BYTES, secret_x);
-                }
-            }
+            // Serialize secret key into big endian for hashing
+            VLI_Conversion.NativeToBytes(secret_scalar, curve.NUM_N_BYTES, secret_x);
 
             // Convert sequence to bytes
             MemoryMarshal.Cast<byte, long>(sequence_data)[0] = sequence;
