@@ -10,4 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Wheel\Wheel.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\.editorconfig" />
+  </ItemGroup>
 </Project>

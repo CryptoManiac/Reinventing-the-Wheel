@@ -5,7 +5,3 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("Style", "IDE1006:Стили именования", Justification = "<Ожидание>", Scope = "member", Target = "~P:Wheel.Crypto.Elliptic.Internal.SECP256K1.ICurve.p")]
-[assembly: SuppressMessage("Style", "IDE1006:Стили именования", Justification = "<Ожидание>", Scope = "member", Target = "~P:Wheel.Crypto.Elliptic.Internal.SECP256K1.ICurve.n")]
-[assembly: SuppressMessage("Style", "IDE1006:Стили именования", Justification = "<Ожидание>", Scope = "member", Target = "~P:Wheel.Crypto.Elliptic.Internal.SECP256K1.ICurve.half_n")]
-[assembly: SuppressMessage("Style", "IDE1006:Стили именования", Justification = "<Ожидание>", Scope = "member", Target = "~P:Wheel.Crypto.Elliptic.Internal.SECP256K1.ICurve.b")]
