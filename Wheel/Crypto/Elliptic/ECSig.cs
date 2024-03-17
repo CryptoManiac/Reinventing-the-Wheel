@@ -1,4 +1,5 @@
-﻿using System.Runtime.ConstrainedExecution;
+﻿using System;
+using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
 
@@ -6,11 +7,6 @@ namespace Wheel.Crypto.Elliptic
 {
     /// <summary>
     /// DER encapsulated signature value pair
-    /// 
-    /// Notice on the non-deterministic behaviour:
-    ///
-    ///  Unless you're providing the buffers to constructor explicitly,
-    ///   the construction of this object WILL result with heap allocations
     /// </summary>
     public ref struct DERSignature
     {
@@ -30,33 +26,29 @@ namespace Wheel.Crypto.Elliptic
         public Span<ulong> s { get; }
 
         /// <summary>
-        /// Construct empty signature, allocating new buffers on heap
+        /// The r and s are sliced from this hidden array.
         /// </summary>
-        /// <param name="curve">ECC implementation</param>
-        public DERSignature(ECCurve curve)
-        {
-            this.curve = curve;
-            r = new ulong[curve.NUM_WORDS];
-            s = new ulong[curve.NUM_WORDS];
-        }
+        private unsafe fixed ulong signature_data[2 * VLI_Common.ECC_MAX_WORDS];
 
         /// <summary>
-        /// Construct empty signature without heap allocation. This constructor will make slices of the provided array and the structure will use them to keep the data for as long as the object lives.
-        /// Note: The 2 * curve.NUM_WORDS elements of the provided array will be used by the structure.
+        /// Construct the empty signature
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        /// <param name="memory">Array to make the slices of</param>
-        /// <exception cref="InvalidOperationException">When the provided buffer is too small for storing the R and S value pair</exception>
-        public DERSignature(ECCurve curve, Span<ulong> memory)
+        public unsafe DERSignature(ECCurve curve)
         {
-            if (memory.Length < GetNumWords())
+            this.curve = curve;
+
+            // Sanity check constraint
+            if (curve.NUM_WORDS > VLI_Common.ECC_MAX_WORDS)
             {
-                throw new InvalidOperationException("The memory slice must be " + GetNumWords() + " items long");
+                throw new SystemException("The configured curve point coordinate size is unexpectedly big");
             }
 
-            this.curve = curve;
-            r = memory.Slice(0, curve.NUM_WORDS);
-            s = memory.Slice(curve.NUM_WORDS, curve.NUM_WORDS);
+            fixed(ulong* ptr = &signature_data[0])
+            {
+                r = new Span<ulong>(ptr, curve.NUM_WORDS);
+                s = new Span<ulong>(ptr + curve.NUM_WORDS, curve.NUM_WORDS);
+            }
         }
 
         /// <summary>
@@ -239,24 +231,10 @@ namespace Wheel.Crypto.Elliptic
 
             return true;
         }
-
-        /// <summary>
-        /// Get size of the buffer which is needed for non-allocating version of the constructor
-        /// </summary>
-        /// <returns></returns>
-        public static int GetNumWords()
-        {
-            return 2 * VLI_Common.ECC_MAX_WORDS;
-        }
     }
 
     /// <summary>
     /// Compact signature value pair
-    /// 
-    /// Notice on the non-deterministic behaviour:
-    ///
-    ///  Unless you're providing the buffers to constructor explicitly,
-    ///   the construction of this object WILL result with heap allocations
     /// </summary>
     public ref struct CompactSignature
     {
@@ -276,33 +254,28 @@ namespace Wheel.Crypto.Elliptic
         public Span<ulong> s { get; }
 
         /// <summary>
-        /// Construct empty signature, allocating new buffers on heap
+        /// The r and s are sliced from this hidden array.
         /// </summary>
-        /// <param name="curve">ECC implementation</param>
-        public CompactSignature(ECCurve curve)
-        {
-            this.curve = curve;
-            r = new ulong[curve.NUM_WORDS];
-            s = new ulong[curve.NUM_WORDS];
-        }
+        private unsafe fixed ulong signature_data[2 * VLI_Common.ECC_MAX_WORDS];
 
         /// <summary>
-        /// Construct empty signature without heap allocation. This constructor will make slices of the provided array and the structure will use them to keep the data for as long as the object lives.
-        /// Note: The 2 * curve.NUM_WORDS elements of the provided array will be used by the structure.
+        /// Construct the empty signature
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        /// <param name="memory">Array to make the slices of</param>
-        /// <exception cref="InvalidOperationException">When the provided buffer is too small for storing the R and S value pair</exception>
-        public CompactSignature(ECCurve curve, Span<ulong> memory)
+        public unsafe CompactSignature(ECCurve curve)
         {
-            if (memory.Length != GetNumWords())
+            this.curve = curve;
+            // Sanity check constraint
+            if (curve.NUM_WORDS > VLI_Common.ECC_MAX_WORDS)
             {
-                throw new InvalidOperationException("The memory slice must be " + GetNumWords() + " items long");
+                throw new SystemException("The configured curve point coordinate size is unexpectedly big");
             }
 
-            this.curve = curve;
-            r = memory.Slice(0, curve.NUM_WORDS);
-            s = memory.Slice(curve.NUM_WORDS, curve.NUM_WORDS);
+            fixed (ulong* ptr = &signature_data[0])
+            {
+                r = new Span<ulong>(ptr, curve.NUM_WORDS);
+                s = new Span<ulong>(ptr + curve.NUM_WORDS, curve.NUM_WORDS);
+            }
         }
 
         /// <summary>
@@ -349,15 +322,5 @@ namespace Wheel.Crypto.Elliptic
 
             return true;
         }
-
-        /// <summary>
-        /// Get size of the buffer which is needed for non-allocating version of the constructor
-        /// </summary>
-        /// <returns></returns>
-        public static int GetNumWords()
-        {
-            return 2 * VLI_Common.ECC_MAX_WORDS;
-        }
     }
 }
-

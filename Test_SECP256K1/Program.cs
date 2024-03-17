@@ -22,7 +22,7 @@ static void SignData<HMAC_IMPL>(Span<byte> signature, string private_key, string
     Span<byte> message_hash = stackalloc byte[32];
     SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
     
-    DERSignature derSig = new(curve, stackalloc ulong[DERSignature.GetNumWords()]);
+    DERSignature derSig = new(curve);
     ECKey.Sign<HMAC_IMPL>(curve, derSig, Convert.FromHexString(private_key), message_hash, additional_entropy);
 
     if (signature.Length < derSig.Encode(signature))
@@ -36,7 +36,7 @@ static bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOn
     Span<byte> message_hash = stackalloc byte[32];
     SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
 
-    DERSignature derSig = new(curve, stackalloc ulong[DERSignature.GetNumWords()]);
+    DERSignature derSig = new(curve);
     if (!derSig.Parse(signature))
     {
         throw new SystemException("Invalid signature format");
