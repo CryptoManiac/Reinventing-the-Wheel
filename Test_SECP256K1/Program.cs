@@ -19,12 +19,13 @@ static void SignData<HMAC_IMPL>(Span<byte> signature, string private_key, string
 {
     // Empty for tests
     Span<byte> additional_entropy = stackalloc byte[0];
-
     Span<byte> message_hash = stackalloc byte[32];
     SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
-    Span<byte> signature_compact = stackalloc byte[64];
-    ECKey.SignDeterministic<HMAC_IMPL>(curve, signature_compact, Convert.FromHexString(private_key), message_hash, additional_entropy);
-    if (signature.Length < ECSig.CompactToDER(curve, signature, signature_compact))
+    
+    DERSignature derSig = new(curve, stackalloc ulong[DERSignature.GetNumWords()]);
+    ECKey.Sign<HMAC_IMPL>(curve, derSig, Convert.FromHexString(private_key), message_hash, additional_entropy);
+
+    if (signature.Length < derSig.Encode(signature))
     {
         throw new Exception("Signature buffer is too short");
     }
@@ -34,9 +35,14 @@ static bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOn
 {
     Span<byte> message_hash = stackalloc byte[32];
     SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
-    Span<byte> signature_compact = stackalloc byte[64];
-    ECSig.DerToCompact(signature, signature_compact);
-    return ECKey.VerifySignature(curve, signature_compact, public_key, message_hash);
+
+    DERSignature derSig = new(curve, stackalloc ulong[DERSignature.GetNumWords()]);
+    if (!derSig.Parse(signature))
+    {
+        throw new SystemException("Invalid signature format");
+    }
+
+    return ECKey.VerifySignature(curve, derSig, public_key, message_hash);
 }
 
 void CompareSig(string algorithm, Span<byte> signature)
@@ -70,26 +76,29 @@ Span<byte> signature = stackalloc byte[70];
 Console.WriteLine("Generated SECP256K1 signatures:");
 
 SignData<HMAC_SHA224>(signature, private_key_hex, message, curve);
+
+if (!VerifySignature(signature, message, public_key_uncompressed, curve))
+{
+    throw new SystemException("Signature verification failure");
+}
+
 CompareSig("HMAC_SHA224", signature);
 
-if (!VerifySignature(signature, message, public_key_uncompressed, curve))
-{
-    throw new SystemException("Signature verification failure");
-}
-
 SignData<HMAC_SHA256>(signature, private_key_hex, message, curve);
-CompareSig("HMAC_SHA256", signature);
-
 if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 {
     throw new SystemException("Signature verification failure");
 }
+
+CompareSig("HMAC_SHA256", signature);
 
 
 SignData<HMAC_SHA512>(signature, private_key_hex, message, curve);
-CompareSig("HMAC_SHA512", signature);
 
 if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 {
     throw new SystemException("Signature verification failure");
 }
+
+CompareSig("HMAC_SHA512", signature);
+

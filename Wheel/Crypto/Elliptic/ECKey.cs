@@ -228,16 +228,16 @@ namespace Wheel.Crypto.Elliptic
         /// <summary>
         /// Generate an ECDSA signature for a given hash value, with the user-provided provided K
         /// </summary>
-        /// <param name="signature">Will be filled in with the signature value</param>
+        /// <param name="r">Will be filled in with the signature value</param>
+        /// <param name="s">Will be filled in with the signature value</param>
         /// <param name="private_key">Your private key</param>
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <param name="K">Random secret</param>
         /// <param name="K_shadow">A "shadow" of the random secret</param>
         /// <returns></returns>
-        private static bool SignWithK(ECCurve curve, Span<byte> signature, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> message_hash, ReadOnlySpan<ulong> K, ReadOnlySpan<ulong> K_shadow)
+        private static bool SignWithK(ECCurve curve, Span<ulong> r, Span<ulong> s, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> message_hash, ReadOnlySpan<ulong> K, ReadOnlySpan<ulong> K_shadow)
         {
             Span<ulong> p = stackalloc ulong[VLI_Common.ECC_MAX_WORDS * 2];
-            Span<ulong> s = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
             Span<ulong> tmp = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
             VLI_Common.Picker<ulong> k2 = new(tmp, s);
 
@@ -272,7 +272,7 @@ namespace Wheel.Crypto.Elliptic
             VLI_Arithmetic.ModInv(k, k, curve.n, num_n_words);       // k = 1 / k'
             VLI_Arithmetic.ModMult(k, k, tmp, curve.n, num_n_words); // k = 1 / k
 
-            VLI_Conversion.NativeToBytes(signature, num_bytes, p); // store r 
+            VLI_Arithmetic.Set(r, p, num_words); // store r 
             VLI_Conversion.BytesToNative(tmp, private_key, curve.NUM_N_BYTES); // tmp = d
 
             s[num_n_words - 1] = 0;
@@ -293,9 +293,40 @@ namespace Wheel.Crypto.Elliptic
                 VLI_Arithmetic.Sub(s, curve.n, s, num_words); // s = n - s 
             }
 
-            VLI_Conversion.NativeToBytes(signature.Slice(num_bytes), num_bytes, s);
-
             return true;
+        }
+
+        /// <summary>
+        /// Generate an ECDSA signature for a given hash value, using a deterministic algorithm
+        /// 
+        /// Usage: Compute a hash of the data you wish to sign and pass it to this function along with your private key and entropy bytes. The entropy bytes argument may be set to empty array if you don't need this feature.
+        /// </summary>
+        /// <param name="r">Will be filled in with the signature value</param>
+        /// <param name="s">Will be filled in with the signature value</param>
+        /// <param name="private_key">Your private key</param>
+        /// <param name="message_hash">The hash of the message to sign</param>
+        /// <param name="entropy">Additional entropy for K generation</param>
+        /// <returns></returns>
+        private static bool SignDeterministic<HMAC_IMPL>(ECCurve curve, Span<ulong> r, Span<ulong> s, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> message_hash, ReadOnlySpan<byte> entropy) where HMAC_IMPL : unmanaged, IMac
+        {
+            // Secret K will be written here
+            Span<ulong> K = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> K_shadow = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+
+            // Will retry until succeed
+            for (long i = 1; i != long.MaxValue; ++i)
+            {
+                GenerateK<HMAC_IMPL>(curve, K, private_key, message_hash, entropy, i);
+                GenerateK<HMAC_IMPL>(curve, K_shadow, private_key, message_hash, entropy, -i);
+
+                // Try to sign
+                if (SignWithK(curve, r, s, private_key, message_hash, K, K_shadow))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -308,26 +339,24 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <param name="entropy">Additional entropy for K generation</param>
         /// <returns></returns>
-        public static bool SignDeterministic<HMAC_IMPL>(ECCurve curve, Span<byte> signature, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> message_hash, ReadOnlySpan<byte> entropy) where HMAC_IMPL : unmanaged, IMac
+        public static bool Sign<HMAC_IMPL>(ECCurve curve, DERSignature signature, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> message_hash, ReadOnlySpan<byte> entropy) where HMAC_IMPL : unmanaged, IMac
         {
-            // Secret K will be written here
-            Span<ulong> K = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
-            Span<ulong> K_shadow = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            return SignDeterministic<HMAC_IMPL>(curve, signature.r, signature.s, private_key, message_hash, entropy);
+        }
 
-            // Will retry until succeed
-            for (long i = 1; i != long.MaxValue; ++i)
-            {
-                GenerateK<HMAC_IMPL>(curve, K, private_key, message_hash, entropy, i);
-                GenerateK<HMAC_IMPL>(curve, K_shadow, private_key, message_hash, entropy, -i);
-    
-                // Try to sign
-                if (SignWithK(curve, signature, private_key, message_hash, K, K_shadow))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+        /// <summary>
+        /// Generate an ECDSA signature for a given hash value, using a deterministic algorithm
+        /// 
+        /// Usage: Compute a hash of the data you wish to sign and pass it to this function along with your private key and entropy bytes. The entropy bytes argument may be set to empty array if you don't need this feature.
+        /// </summary>
+        /// <param name="signature">Will be filled in with the signature value</param>
+        /// <param name="private_key">Your private key</param>
+        /// <param name="message_hash">The hash of the message to sign</param>
+        /// <param name="entropy">Additional entropy for K generation</param>
+        /// <returns></returns>
+        public static bool Sign<HMAC_IMPL>(ECCurve curve, CompactSignature signature, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> message_hash, ReadOnlySpan<byte> entropy) where HMAC_IMPL : unmanaged, IMac
+        {
+            return SignDeterministic<HMAC_IMPL>(curve, signature.r, signature.s, private_key, message_hash, entropy);
         }
 
         /// <summary>
@@ -444,11 +473,13 @@ namespace Wheel.Crypto.Elliptic
         /// Usage: Compute the hash of the signed data using the same hash as the signer and
         /// pass it to this function along with the signer's public key and the signature values (r and s).
         /// </summary>
-        /// <param name="signature">The signature value</param>
-        /// <param name="public_key">The signer's public key</param>
-        /// <param name="message_hash">The hash of the signed data</param>
+        /// <param name="curve"></param>
+        /// <param name="r"></param>
+        /// <param name="s"></param>
+        /// <param name="public_key"></param>
+        /// <param name="message_hash"></param>
         /// <returns></returns>
-        public static bool VerifySignature(ECCurve curve, ReadOnlySpan<byte> signature, ReadOnlySpan<byte> public_key, ReadOnlySpan<byte> message_hash)
+        public static bool VerifySignature(ECCurve curve, ReadOnlySpan<ulong> r, ReadOnlySpan<ulong> s, ReadOnlySpan<byte> public_key, ReadOnlySpan<byte> message_hash)
         {
             Span<ulong> u1 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
             Span<ulong> u2 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
@@ -461,9 +492,6 @@ namespace Wheel.Crypto.Elliptic
             Span<ulong> ty = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
             Span<ulong> tz = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
 
-            Span<ulong> r = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
-            Span<ulong> s = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
-
             Span<ulong> _public = stackalloc ulong[VLI_Common.ECC_MAX_WORDS * 2];
 
             int num_bytes = curve.NUM_BYTES;
@@ -472,8 +500,6 @@ namespace Wheel.Crypto.Elliptic
 
             VLI_Conversion.BytesToNative(_public, public_key, num_bytes);
             VLI_Conversion.BytesToNative(_public.Slice(num_words), public_key.Slice(num_bytes), num_bytes);
-            VLI_Conversion.BytesToNative(r, signature, num_bytes);
-            VLI_Conversion.BytesToNative(s, signature.Slice(num_bytes), num_bytes);
 
             // r, s must not be 0
             if (VLI_Logic.IsZero(r, num_words) || VLI_Logic.IsZero(s, num_words))
@@ -542,6 +568,34 @@ namespace Wheel.Crypto.Elliptic
 
             // Accept only if v == r.
             return VLI_Logic.Equal(rx, r, num_words);
+        }
+
+        /// <summary>
+        /// Verify a compact ECDSA signature.
+        /// Usage: Compute the hash of the signed data using the same hash as the signer and
+        /// pass it to this function along with the signer's public key and the signature values (r and s).
+        /// </summary>
+        /// <param name="signature">The compact signature object</param>
+        /// <param name="public_key">The signer's public key</param>
+        /// <param name="message_hash">The hash of the signed data</param>
+        /// <returns></returns>
+        public static bool VerifySignature(ECCurve curve, CompactSignature signature, ReadOnlySpan<byte> public_key, ReadOnlySpan<byte> message_hash)
+        {
+            return VerifySignature(curve, signature.r, signature.s, public_key, message_hash);
+        }
+
+        /// <summary>
+        /// Verify a DER formatted ECDSA signature.
+        /// Usage: Compute the hash of the signed data using the same hash as the signer and
+        /// pass it to this function along with the signer's public key and the signature values (r and s).
+        /// </summary>
+        /// <param name="signature">The compact signature object</param>
+        /// <param name="public_key">The signer's public key</param>
+        /// <param name="message_hash">The hash of the signed data</param>
+        /// <returns></returns>
+        public static bool VerifySignature(ECCurve curve, DERSignature signature, ReadOnlySpan<byte> public_key, ReadOnlySpan<byte> message_hash)
+        {
+            return VerifySignature(curve, signature.r, signature.s, public_key, message_hash);
         }
 
         private static void BitsToInt(ECCurve curve, Span<ulong> native, ReadOnlySpan<byte> bits, int bits_size)
