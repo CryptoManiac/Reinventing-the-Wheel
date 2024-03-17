@@ -91,7 +91,7 @@
             {
                 diff |= left[i] ^ right[i];
             }
-            return Convert.ToBoolean(diff);
+            return !Convert.ToBoolean(diff);
         }
 
         /// <summary>
