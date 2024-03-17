@@ -20,19 +20,23 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="private_key">Your private key.</param>
         /// <param name="secret">Will be filled in with the shared secret value. Must be the same size as the curve size; for example, if the curve is secp256k1, secret must be 32 bytes long. </param>
         /// <returns>True if the shared secret was generated successfully, False if an error occurred.</returns>
-        public static bool Derive(ECCurve curve, ReadOnlySpan<byte> public_key, ReadOnlySpan<byte> private_key, Span<byte> secret)
+        public static bool Derive(ECCurve curve, in ECPublicKey public_key, in ECPrivateKey private_key, Span<byte> secret)
         {
             Span<ulong> _public = stackalloc ulong[VLI_Common.ECC_MAX_WORDS * 2];
             Span <ulong> _private = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
-            Span<ulong> tmp = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
-            VLI_Common.Picker<ulong> p2 = new(_private, tmp);
-            ulong carry;
+
             int num_words = curve.NUM_WORDS;
             int num_bytes = curve.NUM_BYTES;
 
-            VLI_Conversion.BytesToNative(_private, private_key, curve.NUM_N_BYTES);
-            VLI_Conversion.BytesToNative(_public, public_key, num_bytes);
-            VLI_Conversion.BytesToNative(_public.Slice(num_words), public_key.Slice(num_bytes), num_bytes);
+            // Doesn't make any sense to use invalid keys
+            if (!public_key.UnWrap(ref _public) || !private_key.UnWrap(ref _private) || secret.Length != num_bytes)
+            {
+                return false;
+            }
+
+            Span<ulong> tmp = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            VLI_Common.Picker<ulong> p2 = new(_private, tmp);
+            ulong carry;
 
             // Regularize the bitcount for the private key so that attackers
             // cannot use a side channel attack to learn the number of leading zeros.

@@ -1,6 +1,6 @@
 ﻿using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
 
-namespace Wheel.Crypto.Elliptic
+namespace Wheel.Crypto.Elliptic.Internal
 {
     /// <summary>
     /// Curve-specific arithmetic functions which are used internally
@@ -162,6 +162,38 @@ namespace Wheel.Crypto.Elliptic
             VLI_Arithmetic.Set(X1, t7, num_words);
         }
 
-        
+        public static void BitsToInt(ECCurve curve, Span<ulong> native, ReadOnlySpan<byte> bits, int bits_size)
+        {
+            int num_n_bytes = curve.NUM_N_BYTES;
+            int num_n_words = curve.NUM_WORDS;
+            int num_n_bits = curve.NUM_N_BITS;
+
+            if (bits_size > num_n_bytes)
+            {
+                bits_size = num_n_bytes;
+            }
+
+            VLI_Arithmetic.Clear(native, num_n_words);
+            VLI_Conversion.BytesToNative(native, bits, bits_size);
+            if (bits_size * 8 <= num_n_bits)
+            {
+                return;
+            }
+
+            ulong carry = 0;
+            int shift = bits_size * 8 - num_n_bits;
+            for (int index = num_n_words - 1; index >= 0; --index)
+            {
+                ulong temp = native[index];
+                native[index] = (temp >> shift) | carry;
+                carry = temp << (VLI_Common.WORD_BITS - shift);
+            }
+
+            /* Reduce mod curve_n */
+            if (VLI_Logic.CmpUnsafe(curve.n, native, num_n_words) != 1)
+            {
+                VLI_Arithmetic.Sub(native, native, curve.n, num_n_words);
+            }
+        }
     }
 }

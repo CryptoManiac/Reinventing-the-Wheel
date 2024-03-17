@@ -15,7 +15,7 @@ SortedDictionary<string, string> vectors = new()
     {  "HMAC_SHA512", "304402200A71911B43549345D71BEFEA8666ECE38BDD5C22E3597E06F5239CB22B9011100220DF803647D9753E0009DC27D594B15EDDB75C1B980011CABCE7AB66FE22F1D684"},
 };
 
-static void SignData<HMAC_IMPL>(Span<byte> signature, string private_key, string message, ECCurve curve) where HMAC_IMPL : unmanaged, IMac
+static void SignData<HMAC_IMPL>(Span<byte> signature, ECPrivateKey sk, string message, ECCurve curve) where HMAC_IMPL : unmanaged, IMac
 {
     // Empty for tests
     Span<byte> additional_entropy = stackalloc byte[0];
@@ -23,7 +23,11 @@ static void SignData<HMAC_IMPL>(Span<byte> signature, string private_key, string
     SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
     
     DERSignature derSig = new(curve);
-    ECKey.Sign<HMAC_IMPL>(curve, derSig, Convert.FromHexString(private_key), message_hash, additional_entropy);
+
+    if (!sk.Sign<HMAC_IMPL>(derSig, message_hash, additional_entropy))
+    {
+        throw new SystemException("Signing failed");
+    }
 
     if (signature.Length < derSig.Encode(signature))
     {
@@ -36,13 +40,19 @@ static bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOn
     Span<byte> message_hash = stackalloc byte[32];
     SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
 
+    ECPublicKey pk = new(curve);
+    if (!pk.Parse(public_key))
+    {
+        throw new SystemException("Public key parse failed");
+    }
+
     DERSignature derSig = new(curve);
     if (!derSig.Parse(signature))
     {
         throw new SystemException("Invalid signature format");
     }
 
-    return ECKey.VerifySignature(curve, derSig, public_key, message_hash);
+    return pk.VerifySignature(derSig, message_hash);
 }
 
 void CompareSig(string algorithm, Span<byte> signature)
@@ -62,10 +72,32 @@ ECCurve curve = ECCurve.Get_SECP256K1();
 Console.WriteLine("SECP256K1 private key: {0}", private_key_hex);
 Console.WriteLine("Message to sign: {0}", message);
 
+byte[] private_bytes = Convert.FromHexString(private_key_hex);
+
+ECPrivateKey sk = new(curve);
+if (!sk.Parse(private_bytes))
+{
+    throw new SystemException("Private key parse failed");
+}
+
 Span<byte> public_key_uncompressed = stackalloc byte[64];
 Span<byte> public_key_compressed = stackalloc byte[33];
-ECKey.ComputePublicKey(curve, public_key_uncompressed, Convert.FromHexString(private_key_hex));
-ECKey.Compress(curve, public_key_uncompressed, public_key_compressed);
+
+ECPublicKey pk = new(curve);
+if (!sk.ComputePublicKey(ref pk))
+{
+    throw new SystemException("Computation of the public key has failed");
+}
+
+if (!pk.Compress(public_key_compressed))
+{
+    throw new SystemException("Compression of the public key has failed");
+}
+
+if (!pk.Serialize(public_key_uncompressed))
+{
+    throw new SystemException("Serialization of the public key has failed");
+}
 
 Console.WriteLine("SECP256K1 public key: 04{0}", Convert.ToHexString(public_key_uncompressed));
 Console.WriteLine("SECP256K1 compressed public key: {0}", Convert.ToHexString(public_key_compressed));
@@ -75,7 +107,7 @@ Span<byte> signature = stackalloc byte[70];
 
 Console.WriteLine("Generated SECP256K1 signatures:");
 
-SignData<HMAC_SHA224>(signature, private_key_hex, message, curve);
+SignData<HMAC_SHA224>(signature, sk, message, curve);
 
 if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 {
@@ -84,7 +116,7 @@ if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 
 CompareSig("HMAC_SHA224", signature);
 
-SignData<HMAC_SHA256>(signature, private_key_hex, message, curve);
+SignData<HMAC_SHA256>(signature, sk, message, curve);
 if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 {
     throw new SystemException("Signature verification failure");
@@ -93,7 +125,7 @@ if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 CompareSig("HMAC_SHA256", signature);
 
 
-SignData<HMAC_SHA512>(signature, private_key_hex, message, curve);
+SignData<HMAC_SHA512>(signature, sk, message, curve);
 
 if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 {
