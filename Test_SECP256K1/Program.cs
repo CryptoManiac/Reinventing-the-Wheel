@@ -7,7 +7,7 @@ using Wheel.Crypto.Hashing.SHA.SHA256;
 string message = "aaa";
 string private_key_hex = "80eaba734c283aba9f2f8a96e1152c97aa8357357e83b1f91b60dc987c486bcb"; // Pub: 041c5091d939a42d67c2b4f7bd44cceb2159e5b192df22527baf1ae83bbf8191b30e6fe36f426369054e1a06b571230f4af589d7e30a20b8f2cb3ea4ee96493dc6
 
-// Must be valid, check here: http://kjur.github.io/jsrsasign/sample/sample-ecdsa.html
+// Must be valid, check here: http://kjur.github.io/jsrsasign/sample/sample-ecdsa.html (select secp256k1 curve and SHA256withECDSA algorithm)
 SortedDictionary<string, string> vectors = new()
 {
     {  "HMAC_SHA224", "3044022060D8CCF762053A529310A8C0545FA6F1F0161BD3AE5E72BAB86E934C58866F490220CA56EFB8D9038F8172EC9624CCFA47568AAF46A69F1F955FF92F6F411B0FAB02"},
