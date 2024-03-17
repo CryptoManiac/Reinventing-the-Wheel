@@ -232,8 +232,9 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="private_key">Your private key</param>
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <param name="K">Random secret</param>
+        /// <param name="K_shadow">A "shadow" of the random secret</param>
         /// <returns></returns>
-        public static bool SignWithK(ECCurve curve, Span<byte> signature, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> message_hash, ReadOnlySpan<ulong> K)
+        private static bool SignWithK(ECCurve curve, Span<byte> signature, ReadOnlySpan<byte> private_key, ReadOnlySpan<byte> message_hash, ReadOnlySpan<ulong> K, ReadOnlySpan<ulong> K_shadow)
         {
             Span<ulong> p = stackalloc ulong[VLI_Common.ECC_MAX_WORDS * 2];
             Span<ulong> s = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
@@ -264,13 +265,9 @@ namespace Wheel.Crypto.Elliptic
                 return false;
             }
 
-            // Stub: No RNG function is actually used here
-            // TODO: Revisit this piece after implementation of DRBG will be added to crypto primitives
-            VLI_Arithmetic.Clear(tmp, num_n_words);
-            tmp[0] = 1;
-
             // Prevent side channel analysis of VLI_Arithmetic.ModInv() to determine
             //   bits of k / the private key by premultiplying by a random number
+            VLI_Arithmetic.Set(tmp, K_shadow, num_n_words);
             VLI_Arithmetic.ModMult(k, k, tmp, curve.n, num_n_words); // k' = rand * k
             VLI_Arithmetic.ModInv(k, k, curve.n, num_n_words);       // k = 1 / k'
             VLI_Arithmetic.ModMult(k, k, tmp, curve.n, num_n_words); // k = 1 / k
@@ -315,14 +312,16 @@ namespace Wheel.Crypto.Elliptic
         {
             // Secret K will be written here
             Span<ulong> K = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> K_shadow = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
 
             // Will retry until succeed
             for (long i = 0; i != long.MaxValue; ++i)
             {
                 GenerateK<HMAC_IMPL>(curve, K, private_key, message_hash, entropy, i);
-
+                GenerateK<HMAC_IMPL>(curve, K_shadow, private_key, message_hash, entropy, -i);
+    
                 // Try to sign
-                if (SignWithK(curve, signature, private_key, message_hash, K))
+                if (SignWithK(curve, signature, private_key, message_hash, K, K_shadow))
                 {
                     return true;
                 }
