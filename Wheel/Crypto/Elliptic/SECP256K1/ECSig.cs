@@ -13,18 +13,18 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
 		/// <param name="der">Will be filled with DER signature</param>
 		/// <param name="compact">Compact signature to serialize</param>
 		/// <returns>Length of data written or to be written into DER buffer</returns>
-		public static int CompactToDER(Span<byte> der, ReadOnlySpan<byte> compact)
-		{
-			const int lenR = Constants.NUM_BYTES;
-            const int lenS = Constants.NUM_BYTES;
+		public static int CompactToDER(ECCurve curve, Span<byte> der, ReadOnlySpan<byte> compact)
+        {
+			byte lenR = (byte) curve.NUM_BYTES;
+            byte lenS = (byte) curve.NUM_BYTES;
 
-			const int reqLen = 6 + lenS + lenR;
+			int reqLen = 6 + lenS + lenR;
 
 			if (der.Length >= reqLen)
 			{
 
                 der[0] = 0x30;
-                der[1] = 4 + lenS + lenR;
+                der[1] = (byte) (4 + lenS + lenR);
                 der[2] = 0x02;
                 der[3] = lenR;
                 der[4 + lenR] = 0x02;
