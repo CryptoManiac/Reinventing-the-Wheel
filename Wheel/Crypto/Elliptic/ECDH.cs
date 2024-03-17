@@ -1,8 +1,7 @@
-﻿using System;
-using Wheel.Crypto.Elliptic.Internal.SECP256K1;
+﻿using Wheel.Crypto.Elliptic.Internal;
 using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
 
-namespace Wheel.Crypto.Elliptic.SECP256K1
+namespace Wheel.Crypto.Elliptic
 {
     /// <summary>
     /// Shared secret derivation
@@ -14,7 +13,7 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
         /// is not from a trusted source and has not been previously verified, you should verify it first
         /// using ECKey.IsValidPublicKey() function.
         ///
-        /// Note: It is recommended that you hash the result of uECC_shared_secret() before using it for
+        /// Note: It is recommended that you hash the result of Derive() before using it for
         /// symmetric encryption or HMAC.
         /// </summary>
         /// <param name="public_key">The public key of the remote party.</param>

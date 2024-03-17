@@ -1,10 +1,9 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using Wheel.Crypto.Elliptic.Internal.SECP256K1;
+﻿using System.Runtime.InteropServices;
+using Wheel.Crypto.Elliptic.Internal;
 using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
 using Wheel.Crypto.Hashing.HMAC;
 
-namespace Wheel.Crypto.Elliptic.SECP256K1
+namespace Wheel.Crypto.Elliptic
 {
     public static class ECKey
     {
@@ -270,7 +269,7 @@ namespace Wheel.Crypto.Elliptic.SECP256K1
             VLI_Arithmetic.Clear(tmp, num_n_words);
             tmp[0] = 1;
 
-            // Prevent side channel analysis of uECC_vli_modInv() to determine
+            // Prevent side channel analysis of VLI_Arithmetic.ModInv() to determine
             //   bits of k / the private key by premultiplying by a random number
             VLI_Arithmetic.ModMult(k, k, tmp, curve.n, num_n_words); // k' = rand * k
             VLI_Arithmetic.ModInv(k, k, curve.n, num_n_words);       // k = 1 / k'

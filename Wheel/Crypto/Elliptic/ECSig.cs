@@ -1,8 +1,4 @@
-﻿using System;
-using Wheel.Crypto.Elliptic.Internal.SECP256K1;
-using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
-
-namespace Wheel.Crypto.Elliptic.SECP256K1
+﻿namespace Wheel.Crypto.Elliptic
 {
 	public static class ECSig
 	{
