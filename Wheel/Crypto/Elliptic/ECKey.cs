@@ -315,7 +315,7 @@ namespace Wheel.Crypto.Elliptic
             Span<ulong> K_shadow = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
 
             // Will retry until succeed
-            for (long i = 0; i != long.MaxValue; ++i)
+            for (long i = 1; i != long.MaxValue; ++i)
             {
                 GenerateK<HMAC_IMPL>(curve, K, private_key, message_hash, entropy, i);
                 GenerateK<HMAC_IMPL>(curve, K_shadow, private_key, message_hash, entropy, -i);
