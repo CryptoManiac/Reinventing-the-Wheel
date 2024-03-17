@@ -470,9 +470,6 @@ namespace Wheel.Crypto.Elliptic
             int num_words = curve.NUM_WORDS;
             int num_n_words = curve.NUM_N_WORDS;
 
-            int num_bits;
-            int i;
-
             VLI_Conversion.BytesToNative(_public, public_key, num_bytes);
             VLI_Conversion.BytesToNative(_public.Slice(num_words), public_key.Slice(num_bytes), num_bytes);
             VLI_Conversion.BytesToNative(r, signature, num_bytes);
@@ -507,11 +504,44 @@ namespace Wheel.Crypto.Elliptic
             VLI_Arithmetic.ModInv(z, z, curve.p, num_words); // z = 1/z
             ECCUtil.ApplyZ(curve, sum, sum.Slice(num_words), z);
 
-            // To be continued...
+            /* Use Shamir's trick to calculate u1*G + u2*Q */
+            VLI_Common.QuadPicker points = new(null, curve.G, _public, sum);
+            int num_bits = int.Max(VLI_Logic.NumBits(u1, num_n_words), VLI_Logic.NumBits(u2, num_n_words));
 
+            ReadOnlySpan<ulong> point = points[Convert.ToUInt64(VLI_Logic.TestBit(u1, num_bits - 1)) | (Convert.ToUInt64(VLI_Logic.TestBit(u2, num_bits - 1)) << 1)];
+            VLI_Arithmetic.Set(rx, point, num_words);
+            VLI_Arithmetic.Set(ry, point.Slice(num_words), num_words);
+            VLI_Arithmetic.Clear(z, num_words);
+            z[0] = 1;
 
+            for (int i = num_bits - 2; i >= 0; --i)
+            {
+                curve.DoubleJacobian(rx, ry, z);
 
-            throw new Exception("Not yet implemented");
+                ulong index = Convert.ToUInt64(VLI_Logic.TestBit(u1, i)) | (Convert.ToUInt64(VLI_Logic.TestBit(u2, i)) << 1);
+                point = points[index];
+                if (!point.IsEmpty)
+                {
+                    VLI_Arithmetic.Set(tx, point, num_words);
+                    VLI_Arithmetic.Set(ty, point.Slice(num_words), num_words);
+                    ECCUtil.ApplyZ(curve, tx, ty, z);
+                    VLI_Arithmetic.ModSub(tz, rx, tx, curve.p, num_words); // Z = x2 - x1
+                    ECCUtil.XYcZ_Add(curve, tx, ty, rx, ry);
+                    curve.ModMult(z, z, tz);
+                }
+            }
+
+            VLI_Arithmetic.ModInv(z, z, curve.p, num_words); // Z = 1/Z
+            ECCUtil.ApplyZ(curve, rx, ry, z);
+
+            // v = x1 (mod n)
+            if (VLI_Logic.CmpUnsafe(curve.n, rx, num_n_words) != 1)
+            {
+                VLI_Arithmetic.Sub(rx, rx, curve.n, num_n_words);
+            }
+
+            // Accept only if v == r.
+            return VLI_Logic.Equal(rx, r, num_words);
         }
 
         private static void BitsToInt(ECCurve curve, Span<ulong> native, ReadOnlySpan<byte> bits, int bits_size)

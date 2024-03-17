@@ -30,6 +30,15 @@ static void SignData<HMAC_IMPL>(Span<byte> signature, string private_key, string
     }
 }
 
+static bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOnlySpan<byte> public_key, ECCurve curve)
+{
+    Span<byte> message_hash = stackalloc byte[32];
+    SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
+    Span<byte> signature_compact = stackalloc byte[64];
+    ECSig.DerToCompact(signature, signature_compact);
+    return ECKey.VerifySignature(curve, signature_compact, public_key, message_hash);
+}
+
 void CompareSig(string algorithm, Span<byte> signature)
 {
     var oldColour = Console.ForegroundColor;
@@ -62,6 +71,9 @@ Console.WriteLine("Generated SECP256K1 signatures:");
 
 SignData<HMAC_SHA224>(signature, private_key_hex, message, curve);
 CompareSig("HMAC_SHA224", signature);
+
+Console.WriteLine(VerifySignature(signature, message, public_key_uncompressed, curve));
+
 SignData<HMAC_SHA256>(signature, private_key_hex, message, curve);
 CompareSig("HMAC_SHA256", signature);
 SignData<HMAC_SHA512>(signature, private_key_hex, message, curve);

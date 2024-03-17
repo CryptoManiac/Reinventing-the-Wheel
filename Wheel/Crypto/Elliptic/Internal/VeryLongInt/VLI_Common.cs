@@ -31,6 +31,41 @@
                 set => throw new InvalidOperationException("Not supported");
             }
         }
+
+        /// <summary>
+        /// Choose between two spans by either zero or non-zero index
+        /// </summary>
+        /// <typeparam name="T">Index type (comparable value)</typeparam>
+        public ref struct QuadPicker
+        {
+            readonly ReadOnlySpan<ulong> s0;
+            readonly ReadOnlySpan<ulong> s1;
+            readonly ReadOnlySpan<ulong> s2;
+            readonly ReadOnlySpan<ulong> s3;
+            public QuadPicker(ReadOnlySpan<ulong> s0, ReadOnlySpan<ulong> s1, ReadOnlySpan<ulong> s2, ReadOnlySpan<ulong> s3)
+            {
+                this.s0 = s0;
+                this.s1 = s1;
+                this.s2 = s2;
+                this.s3 = s3;
+            }
+            public ReadOnlySpan<ulong> this[ulong index]
+            {
+                readonly get
+                {
+                    switch(index)
+                    {
+                        case 0: return s0;
+                        case 1: return s1;
+                        case 2: return s2;
+                        case 3: return s3;
+                        default:
+                            throw new InvalidOperationException("Index must be within [0 .. 3] bounds");
+                    }
+                }
+                set => throw new InvalidOperationException("Not supported");
+            }
+        }
     }
 }
 
