@@ -336,7 +336,6 @@ namespace Wheel.Crypto.Elliptic
         /// Usage: Compute a hash of the data you wish to sign and pass it to this function along with your private key and entropy bytes. The entropy bytes argument may be set to empty array if you don't need this feature.
         /// </summary>
         /// <param name="signature">Will be filled in with the signature value</param>
-        /// <param name="private_key">Your private key</param>
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <param name="entropy">Additional entropy for K generation</param>
         /// <returns></returns>
@@ -351,7 +350,6 @@ namespace Wheel.Crypto.Elliptic
         /// Usage: Compute a hash of the data you wish to sign and pass it to this function along with your private key and entropy bytes. The entropy bytes argument may be set to empty array if you don't need this feature.
         /// </summary>
         /// <param name="signature">Will be filled in with the signature value</param>
-        /// <param name="private_key">Your private key</param>
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <param name="entropy">Additional entropy for K generation</param>
         /// <returns></returns>
@@ -363,8 +361,7 @@ namespace Wheel.Crypto.Elliptic
         /// <summary>
         /// Generate deterministic K value for signing
         /// </summary>
-        /// <param name="secret"></param>
-        /// <param name="private_key"></param>
+        /// <param name="result"></param>
         /// <param name="message_hash"></param>
         /// <param name="entropy"></param>
         /// <param name="sequence"></param>
