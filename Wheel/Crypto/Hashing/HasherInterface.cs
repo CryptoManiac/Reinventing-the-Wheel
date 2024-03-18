@@ -6,7 +6,7 @@
         public void Reset();
         public byte[] Digest();
         public void Digest(Span<byte> hash);
-        public void Update(in ReadOnlySpan<byte> input);
+        public void Update(ReadOnlySpan<byte> input);
     }
 }
 

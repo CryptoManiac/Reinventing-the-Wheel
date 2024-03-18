@@ -42,7 +42,7 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
             initialized = false;
         }
 
-        public void Init(in ReadOnlySpan<byte> key)
+        public void Init(ReadOnlySpan<byte> key)
         {
             int keySz;
 
@@ -154,7 +154,7 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
         public int HashSz => ctx.HashSz;
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Init(in ReadOnlySpan<byte> key) => ctx.Init(key);
+        public void Init(ReadOnlySpan<byte> key) => ctx.Init(key);
         public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         public void Dispose() => ctx.Dispose();
         public IMac Clone() => ctx.Clone();
@@ -172,7 +172,7 @@ namespace Wheel.Crypto.Hashing.HMAC.SHA2
         public int HashSz => ctx.HashSz;
         public void Digest(Span<byte> hash) => ctx.Digest(hash);
         public void Reset() => ctx.Reset();
-        public void Init(in ReadOnlySpan<byte> key) => ctx.Init(key);
+        public void Init(ReadOnlySpan<byte> key) => ctx.Init(key);
         public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         public void Dispose() => ctx.Dispose();
         public IMac Clone() => ctx.Clone();

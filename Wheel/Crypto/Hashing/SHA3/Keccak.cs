@@ -74,7 +74,7 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
             }
         }
 
-        public void Update(in ReadOnlySpan<byte> input)
+        public void Update(ReadOnlySpan<byte> input)
         {
             // 0...7 -- how much is needed to have a word
             int offset = WriteTail(input);
@@ -109,7 +109,7 @@ namespace Wheel.Crypto.Hashing.SHA3.Internal
             }
         }
 
-        private int WriteTail(in ReadOnlySpan<byte> input)
+        private int WriteTail(ReadOnlySpan<byte> input)
         {
             // 0...7 -- how much is needed to have a word
             int old_tail = (8 - byteIndex) & 7;

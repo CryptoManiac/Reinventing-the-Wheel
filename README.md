@@ -28,7 +28,7 @@ The hash function implementations are derived from the `IHasher` interface which
 public void Reset()
 
 /// Write bytes to hasher state
-public void Update(in ReadOnlySpan<byte> input)
+public void Update(ReadOnlySpan<byte> input)
 
 /// Write hash into provided span or array
 //  Note: This implies the Reset() operation
@@ -46,10 +46,10 @@ The HMAC implementations are derived from `IMac` interface which is defining the
 ```csharp
 /// Initialize or re-initialize hasher with a given key
 ///  Note: It will overwrite any existing state
-public void Init(in ReadOnlySpan<byte> key);
+public void Init(ReadOnlySpan<byte> key);
 
 /// Write bytes to hasher state
-public void Update(in ReadOnlySpan<byte> input);
+public void Update(ReadOnlySpan<byte> input);
 
 /// Reset the hasher to the post-initialized state
 public void Reset();

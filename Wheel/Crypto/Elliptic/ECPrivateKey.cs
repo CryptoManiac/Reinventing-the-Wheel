@@ -55,7 +55,7 @@ namespace Wheel.Crypto.Elliptic
         /// Construct the the new private key instance from the given serialized scalar
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        public ECPrivateKey(ECCurve curve, in ReadOnlySpan<byte> scalar) : this(curve)
+        public ECPrivateKey(ECCurve curve, ReadOnlySpan<byte> scalar) : this(curve)
         {
             if (!Parse(scalar))
             {
@@ -67,7 +67,7 @@ namespace Wheel.Crypto.Elliptic
         /// Construct the the new private key instance from the given serialized scalar
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        public ECPrivateKey(ECCurve curve, in ReadOnlySpan<ulong> native_scalar) : this(curve)
+        public ECPrivateKey(ECCurve curve, ReadOnlySpan<ulong> native_scalar) : this(curve)
         {
             if (!Wrap(native_scalar))
             {
@@ -112,7 +112,7 @@ namespace Wheel.Crypto.Elliptic
         /// </summary>
         /// <param name="native_in"></param>
         /// <returns>True if secret is valid and copying has been successful</returns>
-        public bool Wrap(in ReadOnlySpan<ulong> native_in)
+        public bool Wrap(ReadOnlySpan<ulong> native_in)
         {
             if (native_in.Length != curve.NUM_N_WORDS || VLI_Logic.IsZero(native_in, curve.NUM_N_WORDS) || VLI_Logic.Cmp(curve.n, native_in, curve.NUM_N_WORDS) != 1)
             {
@@ -166,7 +166,7 @@ namespace Wheel.Crypto.Elliptic
         /// </summary>
         /// <param name="private_key">Serialized scalar data</param>
         /// <returns>True if successful</returns>
-        public bool Parse(in ReadOnlySpan<byte> private_key)
+        public bool Parse(ReadOnlySpan<byte> private_key)
         {
             Reset();
 
@@ -258,7 +258,7 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="K">Random secret</param>
         /// <param name="K_shadow">A "shadow" of the random secret</param>
         /// <returns></returns>
-        private readonly bool SignWithK(Span<ulong> r, Span<ulong> s, in ReadOnlySpan<byte> message_hash, in ReadOnlySpan<ulong> K, in ReadOnlySpan<ulong> K_shadow)
+        private readonly bool SignWithK(Span<ulong> r, Span<ulong> s, ReadOnlySpan<byte> message_hash, ReadOnlySpan<ulong> K, ReadOnlySpan<ulong> K_shadow)
         {
             Span<ulong> p = stackalloc ulong[VLI_Common.ECC_MAX_WORDS * 2];
             Span<ulong> tmp = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
@@ -328,7 +328,7 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="s">Will be filled in with the signature value</param>
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <returns></returns>
-        private readonly bool SignDeterministic<HMAC_IMPL>(Span<ulong> r, Span<ulong> s, in ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+        private readonly bool SignDeterministic<HMAC_IMPL>(Span<ulong> r, Span<ulong> s, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
         {
             // Secret K will be written here
             Span<ulong> K = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
@@ -358,7 +358,7 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="signature">Will be filled in with the signature value</param>
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <returns></returns>
-        public readonly bool Sign<HMAC_IMPL>(out DERSignature signature, in ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+        public readonly bool Sign<HMAC_IMPL>(out DERSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
         {
             signature = new(curve);
             return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
@@ -378,7 +378,17 @@ namespace Wheel.Crypto.Elliptic
             return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
         }
 
-        public static void GenerateSecret<HMAC_IMPL>(ECCurve curve, out ECPrivateKey result, in ReadOnlySpan<byte> seed, in ReadOnlySpan<byte> personalization, int sequence, int expand_iterations) where HMAC_IMPL : unmanaged, IMac
+        /// <summary>
+        /// Deterministic derivation of a new private key
+        /// </summary>
+        /// <typeparam name="HMAC_IMPL"></typeparam>
+        /// <param name="curve">ECC implementation to use</param>
+        /// <param name="result">Resulting key to be filled</param>
+        /// <param name="seed">Secret seed</param>
+        /// <param name="personalization">Personalization (to generate the different keys for the same seed)</param>
+        /// <param name="sequence">Key sequence (to generate the different keys for the same seed and personalization bytes array pair)</param>
+        /// <param name="expand_iterations">Number of PBKDF2 iterations for the seed and personalize bytes expansion</param>
+        public static void GenerateSecret<HMAC_IMPL>(ECCurve curve, out ECPrivateKey result, ReadOnlySpan<byte> seed, ReadOnlySpan<byte> personalization, int sequence, int expand_iterations) where HMAC_IMPL : unmanaged, IMac
         {
             // See 3..2 of the RFC 6979 to get what is going on here
             // We're not following it to the letter, but our algorithm is very similar
@@ -489,7 +499,7 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="message_hash"></param>
         /// <param name="entropy"></param>
         /// <param name="sequence"></param>
-        private readonly void GenerateK<HMAC_IMPL>(ref Span<ulong> result, in ReadOnlySpan<byte> message_hash, int sequence) where HMAC_IMPL : unmanaged, IMac
+        private readonly void GenerateK<HMAC_IMPL>(ref Span<ulong> result, ReadOnlySpan<byte> message_hash, int sequence) where HMAC_IMPL : unmanaged, IMac
         {
             // The K value requirements are identical to shose for the secret key.
             // This means that any valis secret key is acceptable to be used as K value.

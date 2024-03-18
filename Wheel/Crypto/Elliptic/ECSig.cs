@@ -76,7 +76,7 @@ namespace Wheel.Crypto.Elliptic
         /// Create instance and parse provided data
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        public DERSignature(ECCurve curve, in ReadOnlySpan<byte> bytes) : this(curve)
+        public DERSignature(ECCurve curve, ReadOnlySpan<byte> bytes) : this(curve)
         {
             if (!Parse(bytes))
             {
@@ -324,7 +324,7 @@ namespace Wheel.Crypto.Elliptic
         /// Create instance and parse provided data
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        public CompactSignature(ECCurve curve, in ReadOnlySpan<byte> bytes) : this(curve)
+        public CompactSignature(ECCurve curve, ReadOnlySpan<byte> bytes) : this(curve)
         {
             if (!Parse(bytes))
             {

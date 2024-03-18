@@ -52,7 +52,7 @@ namespace Wheel.Crypto.Elliptic
         /// Construct the empty key
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        public ECPublicKey(ECCurve curve, in ReadOnlySpan<byte> public_key) : this(curve)
+        public ECPublicKey(ECCurve curve, ReadOnlySpan<byte> public_key) : this(curve)
         {
             if (!Parse(public_key))
             {
@@ -64,7 +64,7 @@ namespace Wheel.Crypto.Elliptic
         /// Construct the key using VLI value
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        public ECPublicKey(ECCurve curve, in ReadOnlySpan<ulong> public_point) : this(curve)
+        public ECPublicKey(ECCurve curve, ReadOnlySpan<ulong> public_point) : this(curve)
         {
             if (!Wrap(public_point))
             {
@@ -111,7 +111,7 @@ namespace Wheel.Crypto.Elliptic
         /// </summary>
         /// <param name="native_in"></param>
         /// <returns>True if point is valid and copying has been successful</returns>
-        public bool Wrap(in ReadOnlySpan<ulong> native_in)
+        public bool Wrap(ReadOnlySpan<ulong> native_in)
         {
             if (!ECCPoint.IsValid(curve, native_in))
             {
@@ -145,7 +145,7 @@ namespace Wheel.Crypto.Elliptic
         /// </summary>
         /// <param name="serialized"></param>
         /// <returns>True if the data is valid and initialization has been successful</returns>
-        public bool Parse(in ReadOnlySpan<byte> public_key)
+        public bool Parse(ReadOnlySpan<byte> public_key)
         {
             Reset();
 
@@ -170,7 +170,7 @@ namespace Wheel.Crypto.Elliptic
             return true;
         }
 
-        public bool Decompress(in ReadOnlySpan<byte> compressed)
+        public bool Decompress(ReadOnlySpan<byte> compressed)
         {
             Reset();
 
@@ -256,7 +256,7 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="result"></param>
         /// <param name="scalar"></param>
         /// <returns></returns>
-        public readonly bool KeyTweak(ref ECPublicKey result, in ReadOnlySpan<byte> scalar)
+        public readonly bool KeyTweak(ref ECPublicKey result, ReadOnlySpan<byte> scalar)
         {
             // Make sure that public key is valid
             if (!IsValid)
@@ -294,7 +294,7 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="public_key"></param>
         /// <param name="message_hash"></param>
         /// <returns></returns>
-        public readonly bool VerifySignature(in ReadOnlySpan<ulong> r, in ReadOnlySpan<ulong> s, in ReadOnlySpan<byte> message_hash)
+        public readonly bool VerifySignature(ReadOnlySpan<ulong> r, ReadOnlySpan<ulong> s, ReadOnlySpan<byte> message_hash)
         {
             Span<ulong> u1 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
             Span<ulong> u2 = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
