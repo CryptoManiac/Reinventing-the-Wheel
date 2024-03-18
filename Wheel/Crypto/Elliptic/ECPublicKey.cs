@@ -390,7 +390,7 @@ namespace Wheel.Crypto.Elliptic
         /// <returns></returns>
         public readonly bool VerifySignature(CompactSignature signature, ReadOnlySpan<byte> message_hash)
         {
-            return VerifySignature(signature.r, signature.s, message_hash);
+            return (curve.name == signature.curve.name) && VerifySignature(signature.r, signature.s, message_hash);
         }
 
         /// <summary>
@@ -403,7 +403,7 @@ namespace Wheel.Crypto.Elliptic
         /// <returns></returns>
         public readonly bool VerifySignature(DERSignature signature, ReadOnlySpan<byte> message_hash)
         {
-            return VerifySignature(signature.r, signature.s, message_hash);
+            return (curve.name == signature.curve.name) && VerifySignature(signature.r, signature.s, message_hash);
         }
     }
 }
