@@ -63,7 +63,7 @@ namespace Wheel.Crypto.Elliptic
         /// <returns>True if point is valid and copying has been successful</returns>
         public readonly bool UnWrap(ref Span<ulong> native_out)
         {
-            if (!IsValid || native_out.Length != curve.NUM_WORDS * 2)
+            if (!IsValid || native_out.Length != curve.NUM_WORDS)
             {
                 return false;
             }
