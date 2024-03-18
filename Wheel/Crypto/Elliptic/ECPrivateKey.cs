@@ -35,7 +35,7 @@ namespace Wheel.Crypto.Elliptic
             {
                 fixed (ulong* ptr = &private_key_data[0])
                 {
-                    secret_x = new(ptr, curve.NUM_BYTES);
+                    secret_x = new(ptr, curve.NUM_WORDS);
                 }
             }
         }
