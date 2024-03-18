@@ -278,7 +278,7 @@ namespace Wheel.Crypto.Elliptic
             // Make sure 0 < k < curve_n 
             if (VLI_Logic.IsZero(k, num_words) || VLI_Logic.Cmp(curve.n, k, num_n_words) != 1)
             {
-                return false;
+                throw new InvalidDataException("The secret k value does not meet the requirements");
             }
 
             carry = ECCUtil.RegularizeK(curve, k, tmp, s);
