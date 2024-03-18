@@ -358,8 +358,9 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="signature">Will be filled in with the signature value</param>
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <returns></returns>
-        public readonly bool Sign<HMAC_IMPL>(ref DERSignature signature, in ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+        public readonly bool Sign<HMAC_IMPL>(out DERSignature signature, in ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
         {
+            signature = new(curve);
             return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
         }
 
@@ -371,8 +372,9 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="signature">Will be filled in with the signature value</param>
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <returns></returns>
-        public readonly bool Sign<HMAC_IMPL>(ref CompactSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+        public readonly bool Sign<HMAC_IMPL>(out CompactSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
         {
+            signature = new(curve);
             return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
         }
 
@@ -491,7 +493,6 @@ namespace Wheel.Crypto.Elliptic
         {
             // The K value requirements are identical to shose for the secret key.
             // This means that any valis secret key is acceptable to be used as K value.
-            ECPrivateKey pk = new(curve);
 
             // We're using our private key as secret seed and the message hash is
             //  being used as the personalization string
@@ -499,7 +500,7 @@ namespace Wheel.Crypto.Elliptic
             Serialize(seed);
 
             // 128 iterations are more than enough for our purposes here
-            GenerateSecret<HMAC_IMPL>(curve, out pk, seed, message_hash, sequence, 128);
+            GenerateSecret<HMAC_IMPL>(curve, out ECPrivateKey pk, seed, message_hash, sequence, 128);
 
             // The generated private key is used as secret K value
             pk.UnWrap(result);

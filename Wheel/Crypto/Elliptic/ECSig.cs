@@ -73,6 +73,18 @@ namespace Wheel.Crypto.Elliptic
         }
 
         /// <summary>
+        /// Create instance and parse provided data
+        /// </summary>
+        /// <param name="curve">ECC implementation</param>
+        public DERSignature(ECCurve curve, in ReadOnlySpan<byte> bytes) : this(curve)
+        {
+            if (!Parse(bytes))
+            {
+                throw new InvalidDataException("Provided DER signature is not valid");
+            }
+        }
+
+        /// <summary>
         /// Write signature data in DER format
         /// </summary>
         /// <param name="encoded"></param>
@@ -306,6 +318,18 @@ namespace Wheel.Crypto.Elliptic
             buffer.Clear();
             r = buffer.Slice(0, curve.NUM_WORDS);
             s = buffer.Slice(curve.NUM_WORDS, curve.NUM_WORDS);
+        }
+
+        /// <summary>
+        /// Create instance and parse provided data
+        /// </summary>
+        /// <param name="curve">ECC implementation</param>
+        public CompactSignature(ECCurve curve, in ReadOnlySpan<byte> bytes) : this(curve)
+        {
+            if (!Parse(bytes))
+            {
+                throw new InvalidDataException("Invalid signature format");
+            }
         }
 
         /// <summary>

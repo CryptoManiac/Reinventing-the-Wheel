@@ -29,9 +29,7 @@ static void SignData<HMAC_IMPL>(Span<byte> signature, ECPrivateKey sk, string me
     Span<byte> message_hash = stackalloc byte[32];
     SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
     
-    DERSignature derSig = new(curve);
-
-    if (!sk.Sign<HMAC_IMPL>(ref derSig, message_hash))
+    if (!sk.Sign<HMAC_IMPL>(out DERSignature derSig, message_hash))
     {
         throw new SystemException("Signing failed");
     }
@@ -46,20 +44,7 @@ static bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOn
 {
     Span<byte> message_hash = stackalloc byte[32];
     SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
-
-    ECPublicKey pk = new(curve);
-    if (!pk.Parse(public_key))
-    {
-        throw new SystemException("Public key parse failed");
-    }
-
-    DERSignature derSig = new(curve);
-    if (!derSig.Parse(signature))
-    {
-        throw new SystemException("Invalid signature format");
-    }
-
-    return pk.VerifySignature(derSig, message_hash);
+    return new ECPublicKey(curve, public_key).VerifySignature(new DERSignature(curve, signature), message_hash);
 }
 
 void CompareSig(string algorithm, Span<byte> signature)
@@ -77,12 +62,9 @@ void CompareSig(string algorithm, Span<byte> signature)
 ECCurve curve = ECCurve.Get_SECP256K1();
 
 // Derive new secret key
-ECPrivateKey secretKey;
-ECPrivateKey.GenerateSecret<HMAC_SHA512>(curve, out secretKey, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), secret_key_number, derive_iterations);
+ECPrivateKey.GenerateSecret<HMAC_SHA512>(curve, out ECPrivateKey secretKey, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), secret_key_number, derive_iterations);
 
-ECPublicKey publicKey = new(curve);
-
-if (!secretKey.ComputePublicKey(out publicKey))
+if (!secretKey.ComputePublicKey(out ECPublicKey publicKey))
 {
     throw new SystemException("Computation of the public key has failed");
 }
