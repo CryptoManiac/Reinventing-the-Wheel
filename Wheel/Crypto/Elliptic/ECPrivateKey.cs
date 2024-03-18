@@ -17,7 +17,7 @@ namespace Wheel.Crypto.Elliptic
         /// <summary>
         /// ECC implementation to use
         /// </summary>
-        private ECCurve curve { get; }
+        public readonly ECCurve curve { get; }
 
         /// <summary>
         /// Access to the private scalar data
