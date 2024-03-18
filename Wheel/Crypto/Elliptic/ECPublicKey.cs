@@ -4,7 +4,7 @@ using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
 
 namespace Wheel.Crypto.Elliptic
 {
-	public ref struct ECPublicKey
+	public struct ECPublicKey
 	{
         /// <summary>
         /// The secret key funcions are using slices that are being made from this hidden array.
@@ -14,12 +14,21 @@ namespace Wheel.Crypto.Elliptic
         /// <summary>
         /// ECC implementation to use
         /// </summary>
-        private ECCurve curve { get; }
+        public readonly ECCurve curve { get; }
 
         /// <summary>
         /// Access to native point data
         /// </summary>
-        private Span<ulong> native_point { get; }
+        private readonly unsafe Span<ulong> native_point
+        {
+            get
+            {
+                fixed (ulong* ptr = &public_key_data[0])
+                {
+                    return new Span<ulong>(ptr, curve.NUM_BYTES * 2);
+                }
+            }
+        }
 
         /// <summary>
         /// Construct the empty key
@@ -28,12 +37,38 @@ namespace Wheel.Crypto.Elliptic
         public ECPublicKey(ECCurve curve)
 		{
             this.curve = curve;
+
+            // Init with zeros
             unsafe
             {
                 fixed (ulong* ptr = &public_key_data[0])
                 {
-                    native_point = new(ptr, curve.NUM_BYTES * 2);
+                    new Span<ulong>(ptr, VLI_Common.ECC_MAX_WORDS * 2).Clear();
                 }
+            }
+        }
+
+        /// <summary>
+        /// Construct the empty key
+        /// </summary>
+        /// <param name="curve">ECC implementation</param>
+        public ECPublicKey(ECCurve curve, in ReadOnlySpan<byte> public_key) : this(curve)
+        {
+            if (!Parse(public_key))
+            {
+                throw new InvalidDataException("Provided public key is not valid");
+            }
+        }
+
+        /// <summary>
+        /// Construct the key using VLI value
+        /// </summary>
+        /// <param name="curve">ECC implementation</param>
+        public ECPublicKey(ECCurve curve, in ReadOnlySpan<ulong> public_point) : this(curve)
+        {
+            if (!Wrap(public_point))
+            {
+                throw new InvalidDataException("Provided public point is not valid");
             }
         }
 
@@ -59,7 +94,7 @@ namespace Wheel.Crypto.Elliptic
         /// </summary>
         /// <param name="native"></param>
         /// <returns>True if point is valid and copying has been successful</returns>
-        public readonly bool UnWrap(ref Span<ulong> native_out)
+        public readonly bool UnWrap(Span<ulong> native_out)
         {
             if (!IsValid || native_out.Length != curve.NUM_WORDS * 2)
             {
@@ -68,6 +103,22 @@ namespace Wheel.Crypto.Elliptic
 
             VLI_Arithmetic.Set(native_out, native_point, curve.NUM_WORDS * 2);
 
+            return true;
+        }
+
+        /// <summary>
+        /// Set native point data to given value
+        /// </summary>
+        /// <param name="native_in"></param>
+        /// <returns>True if point is valid and copying has been successful</returns>
+        public bool Wrap(in ReadOnlySpan<ulong> native_in)
+        {
+            if (!ECCPoint.IsValid(curve, native_in))
+            {
+                return false;
+            }
+
+            VLI_Arithmetic.Set(native_point, native_in, curve.NUM_WORDS * 2);
             return true;
         }
 
@@ -228,16 +279,8 @@ namespace Wheel.Crypto.Elliptic
             // R = A + scalar*G
             ECCPoint.PointAdd(curve, _result, native_point, _s_mul_G);
 
-            // Ensure that new public key is valid as well
-            if (!ECCPoint.IsValid(curve, _result))
-            {
-                return false;
-            }
-
-            // Copy calculated key
-            VLI_Arithmetic.Set(result.native_point, _result, curve.NUM_BYTES * 2);
-
-            return true;
+            // Try to wrap the resulting point data
+            return result.Wrap(_result);
         }
 
         /// <summary>

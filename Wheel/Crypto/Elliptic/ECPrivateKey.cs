@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using Wheel.Crypto.Elliptic.Internal;
 using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
+using Wheel.Crypto.Hashing.Derivation;
 using Wheel.Crypto.Hashing.HMAC;
 
 namespace Wheel.Crypto.Elliptic
@@ -51,6 +52,30 @@ namespace Wheel.Crypto.Elliptic
         }
 
         /// <summary>
+        /// Construct the the new private key instance from the given serialized scalar
+        /// </summary>
+        /// <param name="curve">ECC implementation</param>
+        public ECPrivateKey(ECCurve curve, in ReadOnlySpan<byte> scalar) : this(curve)
+        {
+            if (!Parse(scalar))
+            {
+                throw new InvalidDataException("Provided scalar is not valid");
+            }
+        }
+
+        /// <summary>
+        /// Construct the the new private key instance from the given serialized scalar
+        /// </summary>
+        /// <param name="curve">ECC implementation</param>
+        public ECPrivateKey(ECCurve curve, in ReadOnlySpan<ulong> native_scalar) : this(curve)
+        {
+            if (!Wrap(native_scalar))
+            {
+                throw new InvalidDataException("Provided native scalar is not valid");
+            }
+        }
+
+        /// <summary>
         /// Does this instance contain a valid key or not
         /// </summary>
         public unsafe readonly bool IsValid
@@ -71,7 +96,7 @@ namespace Wheel.Crypto.Elliptic
         /// </summary>
         /// <param name="native"></param>
         /// <returns>True if point is valid and copying has been successful</returns>
-        public readonly bool UnWrap(ref Span<ulong> native_out)
+        public readonly bool UnWrap(Span<ulong> native_out)
         {
             if (!IsValid || native_out.Length != curve.NUM_WORDS)
             {
@@ -79,6 +104,22 @@ namespace Wheel.Crypto.Elliptic
             }
 
             secret_x.CopyTo(native_out);
+            return true;
+        }
+
+        /// <summary>
+        /// Set native secret data to given value
+        /// </summary>
+        /// <param name="native_in"></param>
+        /// <returns>True if secret is valid and copying has been successful</returns>
+        public bool Wrap(in ReadOnlySpan<ulong> native_in)
+        {
+            if (native_in.Length != curve.NUM_N_WORDS || VLI_Logic.IsZero(native_in, curve.NUM_N_WORDS) || VLI_Logic.Cmp(curve.n, native_in, curve.NUM_N_WORDS) != 1)
+            {
+                return false;
+            }
+
+            VLI_Arithmetic.Set(secret_x, native_in, curve.NUM_N_WORDS);
             return true;
         }
 
@@ -149,8 +190,10 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="public_key">Will be filled in with the corresponding public key</param>
         /// <param name="private_key"> The private key to compute the public key for</param>
         /// <returns>True if the key was computed successfully, False if an error occurred.</returns>
-        public readonly bool ComputePublicKey(ref ECPublicKey public_key)
+        public readonly bool ComputePublicKey(out ECPublicKey public_key)
         {
+            public_key = new(curve);
+
             if (!IsValid)
             {
                 return false;
@@ -164,14 +207,7 @@ namespace Wheel.Crypto.Elliptic
                 return false;
             }
 
-            unsafe
-            {
-                fixed(ulong* ptr = &public_key.public_key_data[0])
-                {
-                    Span<ulong> native_target_point = new(ptr, curve.NUM_WORDS * 2);
-                    VLI_Arithmetic.Set(native_target_point, _public, curve.NUM_WORDS * 2);
-                }
-            }
+            public_key.Wrap(_public);
 
             return true;
         }
@@ -182,7 +218,7 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="result"></param>
         /// <param name="scalar"></param>
         /// <returns></returns>
-        public readonly bool KeyTweak(ECCurve curve, ref ECPrivateKey result, ReadOnlySpan<byte> scalar)
+        public readonly bool KeyTweak(ref ECPrivateKey result, ReadOnlySpan<byte> scalar)
         {
             if (!IsValid)
             {
@@ -209,22 +245,8 @@ namespace Wheel.Crypto.Elliptic
             //   r = (a + scalar) % n
             VLI_Arithmetic.ModAdd(_result, secret_x, _scalar, curve.n, curve.NUM_N_WORDS);
 
-
-            // Check again that the new private key is in the range [1, n-1].
-            if (VLI_Logic.IsZero(_result, curve.NUM_N_WORDS))
-            {
-                return false;
-            }
-
-            if (VLI_Logic.Cmp(curve.n, _result, curve.NUM_N_WORDS) != 1)
-            {
-                return false;
-            }
-
-            // Copy resulting key data
-            _result.CopyTo(result.secret_x);
-
-            return true;
+            // Try to wrap the resulting key data
+            return result.Wrap(_result);
         }
 
         /// <summary>
@@ -232,7 +254,6 @@ namespace Wheel.Crypto.Elliptic
         /// </summary>
         /// <param name="r">Will be filled in with the signature value</param>
         /// <param name="s">Will be filled in with the signature value</param>
-        /// <param name="private_key">Your private key</param>
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <param name="K">Random secret</param>
         /// <param name="K_shadow">A "shadow" of the random secret</param>
@@ -306,19 +327,18 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="r">Will be filled in with the signature value</param>
         /// <param name="s">Will be filled in with the signature value</param>
         /// <param name="message_hash">The hash of the message to sign</param>
-        /// <param name="entropy">Additional entropy for K generation</param>
         /// <returns></returns>
-        private readonly bool SignDeterministic<HMAC_IMPL>(Span<ulong> r, Span<ulong> s, in ReadOnlySpan<byte> message_hash, in ReadOnlySpan<byte> entropy) where HMAC_IMPL : unmanaged, IMac
+        private readonly bool SignDeterministic<HMAC_IMPL>(Span<ulong> r, Span<ulong> s, in ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
         {
             // Secret K will be written here
             Span<ulong> K = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
             Span<ulong> K_shadow = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
 
             // Will retry until succeed
-            for (long i = 1; i != long.MaxValue; ++i)
+            for (int i = 1; i != int.MaxValue; ++i)
             {
-                GenerateK<HMAC_IMPL>(ref K, message_hash, entropy, i);
-                GenerateK<HMAC_IMPL>(ref K_shadow, message_hash, entropy, -i);
+                GenerateK<HMAC_IMPL>(ref K, message_hash, i);
+                GenerateK<HMAC_IMPL>(ref K_shadow, message_hash, -i);
 
                 // Try to sign
                 if (SignWithK(r, s, message_hash, K, K_shadow))
@@ -337,11 +357,10 @@ namespace Wheel.Crypto.Elliptic
         /// </summary>
         /// <param name="signature">Will be filled in with the signature value</param>
         /// <param name="message_hash">The hash of the message to sign</param>
-        /// <param name="entropy">Additional entropy for K generation</param>
         /// <returns></returns>
-        public readonly bool Sign<HMAC_IMPL>(ref DERSignature signature, in ReadOnlySpan<byte> message_hash, in ReadOnlySpan<byte> entropy) where HMAC_IMPL : unmanaged, IMac
+        public readonly bool Sign<HMAC_IMPL>(ref DERSignature signature, in ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
         {
-            return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash, entropy);
+            return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
         }
 
         /// <summary>
@@ -351,37 +370,31 @@ namespace Wheel.Crypto.Elliptic
         /// </summary>
         /// <param name="signature">Will be filled in with the signature value</param>
         /// <param name="message_hash">The hash of the message to sign</param>
-        /// <param name="entropy">Additional entropy for K generation</param>
         /// <returns></returns>
-        public readonly bool Sign<HMAC_IMPL>(ref CompactSignature signature, ReadOnlySpan<byte> message_hash, ReadOnlySpan<byte> entropy) where HMAC_IMPL : unmanaged, IMac
+        public readonly bool Sign<HMAC_IMPL>(ref CompactSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
         {
-            return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash, entropy);
+            return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
         }
 
-        /// <summary>
-        /// Generate deterministic K value for signing
-        /// </summary>
-        /// <param name="result"></param>
-        /// <param name="message_hash"></param>
-        /// <param name="entropy"></param>
-        /// <param name="sequence"></param>
-        private readonly void GenerateK<HMAC_IMPL>(ref Span<ulong> result, in ReadOnlySpan<byte> message_hash, in ReadOnlySpan<byte> entropy, long sequence) where HMAC_IMPL : unmanaged, IMac
+        public static void GenerateSecret<HMAC_IMPL>(ECCurve curve, out ECPrivateKey result, in ReadOnlySpan<byte> seed, in ReadOnlySpan<byte> personalization, int sequence, int expand_iterations) where HMAC_IMPL : unmanaged, IMac
         {
             // See 3..2 of the RFC 6979 to get what is going on here
             // We're not following it to the letter, but our algorithm is very similar
 
             HMAC_IMPL hmac = new();
-            Span<byte> secret_scalar = stackalloc byte[curve.NUM_N_BYTES];
             Span<byte> separator_00 = stackalloc byte[1] { 0x00 };
             Span<byte> separator_01 = stackalloc byte[1] { 0x01 };
-            Span<byte> sequence_data = stackalloc byte[sizeof(long)];
-            Span<byte> secret_data = MemoryMarshal.Cast<ulong, byte>(result);
 
-            // Serialize secret key into big endian for hashing
-            VLI_Conversion.NativeToBytes(secret_scalar, curve.NUM_N_BYTES, secret_x);
+            Span<byte> sequence_data = stackalloc byte[sizeof(int)];
+            Span<byte> expanded_seed = stackalloc byte[hmac.HashSz];
+            Span<byte> expanded_personalization = stackalloc byte[hmac.HashSz];
 
             // Convert sequence to bytes
-            MemoryMarshal.Cast<byte, long>(sequence_data)[0] = sequence;
+            MemoryMarshal.Cast<byte, int>(sequence_data)[0] = sequence;
+
+            // Expand the secret seed and personalization string bytes
+            PBKDF2.Derive<HMAC_IMPL>(expanded_seed, seed, sequence_data, expand_iterations);
+            PBKDF2.Derive<HMAC_IMPL>(expanded_personalization, sequence_data, seed, expand_iterations);
 
             // Allocate buffer for HMAC results
             Span<byte> K = stackalloc byte[hmac.HashSz];
@@ -394,15 +407,12 @@ namespace Wheel.Crypto.Elliptic
             V.Fill(0x01); // V = 01 01 01 ..
 
             // D
-            hmac.Init(K); // K = HMAC_K(V || 00 || entropy || 00 || sequence || 00 || secret_scalar || message_hash)
+            hmac.Init(K); // K = HMAC_K(V || 00 || expanded_seed || 00 || expanded_personalization)
             hmac.Update(V);
             hmac.Update(separator_00);
-            hmac.Update(entropy);
+            hmac.Update(expanded_seed);
             hmac.Update(separator_00);
-            hmac.Update(sequence_data);
-            hmac.Update(separator_00);
-            hmac.Update(secret_scalar);
-            hmac.Update(message_hash);
+            hmac.Update(expanded_personalization);
             hmac.Digest(K);
 
             // E
@@ -411,15 +421,12 @@ namespace Wheel.Crypto.Elliptic
             hmac.Digest(V);
 
             // F
-            hmac.Init(K); // K = HMAC_K(V || 01 || entropy || 01 || sequence || 01 || secret_scalar || message_hash)
+            hmac.Init(K); // K = HMAC_K(V || 01 || expanded_seed || 01 || expanded_personalization)
             hmac.Update(V);
             hmac.Update(separator_01);
-            hmac.Update(entropy);
+            hmac.Update(expanded_seed);
             hmac.Update(separator_01);
-            hmac.Update(sequence_data);
-            hmac.Update(separator_01);
-            hmac.Update(secret_scalar);
-            hmac.Update(message_hash);
+            hmac.Update(expanded_personalization);
             hmac.Digest(K);
 
             // G
@@ -429,6 +436,8 @@ namespace Wheel.Crypto.Elliptic
 
             // H
             int secret_byte_index = 0;
+            Span<byte> secret_data = stackalloc byte[curve.NUM_N_BYTES];
+
             while (true)
             {
                 // H2
@@ -446,6 +455,7 @@ namespace Wheel.Crypto.Elliptic
                 {
                     if (IsValidPrivateKey(secret_data, curve))
                     {
+                        result = new ECPrivateKey(curve, secret_data);
                         return;
                     }
 
@@ -456,18 +466,43 @@ namespace Wheel.Crypto.Elliptic
                 }
 
                 // H3
-                hmac.Init(K);  // K = HMAC_K(V || 00 || entropy || 00 || sequence)
+                hmac.Init(K);  // K = HMAC_K(V || 00 || expanded_seed || 00 || expanded_personalization)
                 hmac.Update(V);
                 hmac.Update(separator_00);
-                hmac.Update(entropy);
+                hmac.Update(expanded_seed);
                 hmac.Update(separator_00);
-                hmac.Update(sequence_data);
+                hmac.Update(expanded_personalization);
                 hmac.Digest(K);
 
                 hmac.Init(K); // V = HMAC_K(V)
                 hmac.Update(V);
                 hmac.Digest(V);
             }
+        }
+
+        /// <summary>
+        /// Generate deterministic K value for signing
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="message_hash"></param>
+        /// <param name="entropy"></param>
+        /// <param name="sequence"></param>
+        private readonly void GenerateK<HMAC_IMPL>(ref Span<ulong> result, in ReadOnlySpan<byte> message_hash, int sequence) where HMAC_IMPL : unmanaged, IMac
+        {
+            // The K value requirements are identical to shose for the secret key.
+            // This means that any valis secret key is acceptable to be used as K value.
+            ECPrivateKey pk = new(curve);
+
+            // We're using our private key as secret seed and the message hash is
+            //  being used as the personalization string
+            Span<byte> seed = stackalloc byte[curve.NUM_N_BYTES];
+            Serialize(seed);
+
+            // 128 iterations are more than enough for our purposes here
+            GenerateSecret<HMAC_IMPL>(curve, out pk, seed, message_hash, sequence, 128);
+
+            // The generated private key is used as secret K value
+            pk.UnWrap(result);
         }
     }
 }

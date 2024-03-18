@@ -11,7 +11,6 @@ namespace Wheel.Crypto.Hashing.Derivation
 		/// Derive new key using provided HMAC function
 		/// </summary>
 		/// <param name="key">Span where generated private key will be written. Its length is used by algorithm as key length parameter.</param>
-		/// <param name="mac">Function which should return HMAC instance after getting called with byte array as an argument</param>
 		/// <param name="password"></param>
 		/// <param name="salt"></param>
 		/// <param name="c">Number of hashing iterations</param>
@@ -19,11 +18,22 @@ namespace Wheel.Crypto.Hashing.Derivation
 		{
             byte[] password_bytes = Encoding.ASCII.GetBytes(password);
             byte[] salt_bytes = Encoding.ASCII.GetBytes(salt);
+            Derive<MAC_IMPL>(key, password_bytes, salt_bytes, c);
+        }
 
+        /// <summary>
+		/// Derive new key using provided HMAC function
+		/// </summary>
+		/// <param name="key">Span where generated private key will be written. Its length is used by algorithm as key length parameter.</param>
+		/// <param name="password_bytes"></param>
+		/// <param name="salt_bytes"></param>
+		/// <param name="c">Number of hashing iterations</param>
+		public static void Derive<MAC_IMPL>(Span<byte> key, ReadOnlySpan<byte> password_bytes, ReadOnlySpan<byte> salt_bytes, int c) where MAC_IMPL : struct, IMac
+        {
             /* Compute HMAC state after processing P and S. */
             MAC_IMPL PShctx = new();
             PShctx.Init(password_bytes);
-			PShctx.Update(salt_bytes);
+            PShctx.Update(salt_bytes);
 
             int HashSz = PShctx.HashSz;
             Span<byte> U = stackalloc byte[HashSz];
@@ -32,7 +42,7 @@ namespace Wheel.Crypto.Hashing.Derivation
 
             /* Iterate through the blocks. */
             for (int i = 0; i * HashSz < key.Length; ++i)
-			{
+            {
                 /* Generate INT(i + 1). */
                 be32enc(ivec, i + 1);
 

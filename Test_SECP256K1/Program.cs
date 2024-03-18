@@ -5,26 +5,33 @@ using Wheel.Crypto.Hashing.HMAC.SHA2;
 using Wheel.Crypto.Hashing.SHA.SHA256;
 
 string message = "aaa";
-string private_key_hex = "80eaba734c283aba9f2f8a96e1152c97aa8357357e83b1f91b60dc987c486bcb"; // Pub: 041c5091d939a42d67c2b4f7bd44cceb2159e5b192df22527baf1ae83bbf8191b30e6fe36f426369054e1a06b571230f4af589d7e30a20b8f2cb3ea4ee96493dc6
+
+// Should give these results:
+// SECP256K1 private key: 2618BB1DA0D193FE955B981F3D84922BA6D277C06C19FB4E32607AB46D68E643
+// SECP256K1 public key: 046EB792F5CB23479D08AC708EE4DF0C7606E80052F6C4FC7178D9127AD7B81C90C56F7B8AEE29A86CCF5DC91A44CF649E4C379999043738ADC410309800537AB9
+// SECP256K1 compressed public key: 036EB792F5CB23479D08AC708EE4DF0C7606E80052F6C4FC7178D9127AD7B81C90
+string secret_seed = "The quick brown fox jumps over the lazy dog";
+string personalization = "For signing tests";
+int secret_key_number = 0;
+int derive_iterations = 2048;
 
 // Must be valid, check here: http://kjur.github.io/jsrsasign/sample/sample-ecdsa.html (select secp256k1 curve and SHA256withECDSA algorithm)
 SortedDictionary<string, string> vectors = new()
 {
-    {  "HMAC_SHA224", "3044022060D8CCF762053A529310A8C0545FA6F1F0161BD3AE5E72BAB86E934C58866F490220CA56EFB8D9038F8172EC9624CCFA47568AAF46A69F1F955FF92F6F411B0FAB02"},
-    {  "HMAC_SHA256", "30440220C3C0AA9060E9F6598B1D0CE49445A50924CF159D074BCADAB9EA8D5784D9EE1302204E1B7E0AE57A7A72B454B44E5F54792849F63EB97DF8A14329BCA0A31F920B97"},
-    {  "HMAC_SHA512", "304402200A71911B43549345D71BEFEA8666ECE38BDD5C22E3597E06F5239CB22B9011100220DF803647D9753E0009DC27D594B15EDDB75C1B980011CABCE7AB66FE22F1D684"},
+    {  "HMAC_SHA224", "30440220D2A5AD3915BFB2800EE48D1FBFA01F9A0283F3D9C3378D5FFFEBE3A33EE7377D0220F44ED44A537E9F96250D89C6201343FC03A5F73A9104B5D39868D5B298777B2D"},
+    {  "HMAC_SHA256", "30440220B4CA2939A13C2C2DCCD3A109CDC803693C988B5AFCB1A9283F97E382F12B04F50220239FA5E16AE0EEC0CA028938155348234582576F06F259810166BBE5D926BD3C"},
+    {  "HMAC_SHA512", "3044022096D0CFCB991C2FB819DB7307FEB73156B8BD24EC5DF9C174CD455AA19354C83D0220DA98C310BA0D163210CCB8EC17B9BCDDFA5AEA974A84C727A7AB2AB5056A5742"},
 };
 
 static void SignData<HMAC_IMPL>(Span<byte> signature, ECPrivateKey sk, string message, ECCurve curve) where HMAC_IMPL : unmanaged, IMac
 {
     // Empty for tests
-    Span<byte> additional_entropy = stackalloc byte[0];
     Span<byte> message_hash = stackalloc byte[32];
     SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
     
     DERSignature derSig = new(curve);
 
-    if (!sk.Sign<HMAC_IMPL>(ref derSig, message_hash, additional_entropy))
+    if (!sk.Sign<HMAC_IMPL>(ref derSig, message_hash))
     {
         throw new SystemException("Signing failed");
     }
@@ -69,45 +76,46 @@ void CompareSig(string algorithm, Span<byte> signature)
 
 ECCurve curve = ECCurve.Get_SECP256K1();
 
-Console.WriteLine("SECP256K1 private key: {0}", private_key_hex);
-Console.WriteLine("Message to sign: {0}", message);
+// Derive new secret key
+ECPrivateKey secretKey;
+ECPrivateKey.GenerateSecret<HMAC_SHA512>(curve, out secretKey, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), secret_key_number, derive_iterations);
 
-byte[] private_bytes = Convert.FromHexString(private_key_hex);
+ECPublicKey publicKey = new(curve);
 
-ECPrivateKey sk = new(curve);
-if (!sk.Parse(private_bytes))
-{
-    throw new SystemException("Private key parse failed");
-}
-
-Span<byte> public_key_uncompressed = stackalloc byte[64];
-Span<byte> public_key_compressed = stackalloc byte[33];
-
-ECPublicKey pk = new(curve);
-if (!sk.ComputePublicKey(ref pk))
+if (!secretKey.ComputePublicKey(out publicKey))
 {
     throw new SystemException("Computation of the public key has failed");
 }
 
-if (!pk.Compress(public_key_compressed))
+Span<byte> secret_key = stackalloc byte[32];
+Span<byte> public_key_uncompressed = stackalloc byte[64];
+Span<byte> public_key_compressed = stackalloc byte[33];
+
+if (!secretKey.Serialize(secret_key))
+{
+    throw new SystemException("Serialization of the secret key has failed");
+}
+
+if (!publicKey.Compress(public_key_compressed))
 {
     throw new SystemException("Compression of the public key has failed");
 }
 
-if (!pk.Serialize(public_key_uncompressed))
+if (!publicKey.Serialize(public_key_uncompressed))
 {
     throw new SystemException("Serialization of the public key has failed");
 }
 
+Console.WriteLine("SECP256K1 private key: {0}", Convert.ToHexString(secret_key));
 Console.WriteLine("SECP256K1 public key: 04{0}", Convert.ToHexString(public_key_uncompressed));
 Console.WriteLine("SECP256K1 compressed public key: {0}", Convert.ToHexString(public_key_compressed));
-
+Console.WriteLine("Message to sign: {0}", message);
 
 Span<byte> signature = stackalloc byte[70];
 
 Console.WriteLine("Generated SECP256K1 signatures:");
 
-SignData<HMAC_SHA224>(signature, sk, message, curve);
+SignData<HMAC_SHA224>(signature, secretKey, message, curve);
 
 if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 {
@@ -116,7 +124,7 @@ if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 
 CompareSig("HMAC_SHA224", signature);
 
-SignData<HMAC_SHA256>(signature, sk, message, curve);
+SignData<HMAC_SHA256>(signature, secretKey, message, curve);
 if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 {
     throw new SystemException("Signature verification failure");
@@ -125,7 +133,7 @@ if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 CompareSig("HMAC_SHA256", signature);
 
 
-SignData<HMAC_SHA512>(signature, sk, message, curve);
+SignData<HMAC_SHA512>(signature, secretKey, message, curve);
 
 if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 {

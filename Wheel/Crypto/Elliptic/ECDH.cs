@@ -29,7 +29,7 @@ namespace Wheel.Crypto.Elliptic
             int num_bytes = curve.NUM_BYTES;
 
             // Doesn't make any sense to use invalid keys
-            if (!public_key.UnWrap(ref _public) || !private_key.UnWrap(ref _private) || secret.Length != num_bytes)
+            if (!public_key.UnWrap(_public) || !private_key.UnWrap(_private) || secret.Length != num_bytes)
             {
                 return false;
             }
