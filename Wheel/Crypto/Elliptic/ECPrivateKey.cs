@@ -21,7 +21,7 @@ namespace Wheel.Crypto.Elliptic
         /// <summary>
         /// Access to the private scalar data
         /// </summary>
-        private unsafe Span<ulong> secret_x
+        private readonly unsafe Span<ulong> secret_x
         {
             get
             {
