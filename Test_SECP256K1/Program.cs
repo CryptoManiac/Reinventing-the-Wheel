@@ -24,7 +24,7 @@ static void SignData<HMAC_IMPL>(Span<byte> signature, ECPrivateKey sk, string me
     
     DERSignature derSig = new(curve);
 
-    if (!sk.Sign<HMAC_IMPL>(derSig, message_hash, additional_entropy))
+    if (!sk.Sign<HMAC_IMPL>(ref derSig, message_hash, additional_entropy))
     {
         throw new SystemException("Signing failed");
     }

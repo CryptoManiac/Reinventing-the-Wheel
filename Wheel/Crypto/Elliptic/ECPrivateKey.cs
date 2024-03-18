@@ -6,7 +6,7 @@ using Wheel.Crypto.Hashing.HMAC;
 
 namespace Wheel.Crypto.Elliptic
 {
-	public ref struct ECPrivateKey
+	public struct ECPrivateKey
 	{
         /// <summary>
         /// The secret key funcions are using slices that are being made from this hidden array.
@@ -21,7 +21,16 @@ namespace Wheel.Crypto.Elliptic
         /// <summary>
         /// Access to the private scalar data
         /// </summary>
-        private Span<ulong> secret_x { get; }
+        private unsafe Span<ulong> secret_x
+        {
+            get
+            {
+                fixed (ulong* ptr = &private_key_data[0])
+                {
+                    return new Span<ulong>(ptr, curve.NUM_WORDS);
+                }
+            }
+        }
 
         /// <summary>
         /// Construct the empty key
@@ -31,11 +40,12 @@ namespace Wheel.Crypto.Elliptic
 		{
             this.curve = curve;
 
+            // Init with zeros
             unsafe
             {
                 fixed (ulong* ptr = &private_key_data[0])
                 {
-                    secret_x = new(ptr, curve.NUM_WORDS);
+                    new Span<ulong>(ptr, VLI_Common.ECC_MAX_WORDS).Clear();
                 }
             }
         }
@@ -330,7 +340,7 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <param name="entropy">Additional entropy for K generation</param>
         /// <returns></returns>
-        public readonly bool Sign<HMAC_IMPL>(DERSignature signature, in ReadOnlySpan<byte> message_hash, in ReadOnlySpan<byte> entropy) where HMAC_IMPL : unmanaged, IMac
+        public readonly bool Sign<HMAC_IMPL>(ref DERSignature signature, in ReadOnlySpan<byte> message_hash, in ReadOnlySpan<byte> entropy) where HMAC_IMPL : unmanaged, IMac
         {
             return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash, entropy);
         }
@@ -345,7 +355,7 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <param name="entropy">Additional entropy for K generation</param>
         /// <returns></returns>
-        public readonly bool Sign<HMAC_IMPL>(CompactSignature signature, ReadOnlySpan<byte> message_hash, ReadOnlySpan<byte> entropy) where HMAC_IMPL : unmanaged, IMac
+        public readonly bool Sign<HMAC_IMPL>(ref CompactSignature signature, ReadOnlySpan<byte> message_hash, ReadOnlySpan<byte> entropy) where HMAC_IMPL : unmanaged, IMac
         {
             return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash, entropy);
         }
