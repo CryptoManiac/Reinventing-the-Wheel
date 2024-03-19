@@ -25,7 +25,7 @@ namespace Wheel.Crypto.Elliptic
             {
                 fixed (ulong* ptr = &public_key_data[0])
                 {
-                    return new Span<ulong>(ptr, curve.NUM_BYTES * 2);
+                    return new Span<ulong>(ptr, curve.NUM_WORDS * 2);
                 }
             }
         }
