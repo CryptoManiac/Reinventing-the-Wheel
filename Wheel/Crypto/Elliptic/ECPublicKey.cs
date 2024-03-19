@@ -86,7 +86,7 @@ namespace Wheel.Crypto.Elliptic
         public unsafe void Reset()
         {
             // Erase current data
-            VLI_Arithmetic.Clear(native_point, curve.NUM_WORDS);
+            VLI_Arithmetic.Clear(native_point, curve.NUM_WORDS * 2);
         }
 
         /// <summary>
@@ -113,6 +113,11 @@ namespace Wheel.Crypto.Elliptic
         /// <returns>True if point is valid and copying has been successful</returns>
         public bool Wrap(ReadOnlySpan<ulong> native_in)
         {
+            if (native_in.Length != curve.NUM_WORDS * 2)
+            {
+                return false;
+            }
+
             if (!ECCPoint.IsValid(curve, native_in))
             {
                 return false;
@@ -123,7 +128,7 @@ namespace Wheel.Crypto.Elliptic
         }
 
         /// <summary>
-        /// Check to see if a serialized public key is valid.
+        /// Check to see if a serialized or compressed public key is valid.
         /// Note that you are not required to check for a valid public key before using any other 
         /// functions. However, you may wish to avoid spending CPU time computing a shared secret or
         /// verifying a signature using an invalid public key.
@@ -132,12 +137,8 @@ namespace Wheel.Crypto.Elliptic
         /// <returns>True if key is valid</returns>
         public static bool IsValidPublicKey(ECCurve curve, ReadOnlySpan<byte> public_key)
         {
-            Span<ulong> native_point = stackalloc ulong[2 * VLI_Common.ECC_MAX_WORDS];
-
-            VLI_Conversion.BytesToNative(native_point, public_key, curve.NUM_BYTES);
-            VLI_Conversion.BytesToNative(native_point.Slice(curve.NUM_WORDS), public_key.Slice(curve.NUM_BYTES), curve.NUM_BYTES);
-
-            return ECCPoint.IsValid(curve, native_point);
+            ECPublicKey pk = new(curve);
+            return pk.Parse(public_key) || pk.Decompress(public_key);
         }
 
         /// <summary>
@@ -145,29 +146,19 @@ namespace Wheel.Crypto.Elliptic
         /// </summary>
         /// <param name="serialized"></param>
         /// <returns>True if the data is valid and initialization has been successful</returns>
-        public bool Parse(ReadOnlySpan<byte> public_key)
+        public bool Parse(ReadOnlySpan<byte> serialized)
         {
             Reset();
 
-            if (public_key.Length != 2 * curve.NUM_BYTES)
+            if (serialized.Length != 2 * curve.NUM_BYTES)
             {
                 return false;
             }
 
             Span<ulong> _public = stackalloc ulong[VLI_Common.ECC_MAX_WORDS * 2];
-            VLI_Conversion.BytesToNative(_public, public_key, curve.NUM_BYTES);
-            VLI_Conversion.BytesToNative(_public.Slice(curve.NUM_WORDS), public_key.Slice(curve.NUM_BYTES), curve.NUM_BYTES);
-
-            // Make sure that the decoded public key is valid
-            if (!ECCPoint.IsValid(curve, _public))
-            {
-                return false;
-            }
-
-            // Set new public key
-            VLI_Arithmetic.Set(native_point, _public, curve.NUM_WORDS * 2);
-
-            return true;
+            VLI_Conversion.BytesToNative(_public, serialized, curve.NUM_BYTES);
+            VLI_Conversion.BytesToNative(_public.Slice(curve.NUM_WORDS), serialized.Slice(curve.NUM_BYTES), curve.NUM_BYTES);
+            return Wrap(_public);
         }
 
         public bool Decompress(ReadOnlySpan<byte> compressed)
@@ -191,16 +182,7 @@ namespace Wheel.Crypto.Elliptic
                 VLI_Arithmetic.Sub(y, curve.p, y, curve.NUM_WORDS);
             }
 
-            // Make sure that the decoded public key is valid
-            if (!ECCPoint.IsValid(curve, point))
-            {
-                return false;
-            }
-
-            // Set new public key
-            VLI_Arithmetic.Set(native_point, point, curve.NUM_WORDS * 2);
-
-            return true;
+            return Wrap(point);
         }
 
         /// <summary>
@@ -224,7 +206,7 @@ namespace Wheel.Crypto.Elliptic
         /// <summary>
         /// Serialize the native key into a compressed point
         /// </summary>
-        /// <param name="serialized"></param>
+        /// <param name="compressed"></param>
         /// <returns>True if successful and this key is valid</returns>
         public readonly bool Compress(Span<byte> compressed)
         {
@@ -256,8 +238,10 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="result"></param>
         /// <param name="scalar"></param>
         /// <returns></returns>
-        public readonly bool KeyTweak(ref ECPublicKey result, ReadOnlySpan<byte> scalar)
+        public readonly bool KeyTweak(out ECPublicKey result, ReadOnlySpan<byte> scalar)
         {
+            result = new(curve);
+
             // Make sure that public key is valid
             if (!IsValid)
             {

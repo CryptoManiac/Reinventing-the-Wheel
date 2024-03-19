@@ -7,7 +7,7 @@ using Wheel.Crypto.Hashing.HMAC;
 
 namespace Wheel.Crypto.Elliptic
 {
-	public struct ECPrivateKey
+	public struct ECPrivateKey : IDisposable
 	{
         /// <summary>
         /// The secret key funcions are using slices that are being made from this hidden array.
@@ -114,7 +114,13 @@ namespace Wheel.Crypto.Elliptic
         /// <returns>True if secret is valid and copying has been successful</returns>
         public bool Wrap(ReadOnlySpan<ulong> native_in)
         {
-            if (native_in.Length != curve.NUM_N_WORDS || VLI_Logic.IsZero(native_in, curve.NUM_N_WORDS) || VLI_Logic.Cmp(curve.n, native_in, curve.NUM_N_WORDS) != 1)
+            if (native_in.Length != curve.NUM_N_WORDS)
+            {
+                return false;
+            }
+
+            // Make sure the private key is in the range [1, n-1].
+            if (VLI_Logic.IsZero(native_in, curve.NUM_N_WORDS) || VLI_Logic.Cmp(curve.n, native_in, curve.NUM_N_WORDS) != 1)
             {
                 return false;
             }
@@ -131,17 +137,8 @@ namespace Wheel.Crypto.Elliptic
         /// <returns>True if the private key is valid.</returns>
         public static bool IsValidPrivateKey(ReadOnlySpan<byte> private_key, ECCurve curve)
         {
-            Span<ulong> native_key = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
-
-            VLI_Conversion.BytesToNative(native_key, private_key, curve.NUM_N_BYTES);
-
-            /* Make sure the private key is in the range [1, n-1]. */
-            if (VLI_Logic.IsZero(native_key, curve.NUM_N_WORDS))
-            {
-                return false;
-            }
-
-            return VLI_Logic.Cmp(curve.n, native_key, curve.NUM_N_WORDS) == 1;
+            ECPrivateKey pk = new(curve);
+            return pk.Parse(private_key);
         }
 
         /// <summary>
@@ -169,19 +166,9 @@ namespace Wheel.Crypto.Elliptic
         public bool Parse(ReadOnlySpan<byte> private_key)
         {
             Reset();
-
             Span<ulong> native_key = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
-
             VLI_Conversion.BytesToNative(native_key, private_key, curve.NUM_N_BYTES);
-
-            // Make sure the private key is in the range [1, n-1].
-            if (VLI_Logic.IsZero(native_key, curve.NUM_N_WORDS) || VLI_Logic.Cmp(curve.n, native_key, curve.NUM_N_WORDS) != 1)
-            {
-                return false;
-            }
-
-            VLI_Arithmetic.Set(secret_x, native_key, curve.NUM_WORDS);
-            return true;
+            return Wrap(native_key);
         }
 
         /// <summary>
@@ -207,9 +194,7 @@ namespace Wheel.Crypto.Elliptic
                 return false;
             }
 
-            public_key.Wrap(_public);
-
-            return true;
+            return public_key.Wrap(_public);
         }
 
         /// <summary>
@@ -514,6 +499,11 @@ namespace Wheel.Crypto.Elliptic
 
             // The generated private key is used as secret K value
             pk.UnWrap(result);
+        }
+
+        public void Dispose()
+        {
+            secret_x.Clear();
         }
     }
 }
