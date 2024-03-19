@@ -279,12 +279,30 @@ namespace Wheel.Crypto.Elliptic
         /// <summary>
         /// R part of the signature
         /// </summary>
-        public Span<ulong> r { get; }
+        public readonly unsafe Span<ulong> r
+        {
+            get
+            {
+                fixed (ulong* ptr = &signature_data[0])
+                {
+                    return new Span<ulong>(ptr, curve.NUM_WORDS);
+                }
+            }
+        }
 
         /// <summary>
         /// S part of the signature
         /// </summary>
-        public Span<ulong> s { get; }
+        public readonly unsafe Span<ulong> s
+        {
+            get
+            {
+                fixed (ulong* ptr = &signature_data[curve.NUM_WORDS])
+                {
+                    return new Span<ulong>(ptr, curve.NUM_WORDS);
+                }
+            }
+        }
 
         /// <summary>
         /// The r and s are sliced from this hidden array.
@@ -304,20 +322,13 @@ namespace Wheel.Crypto.Elliptic
                 throw new SystemException("The configured curve point coordinate size is unexpectedly big");
             }
 
-            Span<ulong> buffer;
-
             unsafe
             {
                 fixed (ulong* ptr = &signature_data[0])
                 {
-                    buffer = new(ptr, 2 * VLI_Common.ECC_MAX_WORDS);
+                    new Span<ulong>(ptr, 2 * VLI_Common.ECC_MAX_WORDS).Clear();
                 }
             }
-
-            // Initialize and make slices
-            buffer.Clear();
-            r = buffer.Slice(0, curve.NUM_WORDS);
-            s = buffer.Slice(curve.NUM_WORDS, curve.NUM_WORDS);
         }
 
         /// <summary>
