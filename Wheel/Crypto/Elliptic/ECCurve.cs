@@ -6,7 +6,7 @@ namespace Wheel.Crypto.Elliptic
     /// <summary>
     /// Properties and methods every EC implementation must provide
     /// </summary>
-    public struct ECCurve
+    public readonly struct ECCurve
     {
         public delegate void XSide_IMPL(Span<ulong> result, ReadOnlySpan<ulong> x);
         public delegate void ModSquare_IMPL(Span<ulong> result, ReadOnlySpan<ulong> left);
@@ -26,10 +26,10 @@ namespace Wheel.Crypto.Elliptic
 
         public readonly string name { get; }
         public readonly int NUM_BITS { get; }
-        public readonly int NUM_WORDS { get { return NUM_BITS / VLI_Common.WORD_BITS; } }
+        public readonly int NUM_WORDS { get { return NUM_BITS / VLI.WORD_BITS; } }
         public readonly int NUM_BYTES { get { return NUM_BITS / 8; } }
         public readonly int NUM_N_BITS { get; }
-        public readonly int NUM_N_WORDS { get { return NUM_N_BITS / VLI_Common.WORD_BITS; } }
+        public readonly int NUM_N_WORDS { get { return NUM_N_BITS / VLI.WORD_BITS; } }
         public readonly int NUM_N_BYTES { get { return NUM_N_BITS / 8; } }
 
         public readonly ReadOnlySpan<ulong> p { get { return _p; } }

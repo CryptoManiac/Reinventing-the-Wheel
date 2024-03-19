@@ -5,7 +5,7 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
     /// <summary>
     /// Arithmetic operations with very long integers (aka VLI)
     /// </summary>
-    internal static class VLI_Arithmetic
+    internal static partial class VLI
     {
         /// <summary>
         /// Sets dest = src
@@ -164,7 +164,7 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
             {
                 ulong temp = words[i];
                 words[i] = (temp >> 1) | carry;
-                carry = temp << (VLI_Common.WORD_BITS - 1);
+                carry = temp << (WORD_BITS - 1);
             }
         }
 
@@ -180,7 +180,7 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
         public static void ModAdd(Span<ulong> result, ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right, ReadOnlySpan<ulong> mod, int num_words)
         {
             ulong carry = Add(result, left, right, num_words);
-            if (0 != carry || VLI_Logic.CmpUnsafe(mod, result, num_words) != 1)
+            if (0 != carry || CmpUnsafe(mod, result, num_words) != 1)
             {
                 /* result > mod (result = mod + remainder), so subtract mod to get remainder. */
                 Sub(result, result, mod, num_words);
@@ -217,15 +217,15 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
         /// <param name="num_words"></param>
         public static void MMod(Span<ulong> result, Span<ulong> product, ReadOnlySpan<ulong> mod, int num_words)
         {
-            Span<ulong> mod_multiple = stackalloc ulong[2 * VLI_Common.ECC_MAX_WORDS];
-            Span<ulong> tmp = stackalloc ulong[2 * VLI_Common.ECC_MAX_WORDS];
-            VLI_Common.Picker<ulong> v = new(tmp, product);
+            Span<ulong> mod_multiple = stackalloc ulong[2 * ECC_MAX_WORDS];
+            Span<ulong> tmp = stackalloc ulong[2 * ECC_MAX_WORDS];
+            Picker<ulong> v = new(tmp, product);
             ulong index;
 
             /* Shift mod so its highest set bit is at the maximum position. */
-            int shift = (num_words * 2 * VLI_Common.WORD_BITS) - VLI_Logic.NumBits(mod, num_words);
-            int word_shift = shift / VLI_Common.WORD_BITS;
-            int bit_shift = shift % VLI_Common.WORD_BITS;
+            int shift = (num_words * 2 * WORD_BITS) - NumBits(mod, num_words);
+            int word_shift = shift / WORD_BITS;
+            int bit_shift = shift % WORD_BITS;
             ulong carry = 0;
             Clear(mod_multiple, word_shift);
             if (bit_shift > 0)
@@ -233,7 +233,7 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
                 for (index = 0; index < (ulong)num_words; ++index)
                 {
                     mod_multiple[word_shift + (int)index] = (mod[(int)index] << bit_shift) | carry;
-                    carry = mod[(int)index] >> (VLI_Common.WORD_BITS - bit_shift);
+                    carry = mod[(int)index] >> (WORD_BITS - bit_shift);
                 }
             }
             else
@@ -256,7 +256,7 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
                 }
                 index = Convert.ToUInt64(!Convert.ToBoolean(index ^ borrow)); /* Swap the index if there was no borrow */
                 RShift1(mod_multiple, num_words);
-                mod_multiple[num_words - 1] |= mod_multiple[num_words] << (VLI_Common.WORD_BITS - 1);
+                mod_multiple[num_words - 1] |= mod_multiple[num_words] << (WORD_BITS - 1);
                 RShift1(mod_multiple.Slice(num_words), num_words);
             }
             Set(result, v[index], num_words);
@@ -273,7 +273,7 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
         /// <param name="num_words"></param>
         public static void ModMult(Span<ulong> result, ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right, ReadOnlySpan<ulong> mod, int num_words)
         {
-            Span<ulong> product = stackalloc ulong[2 * VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> product = stackalloc ulong[2 * ECC_MAX_WORDS];
             Mult(product, left, right, num_words);
             MMod(result, product, mod, num_words);
         }
@@ -288,7 +288,7 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
         /// <param name="num_words"></param>
         public static void ModSquare(Span<ulong> result, ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> mod, int num_words)
         {
-            Span<ulong> product = stackalloc ulong[2 * VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> product = stackalloc ulong[2 * ECC_MAX_WORDS];
             Square(product, left, num_words);
             MMod(result, product, mod, num_words);
         }
@@ -303,12 +303,12 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
         /// <param name="num_words"></param>
         public static void ModInv(Span<ulong> result, ReadOnlySpan<ulong> input, ReadOnlySpan<ulong> mod, int num_words)
         {
-            Span<ulong> a = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
-            Span<ulong> b = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
-            Span<ulong> u = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
-            Span<ulong> v = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> a = stackalloc ulong[ECC_MAX_WORDS];
+            Span<ulong> b = stackalloc ulong[ECC_MAX_WORDS];
+            Span<ulong> u = stackalloc ulong[ECC_MAX_WORDS];
+            Span<ulong> v = stackalloc ulong[ECC_MAX_WORDS];
 
-            if (VLI_Logic.IsZero(input, num_words))
+            if (IsZero(input, num_words))
             {
                 Clear(result, num_words);
                 return;
@@ -321,14 +321,14 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
             Clear(v, num_words);
 
             int cmpResult;
-            while ((cmpResult = VLI_Logic.CmpUnsafe(a, b, num_words)) != 0)
+            while ((cmpResult = CmpUnsafe(a, b, num_words)) != 0)
             {
-                if (VLI_Logic.IsEven(a))
+                if (IsEven(a))
                 {
                     RShift1(a, num_words);
                     modInv_update(u, mod, num_words);
                 }
-                else if (VLI_Logic.IsEven(b))
+                else if (IsEven(b))
                 {
                     RShift1(b, num_words);
                     modInv_update(v, mod, num_words);
@@ -337,7 +337,7 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
                 {
                     Sub(a, a, b, num_words);
                     RShift1(a, num_words);
-                    if (VLI_Logic.CmpUnsafe(u, v, num_words) < 0)
+                    if (CmpUnsafe(u, v, num_words) < 0)
                     {
                         Add(u, u, mod, num_words);
                     }
@@ -348,7 +348,7 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
                 {
                     Sub(b, b, a, num_words);
                     RShift1(b, num_words);
-                    if (VLI_Logic.CmpUnsafe(v, u, num_words) < 0)
+                    if (CmpUnsafe(v, u, num_words) < 0)
                     {
                         Add(v, v, mod, num_words);
                     }
@@ -362,11 +362,11 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
         public static void muladd(ulong a, ulong b, ref ulong r0, ref ulong r1, ref ulong r2)
         {
             UInt128 p = (UInt128)a * b;
-            UInt128 r01 = ((UInt128)(r1) << VLI_Common.WORD_BITS) | r0;
+            UInt128 r01 = ((UInt128)(r1) << WORD_BITS) | r0;
 
             r01 += p;
             r2 += Convert.ToUInt64(r01 < p);
-            r1 = (ulong)(r01 >> VLI_Common.WORD_BITS);
+            r1 = (ulong)(r01 >> WORD_BITS);
             r0 = (ulong)r01;
 
             /*
@@ -402,12 +402,12 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
         public static void mul2add(ulong a, ulong b, ref ulong r0, ref ulong r1, ref ulong r2)
         {
             UInt128 p = (UInt128)a * b;
-            UInt128 r01 = ((UInt128)(r1) << VLI_Common.WORD_BITS) | r0;
-            r2 += (ulong)(p >> (VLI_Common.WORD_BITS * 2 - 1));
+            UInt128 r01 = ((UInt128)(r1) << WORD_BITS) | r0;
+            r2 += (ulong)(p >> (WORD_BITS * 2 - 1));
             p *= 2;
             r01 += p;
             r2 += Convert.ToUInt64(r01 < p);
-            r1 = (ulong)(r01 >> VLI_Common.WORD_BITS);
+            r1 = (ulong)(r01 >> WORD_BITS);
             r0 = (ulong)r01;
 
             /*
@@ -447,14 +447,14 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
         public static void modInv_update(Span<ulong> uv, ReadOnlySpan<ulong> mod, int num_words)
         {
             ulong carry = 0;
-            if (!VLI_Logic.IsEven(uv))
+            if (!IsEven(uv))
             {
                 carry = Add(uv, uv, mod, num_words);
             }
             RShift1(uv, num_words);
             if (carry != 0)
             {
-                uv[num_words - 1] |= VLI_Common.HIGH_BIT_SET;
+                uv[num_words - 1] |= HIGH_BIT_SET;
             }
         }
     }

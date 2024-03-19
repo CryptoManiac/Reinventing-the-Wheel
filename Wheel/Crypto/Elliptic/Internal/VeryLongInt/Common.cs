@@ -1,7 +1,6 @@
 ﻿namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
 {
-	internal static class VLI_Common
-	{
+	internal static partial class VLI {
         /// In our implementation, we're set on using the ulong type as a machine word
         /// This means that the word is 8 bytes (64 bits) long
         public const ulong HIGH_BIT_SET = 0x8000000000000000;

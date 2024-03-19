@@ -20,28 +20,32 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="private_key">Your private key.</param>
         /// <param name="secret">Will be filled in with the shared secret value. Must be the same size as the curve size; for example, if the curve is secp256k1, secret must be 32 bytes long. </param>
         /// <returns>True if the shared secret was generated successfully, False if an error occurred.</returns>
-        public static bool Derive(in ECPublicKey public_key, in ECPrivateKey private_key, Span<byte> secret)
+        public static bool Derive(in ECPublicKey public_key, in ECPrivateKey private_key, out ECPrivateKey secret)
         {
-            Span<ulong> _public = stackalloc ulong[VLI_Common.ECC_MAX_WORDS * 2];
-            Span <ulong> _private = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
-
-            // It doesn't make any sense to use points on non-matching curves
             if (private_key.curve.name != public_key.curve.name)
             {
-                return false;
+                // It doesn't make any sense to use points on non-matching curves
+                // THis shouldn't ever happen in real life
+                throw new InvalidOperationException("Curve configuration mismatch");
             }
+
+            // Init an empty secret to fill it later
+            secret = new(public_key.curve);
 
             int num_words = public_key.curve.NUM_WORDS;
             int num_bytes = public_key.curve.NUM_BYTES;
 
+            Span<ulong> _public = stackalloc ulong[VLI.ECC_MAX_WORDS * 2];
+            Span<ulong> _private = stackalloc ulong[VLI.ECC_MAX_WORDS];
+
             // Doesn't make any sense to use invalid keys
-            if (!public_key.UnWrap(_public) || !private_key.UnWrap(_private) || secret.Length != num_bytes)
+            if (!public_key.UnWrap(_public) || !private_key.UnWrap(_private))
             {
                 return false;
             }
 
-            Span<ulong> tmp = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
-            VLI_Common.Picker<ulong> p2 = new(_private, tmp);
+            Span<ulong> tmp = stackalloc ulong[VLI.ECC_MAX_WORDS];
+            VLI.Picker<ulong> p2 = new(_private, tmp);
             ulong carry;
 
             // Regularize the bitcount for the private key so that attackers
@@ -50,9 +54,8 @@ namespace Wheel.Crypto.Elliptic
 
             ECCPoint.PointMul(public_key.curve, _public, _public, p2[Convert.ToUInt64(!Convert.ToBoolean(carry))], public_key.curve.NUM_N_BITS + 1);
 
-            VLI_Conversion.NativeToBytes(secret, num_bytes, _public);
-
-            return !ECCPoint.IsZero(public_key.curve, _public);
+            // Will fail if the point is zero
+            return secret.Wrap(_public.Slice(0, num_words));
         }
     }
 }

@@ -8,8 +8,8 @@ namespace Wheel.Crypto.Elliptic.Internal.Curves
 	internal static class SECP256K1
 	{
         // Curve constants
-        public static int NUM_BITS = VLI_Common.ECC_MAX_WORDS * VLI_Common.WORD_BITS;
-        public static int NUM_N_BITS = VLI_Common.ECC_MAX_WORDS * VLI_Common.WORD_BITS;
+        public static int NUM_BITS = VLI.ECC_MAX_WORDS * VLI.WORD_BITS;
+        public static int NUM_N_BITS = VLI.ECC_MAX_WORDS * VLI.WORD_BITS;
         public static ulong[] p = new ulong[] { 0xFFFFFFFEFFFFFC2F, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF };
         public static ulong[] n = new ulong[] { 0xBFD25E8CD0364141, 0xBAAEDCE6AF48A03B, 0xFFFFFFFFFFFFFFFE, 0xFFFFFFFFFFFFFFFF };
         public static ulong[] half_n = new ulong[] { 0xdfe92f46681b20a0, 0x5d576e7357a4501d, 0xFFFFFFFFFFFFFFFE, 0xFFFFFFFFFFFFFFFF };
@@ -25,23 +25,23 @@ namespace Wheel.Crypto.Elliptic.Internal.Curves
         {
             ModSquare(result, x);                                // r = x^2
             ModMult(result, result, x);                          // r = x^3
-            VLI_Arithmetic.ModAdd(result, result, b, p, NUM_BITS / VLI_Common.WORD_BITS); // r = x^3 + b
+            VLI.ModAdd(result, result, b, p, NUM_BITS / VLI.WORD_BITS); // r = x^3 + b
         }
 
         public static void ModSquare(Span<ulong> result, ReadOnlySpan<ulong> left)
         {
-            Span<ulong> product = stackalloc ulong[2 * VLI_Common.ECC_MAX_WORDS];
-            int num_words = NUM_BITS / VLI_Common.WORD_BITS;
-            VLI_Arithmetic.Square(product, left, num_words);
+            Span<ulong> product = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
+            int num_words = NUM_BITS / VLI.WORD_BITS;
+            VLI.Square(product, left, num_words);
             //VLI_Arithmetic.MMod(result, product, Constants.p, num_words);
             MMod(result, product);
         }
 
         public static void ModMult(Span<ulong> result, Span<ulong> left, ReadOnlySpan<ulong> right)
         {
-            Span<ulong> product = stackalloc ulong[2 * VLI_Common.ECC_MAX_WORDS];
-            int num_words = NUM_BITS / VLI_Common.WORD_BITS;
-            VLI_Arithmetic.Mult(product, left, right, num_words);
+            Span<ulong> product = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
+            int num_words = NUM_BITS / VLI.WORD_BITS;
+            VLI.Mult(product, left, right, num_words);
             // VLI_Arithmetic.MMod(result, product, Constants.p, num_words);
             MMod(result, product);
         }
@@ -54,13 +54,13 @@ namespace Wheel.Crypto.Elliptic.Internal.Curves
         /// <param name="Z1"></param>
         public static void DoubleJacobian(Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1)
         {
-            int num_words = NUM_BITS / VLI_Common.WORD_BITS;
+            int num_words = NUM_BITS / VLI.WORD_BITS;
 
             // t1 = X, t2 = Y, t3 = Z
             Span<ulong> t4 = stackalloc ulong[num_words];
             Span<ulong> t5 = stackalloc ulong[num_words];
 
-            if (VLI_Logic.IsZero(Z1, num_words))
+            if (VLI.IsZero(Z1, num_words))
             {
                 return;
             }
@@ -71,54 +71,54 @@ namespace Wheel.Crypto.Elliptic.Internal.Curves
             ModSquare(t5, t5);   // t5 = y1^4 
             ModMult(Z1, Y1, Z1); // t3 = y1*z1 = z3 
 
-            VLI_Arithmetic.ModAdd(Y1, X1, X1, p, num_words); // t2 = 2*x1^2
-            VLI_Arithmetic.ModAdd(Y1, Y1, X1, p, num_words); // t2 = 3*x1^2
-            if (VLI_Logic.TestBit(Y1, 0))
+            VLI.ModAdd(Y1, X1, X1, p, num_words); // t2 = 2*x1^2
+            VLI.ModAdd(Y1, Y1, X1, p, num_words); // t2 = 3*x1^2
+            if (VLI.TestBit(Y1, 0))
             {
-                ulong carry = VLI_Arithmetic.Add(Y1, Y1, p, num_words);
-                VLI_Arithmetic.RShift1(Y1, num_words);
-                Y1[num_words - 1] |= carry << VLI_Common.WORD_BITS - 1;
+                ulong carry = VLI.Add(Y1, Y1, p, num_words);
+                VLI.RShift1(Y1, num_words);
+                Y1[num_words - 1] |= carry << VLI.WORD_BITS - 1;
             }
             else
             {
-                VLI_Arithmetic.RShift1(Y1, num_words);
+                VLI.RShift1(Y1, num_words);
             }
             // t2 = 3/2*(x1^2) = B
 
             ModSquare(X1, Y1);                     // t1 = B^2
-            VLI_Arithmetic.ModSub(X1, X1, t4, p, num_words); // t1 = B^2 - A
-            VLI_Arithmetic.ModSub(X1, X1, t4, p, num_words); // t1 = B^2 - 2A = x3
+            VLI.ModSub(X1, X1, t4, p, num_words); // t1 = B^2 - A
+            VLI.ModSub(X1, X1, t4, p, num_words); // t1 = B^2 - 2A = x3
 
-            VLI_Arithmetic.ModSub(t4, t4, X1, p, num_words); // t4 = A - x3
+            VLI.ModSub(t4, t4, X1, p, num_words); // t4 = A - x3
             ModMult(Y1, Y1, t4);                   // t2 = B * (A - x3)
-            VLI_Arithmetic.ModSub(Y1, Y1, t5, p, num_words); // t2 = B * (A - x3) - y1^4 = y3
+            VLI.ModSub(Y1, Y1, t5, p, num_words); // t2 = B * (A - x3) - y1^4 = y3
         }
 
         private static void MMod(Span<ulong> result, Span<ulong> product)
         {
-            Span<ulong> tmp = stackalloc ulong[2 * VLI_Common.ECC_MAX_WORDS];
+            Span<ulong> tmp = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
             ulong carry;
 
-            int num_words = NUM_BITS / VLI_Common.WORD_BITS;
+            int num_words = NUM_BITS / VLI.WORD_BITS;
 
-            VLI_Arithmetic.Clear(tmp, num_words);
-            VLI_Arithmetic.Clear(tmp.Slice(num_words), num_words);
+            VLI.Clear(tmp, num_words);
+            VLI.Clear(tmp.Slice(num_words), num_words);
 
             OmegaMult(tmp, product.Slice(num_words)); // (Rq, q) = q * c
 
-            carry = VLI_Arithmetic.Add(result, product, tmp, num_words); // (C, r) = r + q
-            VLI_Arithmetic.Clear(product, num_words);
+            carry = VLI.Add(result, product, tmp, num_words); // (C, r) = r + q
+            VLI.Clear(product, num_words);
             OmegaMult(product, tmp.Slice(num_words)); // Rq*c
-            carry += VLI_Arithmetic.Add(result, result, product, num_words); // (C1, r) = r + Rq*c
+            carry += VLI.Add(result, result, product, num_words); // (C1, r) = r + Rq*c
 
             while (carry > 0)
             {
                 --carry;
-                VLI_Arithmetic.Sub(result, result, p, num_words);
+                VLI.Sub(result, result, p, num_words);
             }
-            if (VLI_Logic.CmpUnsafe(result, p, num_words) > 0)
+            if (VLI.CmpUnsafe(result, p, num_words) > 0)
             {
-                VLI_Arithmetic.Sub(result, result, p, num_words);
+                VLI.Sub(result, result, p, num_words);
             }
         }
 
@@ -129,12 +129,12 @@ namespace Wheel.Crypto.Elliptic.Internal.Curves
             ulong r2 = 0;
             int k;
 
-            int num_words = NUM_BITS / VLI_Common.WORD_BITS;
+            int num_words = NUM_BITS / VLI.WORD_BITS;
 
             /* Multiply by (2^32 + 2^9 + 2^8 + 2^7 + 2^6 + 2^4 + 1). */
             for (k = 0; k < num_words; ++k)
             {
-                VLI_Arithmetic.muladd(0x1000003D1, right[k], ref r0, ref r1, ref r2);
+                VLI.muladd(0x1000003D1, right[k], ref r0, ref r1, ref r2);
                 result[k] = r0;
                 r0 = r1;
                 r1 = r2;

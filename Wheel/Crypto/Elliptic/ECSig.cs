@@ -46,7 +46,7 @@ namespace Wheel.Crypto.Elliptic
         /// <summary>
         /// The r and s are sliced from this hidden array.
         /// </summary>
-        private unsafe fixed ulong signature_data[2 * VLI_Common.ECC_MAX_WORDS];
+        private unsafe fixed ulong signature_data[2 * VLI.ECC_MAX_WORDS];
 
         /// <summary>
         /// Construct the empty signature
@@ -57,7 +57,7 @@ namespace Wheel.Crypto.Elliptic
             this.curve = curve;
 
             // Sanity check constraint
-            if (curve.NUM_WORDS > VLI_Common.ECC_MAX_WORDS)
+            if (curve.NUM_WORDS > VLI.ECC_MAX_WORDS)
             {
                 throw new SystemException("The configured curve point coordinate size is unexpectedly big");
             }
@@ -67,7 +67,7 @@ namespace Wheel.Crypto.Elliptic
                 // Initialize with zeros
                 fixed (ulong* ptr = &signature_data[0])
                 {
-                    new Span<ulong>(ptr, 2 * VLI_Common.ECC_MAX_WORDS).Clear();
+                    new Span<ulong>(ptr, 2 * VLI.ECC_MAX_WORDS).Clear();
                 }
             }
         }
@@ -89,7 +89,7 @@ namespace Wheel.Crypto.Elliptic
         /// </summary>
         /// <param name="encoded"></param>
         /// <returns>Number of bytes written/to write</returns>
-        public int Encode(Span<byte> der)
+        public readonly int Encode(Span<byte> der)
         {
             byte lenR = (byte)curve.NUM_BYTES;
             byte lenS = (byte)curve.NUM_BYTES;
@@ -113,8 +113,8 @@ namespace Wheel.Crypto.Elliptic
                 der[5 + lenR] = lenS;
 
                 // Encode the R and S values
-                VLI_Conversion.NativeToBytes(der.Slice(4, lenR), lenR, r);
-                VLI_Conversion.NativeToBytes(der.Slice(6 + lenR, lenS), lenS, s);
+                VLI.NativeToBytes(der.Slice(4, lenR), lenR, r);
+                VLI.NativeToBytes(der.Slice(6 + lenR, lenS), lenS, s);
             }
             return reqSz;
         }
@@ -259,8 +259,8 @@ namespace Wheel.Crypto.Elliptic
             }
 
             // Decode R and S values
-            VLI_Conversion.BytesToNative(r, encoded.Slice(rpos, rlen), rlen);
-            VLI_Conversion.BytesToNative(s, encoded.Slice(spos, slen), slen);
+            VLI.BytesToNative(r, encoded.Slice(rpos, rlen), rlen);
+            VLI.BytesToNative(s, encoded.Slice(spos, slen), slen);
 
             return true;
         }
@@ -307,7 +307,7 @@ namespace Wheel.Crypto.Elliptic
         /// <summary>
         /// The r and s are sliced from this hidden array.
         /// </summary>
-        private unsafe fixed ulong signature_data[2 * VLI_Common.ECC_MAX_WORDS];
+        private unsafe fixed ulong signature_data[2 * VLI.ECC_MAX_WORDS];
 
         /// <summary>
         /// Construct the empty signature
@@ -317,7 +317,7 @@ namespace Wheel.Crypto.Elliptic
         {
             this.curve = curve;
             // Sanity check constraint
-            if (curve.NUM_WORDS > VLI_Common.ECC_MAX_WORDS)
+            if (curve.NUM_WORDS > VLI.ECC_MAX_WORDS)
             {
                 throw new SystemException("The configured curve point coordinate size is unexpectedly big");
             }
@@ -326,7 +326,7 @@ namespace Wheel.Crypto.Elliptic
             {
                 fixed (ulong* ptr = &signature_data[0])
                 {
-                    new Span<ulong>(ptr, 2 * VLI_Common.ECC_MAX_WORDS).Clear();
+                    new Span<ulong>(ptr, 2 * VLI.ECC_MAX_WORDS).Clear();
                 }
             }
         }
@@ -348,7 +348,7 @@ namespace Wheel.Crypto.Elliptic
         /// </summary>
         /// <param name="encoded"></param>
         /// <returns>Number of bytes written/to write</returns>
-        public int Encode(Span<byte> der)
+        public readonly int Encode(Span<byte> der)
         {
             byte lenR = (byte)curve.NUM_BYTES;
             byte lenS = (byte)curve.NUM_BYTES;
@@ -356,8 +356,8 @@ namespace Wheel.Crypto.Elliptic
             int reqSz = lenS + lenR;
             if (der.Length >= reqSz)
             {
-                VLI_Conversion.NativeToBytes(der.Slice(0, lenR), lenR, r);
-                VLI_Conversion.NativeToBytes(der.Slice(lenR, lenS), lenS, s);
+                VLI.NativeToBytes(der.Slice(0, lenR), lenR, r);
+                VLI.NativeToBytes(der.Slice(lenR, lenS), lenS, s);
             }
             return reqSz;
         }
@@ -382,8 +382,8 @@ namespace Wheel.Crypto.Elliptic
             }
 
             // Decode R and S values
-            VLI_Conversion.BytesToNative(r, encoded.Slice(0, lenR), lenR);
-            VLI_Conversion.BytesToNative(s, encoded.Slice(lenR, lenS), lenS);
+            VLI.BytesToNative(r, encoded.Slice(0, lenR), lenR);
+            VLI.BytesToNative(s, encoded.Slice(lenR, lenS), lenS);
 
             return true;
         }

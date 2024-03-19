@@ -3,7 +3,7 @@
     /// <summary>
     /// Logical operations with very long integers (aka VLI)
     /// </summary>
-	internal static class VLI_Logic
+	internal static partial class VLI
 	{
         /// <summary>
         /// Returns true for even integers
@@ -38,11 +38,11 @@
         /// <returns>True if bit 'bit' is set</returns>
         public static bool TestBit(ReadOnlySpan<ulong> words, int bit)
         {
-            return Convert.ToBoolean(words[bit >> VLI_Common.WORD_BITS_SHIFT] & (VLI_Common.LOW_BIT_SET << (bit & VLI_Common.WORD_BITS_MASK)));
+            return Convert.ToBoolean(words[bit >> WORD_BITS_SHIFT] & (LOW_BIT_SET << (bit & WORD_BITS_MASK)));
         }
 
         /// <summary>
-        /// Counts the number of words in vli.
+        /// Counts the number of words in 
         /// </summary>
         /// <param name="words"></param>
         /// <returns></returns>
@@ -56,7 +56,7 @@
         }
 
         /// <summary>
-        /// Counts the number of bits required to represent vli.
+        /// Counts the number of bits required to represent 
         /// </summary>
         /// <param name="words"></param>
         /// <returns></returns>
@@ -75,7 +75,7 @@
                 digit >>= 1;
             }
 
-            return ((num_digits - 1) << VLI_Common.WORD_BITS_SHIFT) + i;
+            return ((num_digits - 1) << WORD_BITS_SHIFT) + i;
         }
 
         /// <summary>
@@ -103,8 +103,8 @@
         /// <returns></returns>
         public static int Cmp(ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right, int num_words)
         {
-            Span<ulong> tmp = stackalloc ulong[VLI_Common.ECC_MAX_WORDS];
-            bool neg = Convert.ToBoolean(VLI_Arithmetic.Sub(tmp, left, right, num_words));
+            Span<ulong> tmp = stackalloc ulong[ECC_MAX_WORDS];
+            bool neg = Convert.ToBoolean(Sub(tmp, left, right, num_words));
             bool equal = IsZero(tmp, num_words);
             return (Convert.ToInt32(!equal) - 2 * Convert.ToInt32(neg));
         }
