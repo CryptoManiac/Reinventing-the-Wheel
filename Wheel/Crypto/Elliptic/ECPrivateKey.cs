@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using Wheel.Crypto.Elliptic.Internal;
 using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
+using Wheel.Crypto.Hashing;
 using Wheel.Crypto.Hashing.Derivation;
 using Wheel.Crypto.Hashing.HMAC;
 
@@ -340,27 +341,36 @@ namespace Wheel.Crypto.Elliptic
         /// 
         /// Usage: Compute a hash of the data you wish to sign and pass it to this function along with your private key and entropy bytes. The entropy bytes argument may be set to empty array if you don't need this feature.
         /// </summary>
-        /// <param name="signature">Will be filled in with the signature value</param>
+        /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <returns></returns>
-        public readonly bool Sign<HMAC_IMPL>(out DERSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+        public readonly bool Sign<HMAC_IMPL, SIGNATURE_FORMAT_IMPL>(ref SIGNATURE_FORMAT_IMPL signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac where SIGNATURE_FORMAT_IMPL : struct, ISignature
         {
-            signature = new(curve);
+            signature.Init(curve);
             return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
         }
 
         /// <summary>
-        /// Generate an ECDSA signature for a given hash value, using a deterministic algorithm
-        /// 
-        /// Usage: Compute a hash of the data you wish to sign and pass it to this function along with your private key and entropy bytes. The entropy bytes argument may be set to empty array if you don't need this feature.
+        /// Call GenerateSecret using this key as the seed and entropy argument as the personalization string
         /// </summary>
-        /// <param name="signature">Will be filled in with the signature value</param>
-        /// <param name="message_hash">The hash of the message to sign</param>
-        /// <returns></returns>
-        public readonly bool Sign<HMAC_IMPL>(out CompactSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+        /// <typeparam name="HMAC_IMPL">HMAC implementation to use</typeparam>
+        /// <param name="result">New secret key will be placed here</param>
+        /// <param name="entropy">Entropy bytes (random or some user input, not necessarily secret)</param>
+        /// <param name="sequence">Key sequence (to generate the different keys for the same source key and entropy bytes array pair)</param>
+        /// <param name="expand_iterations">Number of PBKDF2 iterations for the seed and personalize bytes expansion</param>
+        /// <exception cref="InvalidOperationException">Thrown when called on the either empty or invalid ECPrivateKey instance</exception>
+        public readonly void DeriveHMAC<HMAC_IMPL>(out ECPrivateKey result, ReadOnlySpan<byte> entropy, int sequence, int expand_iterations) where HMAC_IMPL : unmanaged, IMac
         {
-            signature = new(curve);
-            return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
+            // We're using our private key as secret seed and the entropy is
+            //  being used as the personalization string
+            Span<byte> seed = stackalloc byte[curve.NUM_N_BYTES];
+            if (!Serialize(seed))
+            {
+                throw new InvalidOperationException("Trying to derive from the invalid private key");
+            }
+
+            GenerateSecret<HMAC_IMPL>(curve, out result, seed, entropy, sequence, expand_iterations);
+            seed.Clear();
         }
 
         /// <summary>
@@ -372,7 +382,7 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="seed">Secret seed</param>
         /// <param name="personalization">Personalization (to generate the different keys for the same seed)</param>
         /// <param name="sequence">Key sequence (to generate the different keys for the same seed and personalization bytes array pair)</param>
-        /// <param name="expand_iterations">Number of PBKDF2 iterations for the seed and personalize bytes expansion</param>
+        /// <param name="expand_iterations">Number of PBKDF2 iterations for the seed and personalize bytes expansion, 4096 or more is recommended for the new secret keys</param>
         public static void GenerateSecret<HMAC_IMPL>(ECCurve curve, out ECPrivateKey result, ReadOnlySpan<byte> seed, ReadOnlySpan<byte> personalization, int sequence, int expand_iterations) where HMAC_IMPL : unmanaged, IMac
         {
             // See 3..2 of the RFC 6979 to get what is going on here
@@ -453,6 +463,7 @@ namespace Wheel.Crypto.Elliptic
                     if (IsValidPrivateKey(secret_data, curve))
                     {
                         result = new ECPrivateKey(curve, secret_data);
+                        secret_data.Clear();
                         return;
                     }
 
@@ -482,23 +493,99 @@ namespace Wheel.Crypto.Elliptic
         /// </summary>
         /// <param name="result"></param>
         /// <param name="message_hash"></param>
-        /// <param name="entropy"></param>
         /// <param name="sequence"></param>
         private readonly void GenerateK<HMAC_IMPL>(ref Span<ulong> result, ReadOnlySpan<byte> message_hash, int sequence) where HMAC_IMPL : unmanaged, IMac
         {
             // The K value requirements are identical to shose for the secret key.
             // This means that any valis secret key is acceptable to be used as K value.
 
-            // We're using our private key as secret seed and the message hash is
-            //  being used as the personalization string
-            Span<byte> seed = stackalloc byte[curve.NUM_N_BYTES];
-            Serialize(seed);
-
             // 128 iterations are more than enough for our purposes here
-            GenerateSecret<HMAC_IMPL>(curve, out ECPrivateKey pk, seed, message_hash, sequence, 128);
+            DeriveHMAC<HMAC_IMPL>(out ECPrivateKey pk, message_hash, sequence, 128);
 
             // The generated private key is used as secret K value
             pk.UnWrap(result);
+        }
+
+        /// <summary>
+        /// Compute a shared secret given your secret key and someone else's public key.
+        ///
+        /// Note: It is recommended that you hash the result of Derive() before using it for
+        /// symmetric encryption or HMAC.
+        /// </summary>
+        /// <param name="public_key">The public key of the remote party.</param>
+        /// <param name="shared">Will be filled in with the encapsulated shared secret.</param>
+        /// <returns>True if the shared secret was generated successfully, False if an error occurred.</returns>
+        public readonly bool ECDH(in ECPublicKey public_key, out ECPrivateKey shared)
+        {
+            // Init an empty secret to fill it later
+            shared = new(public_key.curve);
+
+            if (!IsValid)
+            {
+                return false;
+            }
+
+            if (curve.name != public_key.curve.name)
+            {
+                // It doesn't make any sense to use points on non-matching curves
+                // This shouldn't ever happen in real life
+                throw new InvalidOperationException("Curve configuration mismatch");
+            }
+
+            int num_words = public_key.curve.NUM_WORDS;
+            int num_bytes = public_key.curve.NUM_BYTES;
+
+            Span<ulong> ecdh_point = stackalloc ulong[VLI.ECC_MAX_WORDS * 2];
+            if (!public_key.UnWrap(ecdh_point))
+            {
+                // Doesn't make any sense to
+                // use invalid points
+                return false;
+            }
+
+            Span<ulong> secret_scalar_x = stackalloc ulong[VLI.ECC_MAX_WORDS];
+            Span<ulong> temp_scalar_k = stackalloc ulong[VLI.ECC_MAX_WORDS];
+            VLI.Set(secret_scalar_x, secret_x, num_words);
+            VLI.Picker<ulong> p2 = new(secret_scalar_x, temp_scalar_k);
+            ulong carry;
+
+            // Regularize the bitcount for the private key so that attackers
+            // cannot use a side channel attack to learn the number of leading zeros.
+            carry = ECCUtil.RegularizeK(curve, secret_scalar_x, secret_scalar_x, temp_scalar_k);
+
+            ECCPoint.PointMul(curve, ecdh_point, ecdh_point, p2[Convert.ToUInt64(!Convert.ToBoolean(carry))], curve.NUM_N_BITS + 1);
+
+            // Will fail if the point is zero
+            bool result = shared.Wrap(ecdh_point.Slice(0, num_words));
+
+            // Clear the temporary vars
+            VLI.Clear(ecdh_point, 2 * num_words);
+            VLI.Clear(secret_scalar_x, num_words);
+            VLI.Clear(temp_scalar_k, num_words);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Encode the secret into big endian format and calculate
+        ///  its hash using the provided IHasher implementation.
+        /// May be used to hash the ECDH derived shared keys.
+        /// </summary>
+        /// <typeparam name="HASHER_IMPL">Hasher to use</typeparam>
+        /// <param name="secret_hash"></param>
+        /// <returns>True if successful</returns>
+        public bool CalculateKeyHash<HASHER_IMPL>(Span<byte> secret_hash) where HASHER_IMPL : unmanaged, IHasher
+        {
+            HASHER_IMPL hasher = new();
+            Span<byte> secret_bytes = stackalloc byte[curve.NUM_BYTES];
+            if (secret_hash.Length == hasher.HashSz && Serialize(secret_bytes))
+            {
+                hasher.Update(secret_bytes);
+                hasher.Digest(secret_hash);
+                secret_bytes.Clear();
+                return true;
+            }
+            return false;
         }
 
         public void Dispose()

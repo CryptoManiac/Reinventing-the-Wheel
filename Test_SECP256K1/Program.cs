@@ -28,8 +28,9 @@ static void SignData<HMAC_IMPL>(Span<byte> signature, ECPrivateKey sk, string me
     // Empty for tests
     Span<byte> message_hash = stackalloc byte[32];
     SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
-    
-    if (!sk.Sign<HMAC_IMPL>(out DERSignature derSig, message_hash))
+
+    DERSignature derSig = new();
+    if (!sk.Sign<HMAC_IMPL, DERSignature>(ref derSig, message_hash))
     {
         throw new SystemException("Signing failed");
     }

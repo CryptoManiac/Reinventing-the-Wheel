@@ -8,12 +8,12 @@ namespace Wheel.Crypto.Elliptic
     /// <summary>
     /// DER encapsulated signature value pair
     /// </summary>
-    public struct DERSignature
+    public struct DERSignature : ISignature
     {
         /// <summary>
         /// ECC implementation to use
         /// </summary>
-        public readonly ECCurve curve { get; }
+        public ECCurve curve { get; private set; }
 
         /// <summary>
         /// R part of the signature
@@ -44,18 +44,39 @@ namespace Wheel.Crypto.Elliptic
         }
 
         /// <summary>
+        /// Was this instance initialized with curve settings or not
+        /// </summary>
+        public readonly bool Configured => !r.IsEmpty && !s.IsEmpty;
+
+        /// <summary>
         /// The r and s are sliced from this hidden array.
         /// </summary>
         private unsafe fixed ulong signature_data[2 * VLI.ECC_MAX_WORDS];
 
         /// <summary>
-        /// Construct the empty signature
+        /// Construct the unconfigured signature
+        /// </summary>
+        /// <param name="curve">ECC implementation</param>
+        public DERSignature()
+        {
+        }
+
+        /// <summary>
+        /// Construct the empty signature for given curve
         /// </summary>
         /// <param name="curve">ECC implementation</param>
         public DERSignature(ECCurve curve)
         {
-            this.curve = curve;
+            Init(curve);
+        }
 
+        /// <summary>
+        /// Initialize for required curve settings
+        /// </summary>
+        /// <param name="curve">ECC curve implementation</param>
+        public unsafe void Init(ECCurve curve)
+        {
+            this.curve = curve;
             // Sanity check constraint
             if (curve.NUM_WORDS > VLI.ECC_MAX_WORDS)
             {
@@ -64,7 +85,6 @@ namespace Wheel.Crypto.Elliptic
 
             unsafe
             {
-                // Initialize with zeros
                 fixed (ulong* ptr = &signature_data[0])
                 {
                     new Span<ulong>(ptr, 2 * VLI.ECC_MAX_WORDS).Clear();
@@ -89,32 +109,37 @@ namespace Wheel.Crypto.Elliptic
         /// </summary>
         /// <param name="encoded"></param>
         /// <returns>Number of bytes written/to write</returns>
-        public readonly int Encode(Span<byte> der)
+        public readonly int Encode(Span<byte> encoded)
         {
+            if (!Configured)
+            {
+                throw new InvalidOperationException("No curve settings");
+            }
+
             byte lenR = (byte)curve.NUM_BYTES;
             byte lenS = (byte)curve.NUM_BYTES;
 
             int reqSz = 6 + lenS + lenR;
-            if (der.Length >= reqSz)
+            if (encoded.Length >= reqSz)
             {
                 // Fill the DER encoded signature skeleton:
 
                 // Sequence tag
-                der[0] = 0x30;
+                encoded[0] = 0x30;
                 // Total data length
-                der[1] = (byte)(4 + lenS + lenR);
+                encoded[1] = (byte)(4 + lenS + lenR);
                 // Integer tag for R
-                der[2] = 0x02;
+                encoded[2] = 0x02;
                 // R length prefix
-                der[3] = lenR;
+                encoded[3] = lenR;
                 // Integer tag for S
-                der[4 + lenR] = 0x02;
+                encoded[4 + lenR] = 0x02;
                 // S length prefix
-                der[5 + lenR] = lenS;
+                encoded[5 + lenR] = lenS;
 
                 // Encode the R and S values
-                VLI.NativeToBytes(der.Slice(4, lenR), lenR, r);
-                VLI.NativeToBytes(der.Slice(6 + lenR, lenS), lenS, s);
+                VLI.NativeToBytes(encoded.Slice(4, lenR), lenR, r);
+                VLI.NativeToBytes(encoded.Slice(6 + lenR, lenS), lenS, s);
             }
             return reqSz;
         }
@@ -127,6 +152,11 @@ namespace Wheel.Crypto.Elliptic
         /// <returns>True on success</returns>
         public bool Parse(ReadOnlySpan<byte> encoded)
         {
+            if (!Configured)
+            {
+                throw new InvalidOperationException("No curve settings");
+            }
+
             int rpos, rlen, spos, slen;
             int pos = 0;
             int lenbyte;
@@ -261,129 +291,6 @@ namespace Wheel.Crypto.Elliptic
             // Decode R and S values
             VLI.BytesToNative(r, encoded.Slice(rpos, rlen), rlen);
             VLI.BytesToNative(s, encoded.Slice(spos, slen), slen);
-
-            return true;
-        }
-    }
-
-    /// <summary>
-    /// Compact signature value pair
-    /// </summary>
-    public ref struct CompactSignature
-    {
-        /// <summary>
-        /// ECC implementation to use
-        /// </summary>
-        public ECCurve curve { get; }
-
-        /// <summary>
-        /// R part of the signature
-        /// </summary>
-        public readonly unsafe Span<ulong> r
-        {
-            get
-            {
-                fixed (ulong* ptr = &signature_data[0])
-                {
-                    return new Span<ulong>(ptr, curve.NUM_WORDS);
-                }
-            }
-        }
-
-        /// <summary>
-        /// S part of the signature
-        /// </summary>
-        public readonly unsafe Span<ulong> s
-        {
-            get
-            {
-                fixed (ulong* ptr = &signature_data[curve.NUM_WORDS])
-                {
-                    return new Span<ulong>(ptr, curve.NUM_WORDS);
-                }
-            }
-        }
-
-        /// <summary>
-        /// The r and s are sliced from this hidden array.
-        /// </summary>
-        private unsafe fixed ulong signature_data[2 * VLI.ECC_MAX_WORDS];
-
-        /// <summary>
-        /// Construct the empty signature
-        /// </summary>
-        /// <param name="curve">ECC implementation</param>
-        public CompactSignature(ECCurve curve)
-        {
-            this.curve = curve;
-            // Sanity check constraint
-            if (curve.NUM_WORDS > VLI.ECC_MAX_WORDS)
-            {
-                throw new SystemException("The configured curve point coordinate size is unexpectedly big");
-            }
-
-            unsafe
-            {
-                fixed (ulong* ptr = &signature_data[0])
-                {
-                    new Span<ulong>(ptr, 2 * VLI.ECC_MAX_WORDS).Clear();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Create instance and parse provided data
-        /// </summary>
-        /// <param name="curve">ECC implementation</param>
-        public CompactSignature(ECCurve curve, ReadOnlySpan<byte> bytes) : this(curve)
-        {
-            if (!Parse(bytes))
-            {
-                throw new InvalidDataException("Invalid signature format");
-            }
-        }
-
-        /// <summary>
-        /// Write signature data in compact format
-        /// </summary>
-        /// <param name="encoded"></param>
-        /// <returns>Number of bytes written/to write</returns>
-        public readonly int Encode(Span<byte> der)
-        {
-            byte lenR = (byte)curve.NUM_BYTES;
-            byte lenS = (byte)curve.NUM_BYTES;
-
-            int reqSz = lenS + lenR;
-            if (der.Length >= reqSz)
-            {
-                VLI.NativeToBytes(der.Slice(0, lenR), lenR, r);
-                VLI.NativeToBytes(der.Slice(lenR, lenS), lenS, s);
-            }
-            return reqSz;
-        }
-
-        /// <summary>
-        /// Parse DER formatted input and construct signature from its contents
-        /// Note: based on parse_der_lax routine from the bitcoin distribution
-        /// </summary>
-        /// <param name="encoded"></param>
-        /// <returns>True on success</returns>
-        public bool Parse(ReadOnlySpan<byte> encoded)
-        {
-            byte lenR = (byte)curve.NUM_BYTES;
-            byte lenS = (byte)curve.NUM_BYTES;
-
-            int reqLen = lenS + lenR;
-
-            if (encoded.Length != reqLen)
-            {
-                // Must be long enough to contain two encoded integer values
-                return false;
-            }
-
-            // Decode R and S values
-            VLI.BytesToNative(r, encoded.Slice(0, lenR), lenR);
-            VLI.BytesToNative(s, encoded.Slice(lenR, lenS), lenS);
 
             return true;
         }

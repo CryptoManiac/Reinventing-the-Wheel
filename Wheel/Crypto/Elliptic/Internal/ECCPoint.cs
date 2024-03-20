@@ -5,7 +5,7 @@ namespace Wheel.Crypto.Elliptic.Internal
     /// <summary>
     /// Elliptic Curve point operations
     /// </summary>
-    public static class ECCPoint
+    internal static class ECCPoint
     {
         /// <summary>
         /// Returns 1 if 'point' is the point at infinity, 0 otherwise.
