@@ -13,12 +13,11 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
         /// <param name="dest"></param>
         /// <param name="src"></param>
         /// <param name="num_words"></param>
-        public static void Set(Span<ulong> dest, ReadOnlySpan<ulong> src, int num_words)
+        public static void Set(Span<ulong> result, ReadOnlySpan<ulong> right, int num_words)
         {
-            for (int i = 0; i < num_words; ++i)
-            {
-                dest[i] = src[i];
-            }
+            var dest = result.Slice(0, num_words);
+            var src = right.Slice(0, num_words);
+            src.CopyTo(dest);
         }
 
         /// <summary>
@@ -28,10 +27,7 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
         /// <param name="num_words"></param>
         public static void Clear(Span<ulong> vli, int num_words)
         {
-            for (int i = 0; i < num_words; ++i)
-            {
-                vli[i] = 0;
-            }
+            vli.Slice(0, num_words).Clear();
         }
 
         /// <summary>
