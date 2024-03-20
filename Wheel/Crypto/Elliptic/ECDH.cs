@@ -29,11 +29,11 @@ namespace Wheel.Crypto.Elliptic
                 throw new InvalidOperationException("Curve configuration mismatch");
             }
 
-            // Init an empty secret to fill it later
-            secret = new(public_key.curve);
-
             int num_words = public_key.curve.NUM_WORDS;
             int num_bytes = public_key.curve.NUM_BYTES;
+
+            // Init an empty secret to fill it later
+            secret = new(public_key.curve);
 
             Span<ulong> _public = stackalloc ulong[VLI.ECC_MAX_WORDS * 2];
             Span<ulong> _private = stackalloc ulong[VLI.ECC_MAX_WORDS];
@@ -59,4 +59,3 @@ namespace Wheel.Crypto.Elliptic
         }
     }
 }
-

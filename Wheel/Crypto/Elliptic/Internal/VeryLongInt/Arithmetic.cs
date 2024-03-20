@@ -444,7 +444,7 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
             */
         }
 
-        public static void modInv_update(Span<ulong> uv, ReadOnlySpan<ulong> mod, int num_words)
+        private static void modInv_update(Span<ulong> uv, ReadOnlySpan<ulong> mod, int num_words)
         {
             ulong carry = 0;
             if (!IsEven(uv))
