@@ -574,7 +574,7 @@ namespace Wheel.Crypto.Elliptic
         /// <typeparam name="HASHER_IMPL">Hasher to use</typeparam>
         /// <param name="secret_hash"></param>
         /// <returns>True if successful</returns>
-        public bool CalculateKeyHash<HASHER_IMPL>(Span<byte> secret_hash) where HASHER_IMPL : unmanaged, IHasher
+        public readonly bool CalculateKeyHash<HASHER_IMPL>(Span<byte> secret_hash) where HASHER_IMPL : unmanaged, IHasher
         {
             HASHER_IMPL hasher = new();
             Span<byte> secret_bytes = stackalloc byte[curve.NUM_BYTES];
