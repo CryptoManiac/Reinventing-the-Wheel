@@ -19,6 +19,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Encoding\**" />
+    <EmbeddedResource Remove="Encoding\**" />
+    <None Remove="Encoding\**" />
+  </ItemGroup>
+  <ItemGroup>
     <None Remove="Crypto\" />
     <None Remove="Crypto\Primitives\" />
     <None Remove="Crypto\Hashing\" />
@@ -49,6 +54,5 @@
     <Folder Include="Crypto\Hashing\HMAC\SHA2\" />
     <Folder Include="Crypto\Hashing\PBKDF\" />
     <Folder Include="Crypto\Elliptic\Internal\VeryLongInt\" />
-    <Folder Include="Encoding\" />
   </ItemGroup>
 </Project>
