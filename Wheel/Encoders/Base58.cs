@@ -166,6 +166,15 @@
         /// <returns>Number of written bytes, if execution was successful. The required buffer length, if not.</returns>
         public unsafe int Decode(Span<byte> result, ReadOnlySpan<char> data)
         {
+            // Bitcoin-consistent behaviour:
+            // Skip whitespace characters
+            {
+                int idx_end, idx_start;
+                for (idx_end = data.Length - 1; idx_end > 0 && char.IsWhiteSpace(data[idx_end]);) --idx_end;
+                for (idx_start = 0; idx_start < data.Length && char.IsWhiteSpace(data[idx_start]); ++idx_start) ;
+                data = data.Slice(idx_start, 1 + idx_end - idx_start);
+            }
+
             // For the worst case
             int reqSz = (data.Length * 138 / 100) + 1;
 
