@@ -47,6 +47,11 @@
         /// </summary>
         private unsafe fixed byte AlphaMap[256];
 
+        /// <summary>
+        /// Construct with a custom Base58 alphabet
+        /// </summary>
+        /// <param name="alphabet">Alphabet characters</param>
+        /// <exception cref="ArgumentException">When the provided alphabet doesn't make any sense</exception>
         public unsafe Base58Codec(ReadOnlySpan<char> alphabet)
         {
             if (!CheckAlphabet(alphabet))
@@ -87,8 +92,7 @@
                     return false; 
                 }
 
-                uint b = bits << c;
-                uint next_bits = bits ^ b;
+                uint next_bits = bits ^ (bits << c);
                 if (next_bits < bits)
                 {
                     return false;
