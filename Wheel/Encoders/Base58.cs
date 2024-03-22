@@ -162,17 +162,18 @@
         /// Decode characters and write the resulting bytes into buffer
         /// </summary>
         /// <param name="result">Byte buffer to fill with the decoded bytes</param>
-        /// <param name="data">Characters buffer to decode</param>
+        /// <param name="encoded">Characters buffer to decode</param>
         /// <returns>Number of written bytes, if execution was successful. The required buffer length, if not.</returns>
-        public unsafe int Decode(Span<byte> result, ReadOnlySpan<char> data)
+        public unsafe int Decode(Span<byte> result, ReadOnlySpan<char> encoded)
         {
             // Bitcoin-consistent behaviour:
             // Skip whitespace characters
+            ReadOnlySpan<char> data;
             {
                 int idx_end, idx_start;
-                for (idx_end = data.Length - 1; idx_end > 0 && char.IsWhiteSpace(data[idx_end]);) --idx_end;
-                for (idx_start = 0; idx_start < data.Length && char.IsWhiteSpace(data[idx_start]); ++idx_start) ;
-                data = data.Slice(idx_start, 1 + idx_end - idx_start);
+                for (idx_end = encoded.Length - 1; idx_end > 0 && char.IsWhiteSpace(encoded[idx_end]);) --idx_end;
+                for (idx_start = 0; idx_start < encoded.Length && char.IsWhiteSpace(encoded[idx_start]); ++idx_start) ;
+                data = encoded.Slice(idx_start, 1 + idx_end - idx_start);
             }
 
             // For the worst case
