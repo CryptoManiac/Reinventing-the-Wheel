@@ -88,7 +88,7 @@
 
             foreach (var c in alphabet)
             {
-                if (!char.IsAscii(c)) {
+                if (!char.IsAscii(c) || char.IsWhiteSpace(c)) {
                     return false; 
                 }
 
