@@ -136,31 +136,26 @@
 
             int reqSz = data.Length + b256Sz;
 
-            if (result.Length >= reqSz)
+            if (result.Length < reqSz)
             {
-                fixed(char* ptr = &result[0])
-                {
-                    char* current = ptr;
-
-                    for (int i = 0; i < (data.Length - 1) && !Convert.ToBoolean(data[i]); ++i, ++current)
-                    {
-                        *current = Base58Map[0];
-                    }
-
-                    for (int i = 0; i < b256Sz; ++i, ++current)
-                    {
-                        *current = Base58Map[b256[b256Sz - 1 - i]];
-                    }
-
-                    // Note: the char values are always one
-                    //   byte long in our case.
-                    return (int)(current - ptr);
-                }
+                // Caller must provide a buffer with the
+                // sufficient space for the result characters
+                return reqSz;
             }
 
-            // Caller must provide a buffer with the sufficient space
-            //  for the result characters
-            return reqSz;
+            int written = 0;
+
+            for (int i = 0; i < (data.Length - 1) && !Convert.ToBoolean(data[i]); ++i)
+            {
+                result[written++] = Base58Map[0];
+            }
+
+            for (int i = 0; i < b256Sz; ++i)
+            {
+                result[written++] = Base58Map[b256[b256Sz - 1 - i]];
+            }
+
+            return written;
         }
 
         /// <summary>
