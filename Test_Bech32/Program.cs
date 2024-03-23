@@ -4,7 +4,7 @@ Bech32 bech32 = new();
 
 Span<char> hrp = stackalloc char[Bech32.MaxHRPSize];
 Span<byte> data = stackalloc byte[Bech32.MaxBECH32Size];
-Span<char> encoding_buffer = stackalloc char[Bech32.MaxBECH32Size * 3];
+Span<char> encoding_buffer = stackalloc char[Bech32.MaxBECH32Size];
 
 List<Tuple<string, Bech32.DecodingResult>> vectors = new()
 {
