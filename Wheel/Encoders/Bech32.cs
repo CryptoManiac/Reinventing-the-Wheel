@@ -12,13 +12,25 @@ namespace Wheel.Encoders
         public enum DecodingResult
         {
             success,
+            buffersTooShort,
             checksumMismatch,
             incorrectChecksumSize,
             incorrectHrpSize,
             invalidCase,
+            characterOutOfRange,
             invalidCharacter,
             noChecksumMarker,
             nonPrintableCharacter,
+            stringLengthExceeded,
+            stringLengthTruncated
+        }
+
+        public enum EncodingResult
+        {
+            success,
+            buffersTooShort,
+            incorrectHrpSize,
+            invalidCharacter,
             stringLengthExceeded
         }
 
@@ -32,7 +44,7 @@ namespace Wheel.Encoders
 
         // human-readable part of a bech32 string can only be between 1 and 83 characters long
         const int MinHRPSize = 1;
-        const int MaxHRPSize = 83;
+        public const int MaxHRPSize = 83;
 
         // while there are only 32 valid character values in a bech32 string, other characters
         // can be present but will be stripped out. however, all character values must fall
@@ -43,7 +55,7 @@ namespace Wheel.Encoders
 
         // entire bech32 string can only be a certain size (after invalid characters are stripped out)
         const int MinBECH32Size = 8;  // MinHRPSize + '1' + ChecksumSize
-        const int MaxBECH32Size = 90; // MaxHRPSize + '1' + ChecksumSize
+        public const int MaxBECH32Size = 90; // MaxHRPSize + '1' + ChecksumSize
 
         /// <summary>
         /// Bech32 checksum delimiter
@@ -82,7 +94,7 @@ namespace Wheel.Encoders
         /// Configure new codec instance
         /// </summary>
         /// <param name="bech32M">Use BECH32M variant</param>
-        public Bech32(bool bech32M = false)
+        public Bech32(bool bech32M)
         {
             checksumConst = bech32M ? BECH32M_CONST : BECH32_CONST;
         }
@@ -97,49 +109,6 @@ namespace Wheel.Encoders
             {
                 str[i] = char.ToLower(str[i]);
             }
-        }
-
-        /// <summary>
-        /// Character values must fit into mapping table
-        /// </summary>
-        /// <param name="str"></param>
-        /// <returns></returns>
-        private static bool ValidateCharacterRanges(ReadOnlySpan<char> str)
-        {
-            foreach(char c in str)
-            {
-                if (c < MinBECH32Value ||  c > MaxBECH32Value)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// String must be either entirely in lower case or entirely in upper case
-        /// </summary>
-        /// <param name="str"></param>
-        /// <returns>False if mixed case</returns>
-        private static bool ValidateNonMixedCase(ReadOnlySpan<char> str)
-        {
-            bool hasUpper = false;
-            bool hasLower = false;
-
-            foreach(char c in str)
-            {
-                if (char.IsUpper(c)) 
-                {
-                    hasUpper = true;
-                }
-
-                if (char.IsLower(c))
-                {
-                    hasLower = true;
-                }
-            }
-
-            return !(hasLower && hasUpper);
         }
 
         /// <summary>
@@ -158,37 +127,6 @@ namespace Wheel.Encoders
             }
 
             return -1;
-        }
-
-        /// <summary>
-        /// Return a slice containing HRP
-        /// </summary>
-        /// <param name="str"></param>
-        /// <returns></returns>
-        private static ReadOnlySpan<char> ExtractHRP(ReadOnlySpan<char> str)
-        {
-            int pos = FindSeparatorPosition(str);
-            if (-1 != pos)
-            {
-                return str.Slice(0, pos);
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Return a slice containing data, casting it to byte type
-        /// </summary>
-        /// <param name="str"></param>
-        /// <returns></returns>
-        private static ReadOnlySpan<byte> ExtractData(ReadOnlySpan<char> str)
-        {
-            int pos = FindSeparatorPosition(str);
-            if (-1 != pos)
-            {
-                var data = str.Slice(pos + 1);
-                return MemoryMarshal.Cast<char, byte>(data);
-            }
-            return null;
         }
 
         /// <summary>
@@ -303,22 +241,43 @@ namespace Wheel.Encoders
             return ChecksumSize;
         }
 
-        public int Encode(Span<char> result, ReadOnlySpan<char> hrp, ReadOnlySpan<byte> data)
+        public EncodingResult Encode(Span<char> result, out int reqSz, ReadOnlySpan<char> hrp, ReadOnlySpan<byte> data)
         {
-            int reqSz = hrp.Length + 1 + data.Length + ChecksumSize;
+            reqSz = hrp.Length + 1 + data.Length + ChecksumSize;
 
             if (reqSz > result.Length)
             {
-                return reqSz;
+                return EncodingResult.buffersTooShort;
+            }
+
+            if (hrp.Length > MaxHRPSize || hrp.Length < MinHRPSize)
+            {
+                return EncodingResult.incorrectHrpSize;
+            }
+
+            if (hrp.Length + 1 + data.Length > MaxBECH32Size)
+            {
+                return EncodingResult.stringLengthExceeded;
+            }
+
+            foreach(byte c in data) {
+                if (c > encCharset.Length - 1) {
+                    return EncodingResult.invalidCharacter;
+                }
             }
 
             Span<byte> combined = stackalloc byte[concatHRP(null, hrp, data) + ChecksumSize];
             combined.Clear();
-            concatHRP(combined, hrp, data);
-            createChecksum(combined.Slice(combined.Length - ChecksumSize), hrp, data);
 
-            hrp.CopyTo(result);
-            result[hrp.Length] = checksumMarker;
+            Span<char> hrp_copy = stackalloc char[hrp.Length];
+            hrp.CopyTo(hrp_copy);
+            ConvertToLowercase(hrp_copy);
+
+            concatHRP(combined, hrp_copy, data);
+            createChecksum(combined.Slice(combined.Length - ChecksumSize), hrp_copy, data);
+
+            hrp_copy.CopyTo(result);
+            result[hrp_copy.Length] = checksumMarker;
 
             int codedSz = hrp.Length + 1;
             foreach (var c in combined)
@@ -326,13 +285,108 @@ namespace Wheel.Encoders
                 result[codedSz++] = encCharset[c];
             }
 
-            return codedSz;
+            return EncodingResult.success;
         }
 
-        public (DecodingResult, (int, int)) Decode(Span<char> hrp, Span<byte> data, ReadOnlySpan<char> str)
+        public DecodingResult Decode(Span<char> hrp, Span<byte> data, out (int, int) reqSz, ReadOnlySpan<char> str)
         {
-            // Stub
-            return (DecodingResult.success, (0, 0));
+            reqSz = (0, 0);
+
+            if (str.Length > MaxBECH32Size)
+            {
+                return DecodingResult.stringLengthExceeded;
+            }
+
+            if (str.Length < MinBECH32Size)
+            {
+                return DecodingResult.stringLengthTruncated;
+            }
+
+            bool hasUpper = false;
+            bool hasLower = false;
+
+            foreach (char c in str)
+            {
+                if (c < MinBECH32Value || c > MaxBECH32Value)
+                {
+                    return DecodingResult.nonPrintableCharacter;
+                }
+
+                if (char.IsUpper(c))
+                {
+                    hasUpper = true;
+                }
+
+                if (char.IsLower(c))
+                {
+                    hasLower = true;
+                }
+            }
+
+            if (hasLower && hasUpper)
+            {
+                return DecodingResult.invalidCase;
+            }
+
+            int pos = FindSeparatorPosition(str);
+
+            if (-1 == pos)
+            {
+                return DecodingResult.noChecksumMarker;
+            }
+
+            if (pos < MinHRPSize || pos > MaxHRPSize)
+            {
+                return DecodingResult.incorrectHrpSize;
+            }
+
+            if (str.Length < pos + 7)
+            {
+                return DecodingResult.incorrectChecksumSize;
+            }
+
+            int dataSz = str.Length - 1 - pos;
+
+            if (pos > hrp.Length || dataSz > data.Length)
+            {
+                reqSz = (pos, dataSz);
+                return DecodingResult.buffersTooShort;
+            }
+
+            Span<byte> values = stackalloc byte[dataSz];
+            Span<byte> dp = values.Slice(0, dataSz - ChecksumSize);
+
+            for (int i = 0; i < dataSz; ++i)
+            {
+                var c = str[i + pos + 1];
+                if (c > decCharset.Length - 1)
+                {
+                    return DecodingResult.characterOutOfRange;
+                }
+                sbyte d = decCharset[c];
+                if (d == -1)
+                {
+                    return DecodingResult.invalidCharacter;
+                }
+                values[i] = (byte)d;
+            }
+
+            Span<char> hrp_copy = stackalloc char[pos];
+            str.Slice(0, pos).CopyTo(hrp_copy);
+            ConvertToLowercase(hrp_copy);
+
+            if (!verifyChecksum(hrp_copy, values))
+            {
+                return DecodingResult.checksumMismatch;
+            }
+
+            // Whire result buffers
+            hrp_copy.CopyTo(hrp);
+            dp.CopyTo(data);
+
+            reqSz = (hrp_copy.Length, dp.Length);
+
+            return DecodingResult.success;
         }
     }
 }
