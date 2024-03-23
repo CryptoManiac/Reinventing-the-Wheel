@@ -8,7 +8,11 @@ using Wheel.Crypto.Hashing.HMAC;
 
 namespace Wheel.Crypto.Elliptic
 {
-	public struct ECPrivateKey : IDisposable
+    /// <summary>
+    /// ECPrivateKey is defined as a ref struct to ensure that its copies
+    ///  are not being kept anywhere without user being aware of this fact
+    /// </summary>
+	public ref struct ECPrivateKey
 	{
         /// <summary>
         /// The secret key funcions are using slices that are being made from this hidden array.
@@ -169,7 +173,15 @@ namespace Wheel.Crypto.Elliptic
             Reset();
             Span<ulong> native_key = stackalloc ulong[VLI.ECC_MAX_WORDS];
             VLI.BytesToNative(native_key, private_key, curve.NUM_N_BYTES);
-            return Wrap(native_key);
+
+            // Here and below these unsafe blocks are used because there is np other way to
+            // tell the compiler that we're not saving the Span outside of the function scope
+            unsafe
+            {
+                #pragma warning disable CS9080
+                return Wrap(native_key);
+                #pragma warning restore CS9080
+            }
         }
 
         /// <summary>
@@ -231,8 +243,13 @@ namespace Wheel.Crypto.Elliptic
             //   r = (a + scalar) % n
             VLI.ModAdd(_result, secret_x, _scalar, curve.n, curve.NUM_N_WORDS);
 
-            // Try to wrap the resulting key data
-            return result.Wrap(_result);
+            unsafe
+            {
+                #pragma warning disable CS9080
+                // Try to wrap the resulting key data
+                return result.Wrap(_result);
+                #pragma warning restore CS9080
+            }
         }
 
         /// <summary>
@@ -369,7 +386,13 @@ namespace Wheel.Crypto.Elliptic
                 throw new InvalidOperationException("Trying to derive from the invalid private key");
             }
 
-            GenerateSecret<HMAC_IMPL>(curve, out result, seed, entropy, sequence, expand_iterations);
+            unsafe
+            {
+                #pragma warning disable CS9080
+                GenerateSecret<HMAC_IMPL>(curve, out result, seed, entropy, sequence, expand_iterations);
+                #pragma warning restore CS9080
+            }
+
             seed.Clear();
         }
 
@@ -462,7 +485,13 @@ namespace Wheel.Crypto.Elliptic
                 {
                     if (IsValidPrivateKey(secret_data, curve))
                     {
-                        result = new ECPrivateKey(curve, secret_data);
+                        unsafe
+                        {
+                            #pragma warning disable CS9080
+                            result = new ECPrivateKey(curve, secret_data);
+                            #pragma warning restore CS9080
+                        }
+
                         secret_data.Clear();
                         return;
                     }
@@ -555,8 +584,15 @@ namespace Wheel.Crypto.Elliptic
 
             ECCPoint.PointMul(curve, ecdh_point, ecdh_point, p2[Convert.ToUInt64(!Convert.ToBoolean(carry))], curve.NUM_N_BITS + 1);
 
-            // Will fail if the point is zero
-            bool result = shared.Wrap(ecdh_point.Slice(0, num_words));
+            bool result;
+
+            unsafe
+            {
+                #pragma warning disable CS9080
+                // Will fail if the point is zero
+                result = shared.Wrap(ecdh_point.Slice(0, num_words));
+                #pragma warning restore CS9080
+            }
 
             // Clear the temporary vars
             VLI.Clear(ecdh_point, 2 * num_words);
