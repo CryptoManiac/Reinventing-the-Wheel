@@ -1,11 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Runtime.Intrinsics.Arm;
-using System.Text;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
-namespace Wheel.Encoders
+﻿namespace Wheel.Encoders
 {
     public struct Bech32
     {
@@ -100,6 +93,13 @@ namespace Wheel.Encoders
         }
 
         /// <summary>
+        /// Configure a legacy codec instance
+        /// </summary>
+        public Bech32() : this(false)
+        {
+        }
+
+        /// <summary>
         /// Convert all characters to lower case
         /// </summary>
         /// <param name="str"></param>
@@ -118,7 +118,7 @@ namespace Wheel.Encoders
         /// <returns></returns>
         private static int FindSeparatorPosition(ReadOnlySpan<char> str)
         {
-            for (int i = 0; i < str.Length; ++i)
+            for (int i = str.Length - 1; i > 0; --i)
             {
                 if (str[i] == checksumMarker)
                 {
@@ -260,12 +260,6 @@ namespace Wheel.Encoders
                 return EncodingResult.stringLengthExceeded;
             }
 
-            foreach(byte c in data) {
-                if (c > encCharset.Length - 1) {
-                    return EncodingResult.invalidCharacter;
-                }
-            }
-
             Span<byte> combined = stackalloc byte[concatHRP(null, hrp, data) + ChecksumSize];
             combined.Clear();
 
@@ -282,6 +276,11 @@ namespace Wheel.Encoders
             int codedSz = hrp.Length + 1;
             foreach (var c in combined)
             {
+                if (c > encCharset.Length - 1)
+                {
+                    result.Clear();
+                    return EncodingResult.invalidCharacter;
+                }
                 result[codedSz++] = encCharset[c];
             }
 
