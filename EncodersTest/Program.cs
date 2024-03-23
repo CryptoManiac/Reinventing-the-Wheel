@@ -1,5 +1,4 @@
-﻿using System.Data;
-using Wheel.Encoders;
+﻿using Wheel.Encoders;
 
 // Sample data from this wiki page: https://en.bitcoin.it/wiki/Technical_background_of_version_1_Bitcoin_addresses
 Span<byte> dataToEncode = stackalloc byte[] { 0x00, 0xf5, 0x4a, 0x58, 0x51, 0xe9, 0x37, 0x2b, 0x87, 0x81, 0x0a, 0x8e, 0x60, 0xcd, 0xd2, 0xe7, 0xcf, 0xd8, 0x0b, 0x6e, 0x31, 0xc7, 0xf1, 0x8f, 0xe8 };
@@ -40,13 +39,5 @@ if (!b58data.SequenceEqual(dataToEncode))
 
 Console.WriteLine("Decoding result: {0}", Convert.ToHexString(b58data));
 
-/*
-Bech32 bech32 = new(false);
 
-Span<char> hrp = stackalloc char[Bech32.MaxHRPSize];
-Span<byte> data = stackalloc byte[Bech32.MaxBECH32Size];
 
-var result = bech32.Decode(hrp, data, out (int, int) reqSz, "split1checkupstagehandshakeupstreamerranterredcaperred2y9e3w");
-
-Console.WriteLine(result);
-*/
