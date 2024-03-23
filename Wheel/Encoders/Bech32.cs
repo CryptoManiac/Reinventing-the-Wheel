@@ -260,18 +260,17 @@
                 return EncodingResult.stringLengthExceeded;
             }
 
-            Span<byte> combined = stackalloc byte[concatHRP(null, hrp, data) + ChecksumSize];
-            combined.Clear();
+            Span<byte> combined = stackalloc byte[data.Length + ChecksumSize];
+            Span<byte> checksum = combined.Slice(combined.Length - ChecksumSize);
 
+            data.CopyTo(combined);
             Span<char> hrp_copy = stackalloc char[hrp.Length];
             hrp.CopyTo(hrp_copy);
             ConvertToLowercase(hrp_copy);
-
-            concatHRP(combined, hrp_copy, data);
-            createChecksum(combined.Slice(combined.Length - ChecksumSize), hrp_copy, data);
+            createChecksum(checksum, hrp_copy, data);
 
             hrp_copy.CopyTo(result);
-            result[hrp_copy.Length] = checksumMarker;
+            result[hrp.Length] = checksumMarker;
 
             int codedSz = hrp.Length + 1;
             foreach (var c in combined)
@@ -380,7 +379,7 @@
             }
 
             // Whire result buffers
-            hrp_copy.CopyTo(hrp);
+            str.Slice(0, pos).CopyTo(hrp);
             dp.CopyTo(data);
 
             reqSz = (hrp_copy.Length, dp.Length);
