@@ -277,12 +277,14 @@
             {
                 if (c > encCharset.Length - 1)
                 {
+                    combined.Clear();
                     result.Clear();
                     return EncodingResult.invalidCharacter;
                 }
                 result[codedSz++] = encCharset[c];
             }
 
+            combined.Clear();
             return EncodingResult.success;
         }
 
@@ -381,6 +383,7 @@
             // Whire result buffers
             str.Slice(0, pos).CopyTo(hrp);
             dp.CopyTo(data);
+            values.Clear();
 
             reqSz = (hrp_copy.Length, dp.Length);
 

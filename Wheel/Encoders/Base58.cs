@@ -155,6 +155,8 @@
                 result[written++] = Base58Map[b256[b256Sz - 1 - i]];
             }
 
+            b256.Clear();
+
             return written;
         }
 
