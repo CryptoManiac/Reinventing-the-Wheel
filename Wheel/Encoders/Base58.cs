@@ -173,7 +173,7 @@
             ReadOnlySpan<char> data;
             {
                 int idx_end, idx_start;
-                for (idx_end = encoded.Length - 1; idx_end > 0 && char.IsWhiteSpace(encoded[idx_end]);) --idx_end;
+                for (idx_end = encoded.Length - 1; idx_end > 0 && char.IsWhiteSpace(encoded[idx_end]); --idx_end) ;
                 for (idx_start = 0; idx_start < encoded.Length && char.IsWhiteSpace(encoded[idx_start]); ++idx_start) ;
                 data = encoded.Slice(idx_start, 1 + idx_end - idx_start);
             }
