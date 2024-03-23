@@ -118,7 +118,7 @@
         /// <returns></returns>
         private static int FindSeparatorPosition(ReadOnlySpan<char> str)
         {
-            for (int i = str.Length - 1; i > 0; --i)
+            for (int i = str.Length - 1; i >= 0; --i)
             {
                 if (str[i] == checksumMarker)
                 {
