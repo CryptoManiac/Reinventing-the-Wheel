@@ -1,21 +1,22 @@
 ﻿using Wheel.Crypto.Shamir;
+using System.Text;
 
-byte[] secret = System.Text.Encoding.ASCII.GetBytes("The quick brown fox jumps over the lazy dog");
+string secretString = "The quick brown fox jumps over the lazy dog";
 
-Scheme scheme = new(8, 5);
+Console.WriteLine("Original secret string: {0}", secretString);
 
-var shares = scheme.createShares(secret);
+byte[] secret = Encoding.ASCII.GetBytes(secretString);
+
+Sharing scheme = new(8, 5);
+
+var shares = scheme.CreateShares(secret);
 
 foreach (var s in shares)
 {
-    Console.WriteLine("----------------");
-    Console.WriteLine("Share # {0}", s[0].X);
-    foreach (var point in s.AsSpan) {
-        Console.WriteLine("{0} {1}", point.X, point.Y);
-    }
+    Console.WriteLine("Share # {0} : {1}", s.Index, Convert.ToHexString(s.Raw));
 }
 
-byte[] reconstructed = new byte[scheme.getSecret(null, shares)];
-scheme.getSecret(reconstructed, shares);
+Span<byte> reconstructed = stackalloc byte[scheme.MergeShares(null, shares)];
+scheme.MergeShares(reconstructed, shares);
 
-Console.WriteLine(System.Text.Encoding.ASCII.GetString(reconstructed));
+Console.WriteLine("Reconstructed secret: {0}", Encoding.ASCII.GetString(reconstructed));

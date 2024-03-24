@@ -7,95 +7,21 @@ namespace Wheel.Crypto.Shamir.Internal
     /// TODO: Rewrite the entire thing. It's necessary to ensure the allocation-deterministic behaviour.
     /// </summary>
 
-    public struct ShareByte
-    {
-        private byte value;
-
-        public ShareByte()
-        {
-            value = 0;
-        }
-
-        public ShareByte(byte num)
-        {
-            this.value = num;
-        }
-
-        public static implicit operator ShareByte(byte n)
-        {
-            return new ShareByte(n);
-        }
-
-        public static implicit operator byte(ShareByte c)
-        {
-            return c.value;
-        }
-
-        public static ShareByte operator ^(ShareByte a, ShareByte b) {
-            return (byte)(a.value ^ b.value);
-        }
-
-        public static ShareByte operator *(ShareByte a, ShareByte b)
-        {
-            if (a.value == 0 || b.value == 0)
-            {
-                return 0;
-            }
-            int t = GroupFieldMath.logs[a.value].value + GroupFieldMath.logs[b.value].value;
-            if (t > 255)
-            {
-                t -= 255;
-            }
-            return GroupFieldMath.exponents[t];
-        }
-
-        public static bool operator !=(ShareByte a, ShareByte b)
-        {
-            return a.value != b.value;
-        }
-
-        public static bool operator ==(ShareByte a, ShareByte b)
-        {
-            return a.value == b.value;
-        }
-
-        public static ShareByte operator ~(ShareByte a)
-        {
-            byte y = GroupFieldMath.logs[a.value].value, x;
-            x = (byte) (255 - y);
-            return GroupFieldMath.exponents[x];
-        }
-
-        public static ShareByte operator /(ShareByte a, ShareByte b)
-        {
-            byte c = ~b;
-            return a * c;
-        }
-
-        public override string ToString()
-        {
-            return value.ToString("X2");
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return obj is ShareByte coordinate &&
-                   value == coordinate.value;
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(value);
-        }
-    }
+    
 
     [StructLayout(LayoutKind.Explicit)]
-    public struct SharePoint
+    internal struct SharePoint
     {
         [FieldOffset(0)]
         public ShareByte X;
         [FieldOffset(1)]
         public ShareByte Y;
+
+        public SharePoint(ShareByte x, ShareByte y)
+        {
+            X = x;
+            Y = y;
+        }
     }
 
     /// <summary>
@@ -103,7 +29,7 @@ namespace Wheel.Crypto.Shamir.Internal
     /// </summary>
     public class Share
     {
-        private SharePoint[] points;
+        private SharePoint[] Points;
 
         /// <summary>
         /// Init empty share
@@ -111,7 +37,12 @@ namespace Wheel.Crypto.Shamir.Internal
         /// <param name="secretSize"></param>
         public Share(int secretSize)
         {
-            points = new SharePoint[secretSize];
+            Points = new SharePoint[secretSize];
+        }
+
+        public int Index
+        {
+            get => Points[0].X;
         }
 
         /// <summary>
@@ -121,23 +52,46 @@ namespace Wheel.Crypto.Shamir.Internal
         /// <exception cref="InvalidDataException"></exception>
         public Share(ReadOnlySpan<byte> encoded)
         {
-            if (encoded.IsEmpty || (encoded.Length % 2) != 0)
+            if (encoded.Length < 2)
             {
                 throw new InvalidDataException("Invalid share data length");
             }
 
-            points = new SharePoint[encoded.Length / 2];
-            encoded.CopyTo(MemoryMarshal.Cast<SharePoint, byte>(points));
+            // Compact share format looks like this:
+            // [share index] [coordinate 1] [coorddinate 2] ... [coordinate N]
+            // The expanded share format looks like this:
+            // [share index] [coordinate 1] [share index] [coorddinate 2] ... [share index] [coordinate N]
+            Points = new SharePoint[(encoded.Length - 1) * 2];
+            for (int i = 1; i < encoded.Length; ++i)
+            {
+                Points[i - 1] = new SharePoint(encoded[0], encoded[i]);
+            }
         }
 
-        public SharePoint this[int index]
+        /// <summary>
+        /// Compact encoding of share
+        /// </summary>
+        public ReadOnlySpan<byte> Raw
         {
-            get => points[index];
-            set => points[index] = value;
+            get
+            {
+                byte[] compact = new byte[Points.Length + 1];
+                compact[0] = Points[0].X;
+                for (int i = 0; i < Points.Length; ++i)
+                {
+                    compact[i + 1] = Points[i].Y;
+                }
+                return compact;
+            }
         }
 
-        public int Length => points.Length;
-        public Span<SharePoint> AsSpan => points;
+        internal SharePoint this[int index]
+        {
+            get => Points[index];
+            set => Points[index] = value;
+        }
+
+        public int Length => Points.Length;
     }
 
     internal static class GroupFieldMath
