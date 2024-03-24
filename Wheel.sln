@@ -22,11 +22,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Элементы решен
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test_Base58", "EncodersTest\Test_Base58.csproj", "{A9B757C8-F76F-4C0C-AB7C-37738A44451A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test_Base58", "EncodersTest\Test_Base58.csproj", "{A9B757C8-F76F-4C0C-AB7C-37738A44451A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test_Bech32", "Test_Bech32\Test_Bech32.csproj", "{B6634E0F-EF60-46E3-9357-88E4C0141DA3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test_Bech32", "Test_Bech32\Test_Bech32.csproj", "{B6634E0F-EF60-46E3-9357-88E4C0141DA3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test_Shamir", "Test_Shamir\Test_Shamir.csproj", "{19C80889-A5DE-4D32-B9B5-57C8DD7DD745}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test_Shamir", "Test_Shamir\Test_Shamir.csproj", "{19C80889-A5DE-4D32-B9B5-57C8DD7DD745}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test_AES", "Test_AES\Test_AES.csproj", "{263CC7E7-C73D-43AC-A885-34B40BE83307}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -74,6 +76,10 @@ Global
 		{19C80889-A5DE-4D32-B9B5-57C8DD7DD745}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{19C80889-A5DE-4D32-B9B5-57C8DD7DD745}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{19C80889-A5DE-4D32-B9B5-57C8DD7DD745}.Release|Any CPU.Build.0 = Release|Any CPU
+		{263CC7E7-C73D-43AC-A885-34B40BE83307}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{263CC7E7-C73D-43AC-A885-34B40BE83307}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{263CC7E7-C73D-43AC-A885-34B40BE83307}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{263CC7E7-C73D-43AC-A885-34B40BE83307}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
