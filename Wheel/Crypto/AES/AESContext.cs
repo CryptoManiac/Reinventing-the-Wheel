@@ -31,19 +31,33 @@ namespace Wheel.Crypto.AES
             RoundKey.Expand(key);
             IV = iv;
         }
-        
+
+        /// <summary>
+        /// Process a single block
+        /// </summary>
+        /// <param name="block"></param>
+        public void ProcessBlock(ref AESBlock block)
+        {
+            AESBuffer buffer = stackalloc byte[AESBlock.TypeByteSz];
+            buffer.AsBlock = IV;
+            buffer.AsState.Cipher(RoundKey);
+            IV++;
+            block.XorWithIv(buffer.AsBlock);
+        }
+
+        /// <summary>
+        /// Process multiple blocks
+        /// </summary>
+        /// <param name="blocks"></param>
         public void ProcessBlocks(Span<AESBlock> blocks)
         {
-            Span<byte> buffer = stackalloc byte[AESBlock.TypeByteSz];
-            ref AESBlock bufferAsBlock = ref MemoryMarshal.Cast<byte, AESBlock>(buffer)[0];
-            ref State bufferAsState = ref MemoryMarshal.Cast<byte, State>(buffer)[0];
-
-            foreach (ref AESBlock current in blocks)
+            AESBuffer buffer = stackalloc byte[AESBlock.TypeByteSz];
+            foreach (ref AESBlock block in blocks)
             {
-                bufferAsBlock = IV;
-                bufferAsState.Cipher(RoundKey);
+                buffer.AsBlock = IV;
+                buffer.AsState.Cipher(RoundKey);
                 IV++;
-                current.XorWithIv(bufferAsBlock);
+                block.XorWithIv(buffer.AsBlock);
             }
         }
     }
