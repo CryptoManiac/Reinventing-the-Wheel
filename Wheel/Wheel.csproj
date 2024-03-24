@@ -22,6 +22,8 @@
     <Compile Remove="Encoding\**" />
     <EmbeddedResource Remove="Encoding\**" />
     <None Remove="Encoding\**" />
+    <None Remove="Crypto\Shamir\" />
+    <None Remove="Crypto\Shamir\Internal\" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Crypto\" />
@@ -54,5 +56,7 @@
     <Folder Include="Crypto\Hashing\HMAC\SHA2\" />
     <Folder Include="Crypto\Hashing\PBKDF\" />
     <Folder Include="Crypto\Elliptic\Internal\VeryLongInt\" />
+    <Folder Include="Crypto\Shamir\" />
+    <Folder Include="Crypto\Shamir\Internal\" />
   </ItemGroup>
 </Project>
