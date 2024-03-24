@@ -19,17 +19,43 @@ byte[] dataToEncrypt = Encoding.ASCII.GetBytes("The quick brown fox jumps over t
 
 AESContext ctx = new AESContext(key, iv);
 
-Span<AESBlock> blocks = stackalloc AESBlock[AESBlock.GetBlocksWithPadding(dataToEncrypt)];
+// Allocate required number of blocks (data + padding)
+Span<AESBlock> blocks = stackalloc AESBlock[AESBlock.GetBlocksWithPadding(dataToEncrypt.Length)];
+
+// block data as bytes
 Span<byte> blockBytes = MemoryMarshal.Cast<AESBlock, byte>(blocks);
+
+// Fill the data
 dataToEncrypt.CopyTo(blockBytes);
 
-Console.WriteLine("Plaintext: {0}", Convert.ToHexString(blockBytes));
+// Write padding bytes to last block
+AESBlock.FillPaddingBlock(ref blocks[blocks.Length - 1], dataToEncrypt.Length);
 
+Console.WriteLine("Plaintext bytes: {0}", Convert.ToHexString(blockBytes.Slice(0, dataToEncrypt.Length)));
+Console.WriteLine("Plaintext string: {0}", Encoding.ASCII.GetString(blockBytes.Slice(0, dataToEncrypt.Length)));
+
+// Encrypt data with the configured Key and IV
 ctx.ProcessBlocks(blocks);
-Console.WriteLine("Encrypted: {0}", Convert.ToHexString(blockBytes));
 
+Console.WriteLine("Ciphertext bytes: {0}", Convert.ToHexString(blockBytes));
+
+// Reset the context
 ctx.Init(key, iv);
 
+// Decryption is done with the same algorithm
 ctx.ProcessBlocks(blocks);
-Console.WriteLine("Decrypted: {0}", Convert.ToHexString(blockBytes));
 
+// Padding is written in the last block
+int paddingLength = AESBlock.GetPaddingLen(blocks[blocks.Length - 1]);
+
+// Slice out the last [paddingLength] bytes to get the original data
+var decryptedData = blockBytes.Slice(0, blockBytes.Length - paddingLength);
+
+if (!decryptedData.SequenceEqual(dataToEncrypt))
+{
+    // Algorithm bug
+    throw new SystemException("Decrypted data mismatch");
+}
+
+Console.WriteLine("Decrypted bytes: {0}", Convert.ToHexString(decryptedData));
+Console.WriteLine("Decrypted string: {0}", Encoding.ASCII.GetString(decryptedData));

@@ -71,11 +71,39 @@ namespace Wheel.Crypto.AES
             return new AESBlock(data);
         }
 
-        public static int GetBlocksWithPadding(ReadOnlySpan<byte> data)
+        /// <summary>
+        /// Fill the padding data for given block
+        /// </summary>
+        /// <param name="block">Last block to be encrypted</param>
+        /// <param name="totalLen">Total length of encypted data (excluding the padding block)</param>
+        public unsafe static void FillPaddingBlock(ref AESBlock block, int totalLen)
         {
-            int wholeBlocks = data.Length / TypeByteSz;
-            int extraBlock = Convert.ToInt32(0 < data.Length - wholeBlocks * TypeByteSz);
-            return wholeBlocks + extraBlock;
+            int padLen = TypeByteSz - totalLen % TypeByteSz;
+            fixed(byte* ptr = &block.data[TypeByteSz - padLen])
+            {
+                new Span<byte>(ptr, padLen).Fill((byte)padLen);
+            }
+        }
+
+        /// <summary>
+        /// Get padding length for decrypted data
+        /// </summary>
+        /// <param name="block">Last decrypted block</param>
+        /// <returns>Padding length (bytes at the end to be ignored after decryption)</returns>
+        public unsafe static int GetPaddingLen(in AESBlock block)
+        {
+            return block.data[TypeByteSz - 1];
+        }
+
+        /// <summary>
+        /// Get number of required blocks to encrypt the given number of bytes
+        /// </summary>
+        /// <param name="totalLen"></param>
+        /// <returns>Number of data blocks plus padding block</returns>
+        public static int GetBlocksWithPadding(int totalLen)
+        {
+            int padLen = TypeByteSz - totalLen / TypeByteSz;
+            return (totalLen + padLen) / TypeByteSz;
         }
     }
 
