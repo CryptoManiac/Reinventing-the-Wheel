@@ -12,7 +12,7 @@ namespace Wheel.Crypto.Elliptic
     /// ECPrivateKey is defined as a ref struct to ensure that its copies
     ///  are not being kept anywhere without user being aware of this fact
     /// </summary>
-	public ref struct ECPrivateKey
+	public struct ECPrivateKey
 	{
         /// <summary>
         /// The secret key funcions are using slices that are being made from this hidden array.
@@ -36,6 +36,19 @@ namespace Wheel.Crypto.Elliptic
                     return new Span<ulong>(ptr, curve.NUM_WORDS);
                 }
             }
+        }
+
+        private readonly void UnXOR(Action<nint> fn)
+        {
+            VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS);
+            unsafe
+            {
+                fixed(ulong* ptr = &private_key_data[0])
+                {
+                    fn(new nint(ptr));
+                }
+            }
+            VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS);
         }
 
         /// <summary>
@@ -85,7 +98,16 @@ namespace Wheel.Crypto.Elliptic
         /// </summary>
         public unsafe readonly bool IsValid
         {
-            get => !VLI.IsZero(secret_x, curve.NUM_N_WORDS) && VLI.Cmp(curve.n, secret_x, curve.NUM_N_WORDS) == 1;
+            get
+            {
+                if (VLI.IsZero(secret_x, curve.NUM_WORDS)) { 
+                    return false; 
+                }
+                VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS); // Unscramble
+                bool result = VLI.Cmp(curve.n, secret_x, curve.NUM_N_WORDS) == 1;
+                VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS); // Scramble
+                return result;
+            }
         }
 
         /// <summary>
@@ -108,7 +130,9 @@ namespace Wheel.Crypto.Elliptic
                 return false;
             }
 
+            VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS); // Unscramble
             secret_x.CopyTo(native_out);
+            VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS); // Scramble
             return true;
         }
 
@@ -131,6 +155,7 @@ namespace Wheel.Crypto.Elliptic
             }
 
             VLI.Set(secret_x, native_in, curve.NUM_N_WORDS);
+            VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS); // Scramble
             return true;
         }
 
@@ -158,7 +183,9 @@ namespace Wheel.Crypto.Elliptic
                 return false;
             }
 
+            VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS); // Unscramble
             VLI.NativeToBytes(secret_scalar, curve.NUM_N_BYTES, secret_x);
+            VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS); // Scramble
 
             return true;
         }
@@ -201,8 +228,12 @@ namespace Wheel.Crypto.Elliptic
 
             Span<ulong> _public = stackalloc ulong[VLI.ECC_MAX_WORDS * 2];
 
+            VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS); // Unscramble
+            bool computed = ECCPoint.ComputePublicPoint(curve, _public, secret_x);
+            VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS); // Scramble
+
             // Compute public key.
-            if (!ECCPoint.ComputePublicPoint(curve, _public, secret_x))
+            if (!computed)
             {
                 return false;
             }
@@ -239,9 +270,13 @@ namespace Wheel.Crypto.Elliptic
                 return false;
             }
 
+            VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS); // Unscramble
+
             // Apply scalar addition
             //   r = (a + scalar) % n
             VLI.ModAdd(_result, secret_x, _scalar, curve.n, curve.NUM_N_WORDS);
+
+            VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS); // Scramble
 
             unsafe
             {
@@ -299,7 +334,10 @@ namespace Wheel.Crypto.Elliptic
             VLI.ModMult(k, k, tmp, curve.n, num_n_words); // k = 1 / k
 
             VLI.Set(r, p, num_words); // store r
+
+            VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS); // Unscramble
             VLI.Set(tmp, secret_x, curve.NUM_N_WORDS); // tmp = private key
+            VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS); // Scramble
 
             s[num_n_words - 1] = 0;
             VLI.Set(s, p, num_words);
@@ -554,7 +592,7 @@ namespace Wheel.Crypto.Elliptic
                 return false;
             }
 
-            if (curve.name != public_key.curve.name)
+            if (curve != public_key.curve)
             {
                 // It doesn't make any sense to use points on non-matching curves
                 // This shouldn't ever happen in real life
@@ -574,7 +612,11 @@ namespace Wheel.Crypto.Elliptic
 
             Span<ulong> secret_scalar_x = stackalloc ulong[VLI.ECC_MAX_WORDS];
             Span<ulong> temp_scalar_k = stackalloc ulong[VLI.ECC_MAX_WORDS];
+
+            VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS); // Unscramble
             VLI.Set(secret_scalar_x, secret_x, num_words);
+            VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS); // Scramble
+
             VLI.Picker<ulong> p2 = new(secret_scalar_x, temp_scalar_k);
             ulong carry;
 
@@ -617,16 +659,11 @@ namespace Wheel.Crypto.Elliptic
             if (secret_hash.Length == hasher.HashSz && Serialize(secret_bytes))
             {
                 hasher.Update(secret_bytes);
-                hasher.Digest(secret_hash);
                 secret_bytes.Clear();
+                hasher.Digest(secret_hash);
                 return true;
             }
             return false;
-        }
-
-        public void Dispose()
-        {
-            secret_x.Clear();
         }
     }
 }

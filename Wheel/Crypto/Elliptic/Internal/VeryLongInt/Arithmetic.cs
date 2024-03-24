@@ -72,6 +72,20 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
         }
 
         /// <summary>
+        /// Apply XOR
+        /// </summary>
+        /// <param name="words"></param>
+        /// <param name="vli"></param>
+        /// <param name="num_words"></param>
+        public static void XorWith(Span<ulong> words, ReadOnlySpan<ulong> vli, int num_words)
+        {
+            for (int i = 0; i < num_words; i++)
+            {
+                words[i] ^= vli[i];
+            }
+        }
+
+        /// <summary>
         /// Computes result = left * right. Result must be 2 * num_words long.
         /// </summary>
         /// <param name="result"></param>
