@@ -48,7 +48,7 @@ namespace Wheel.Crypto.AES.Internal
 
                     tempa.RotWord();
                     tempa.SubWord();
-                    tempa.data[0] = (byte)(tempa.data[0] ^ AESCTR.Rcon[i / AESCTR.Nk]);
+                    tempa.data[0] ^= AESCTR.Rcon[i / AESCTR.Nk];
                 }
 
                 if (i % AESCTR.Nk == 4)

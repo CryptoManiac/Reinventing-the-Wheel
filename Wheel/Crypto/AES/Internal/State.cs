@@ -36,23 +36,6 @@ namespace Wheel.Crypto.AES.Internal
             data[2] = AESCTR.sbox[data[2]];
             data[3] = AESCTR.sbox[data[3]];
         }
-
-        private readonly unsafe Span<byte> bytes
-        {
-            get
-            {
-                fixed (void* ptr = &data[0])
-                {
-                    return new Span<byte>(ptr, TypeByteSz);
-                }
-            }
-        }
-
-        internal byte this[int index]
-        {
-            readonly get => bytes[index];
-            set => bytes[index] = value;
-        }
     }
 
     /// <summary>
@@ -84,11 +67,12 @@ namespace Wheel.Crypto.AES.Internal
         /// <param name="RoundKey"></param>
         internal unsafe void AddRoundKey(byte round, in AESRoundKey RoundKey)
         {
+            var words = this.words;
             for (byte i = 0; i < 4; ++i)
             {
                 for (byte j = 0; j < 4; ++j)
                 {
-                    words[i][j] ^= RoundKey.data[(round * AESCTR.Nb * 4) + (i * AESCTR.Nb) + j];
+                    words[i].data[j] ^= RoundKey.data[(round * AESCTR.Nb * 4) + (i * AESCTR.Nb) + j];
                 }
             }
         }
@@ -97,13 +81,14 @@ namespace Wheel.Crypto.AES.Internal
         /// The SubBytes Function Substitutes the values in the
         /// state matrix with values in an S-box.
         /// </summary>
-        internal void SubBytes()
+        internal unsafe void SubBytes()
         {
+            var words = this.words;
             for (byte i = 0; i < 4; ++i)
             {
                 for (byte j = 0; j < 4; ++j)
                 {
-                    words[j][i] = AESCTR.sbox[words[j][i]];
+                    words[j].data[i] = AESCTR.sbox[words[j].data[i]];
                 }
             }
         }
@@ -113,57 +98,59 @@ namespace Wheel.Crypto.AES.Internal
         /// Each row is shifted with different offset.
         /// Offset = Row number. So the first row is not shifted.
         /// </summary>
-        internal void ShiftRows()
+        internal unsafe void ShiftRows()
         {
             byte temp;
+            var words = this.words;
 
             // Rotate first row 1 column to left
-            temp = words[0][1];
-            words[0][1] = words[1][1];
-            words[1][1] = words[2][1];
-            words[2][1] = words[3][1];
-            words[3][1] = temp;
+            temp = words[0].data[1];
+            words[0].data[1] = words[1].data[1];
+            words[1].data[1] = words[2].data[1];
+            words[2].data[1] = words[3].data[1];
+            words[3].data[1] = temp;
 
             // Rotate second row 2 columns to left
-            temp = words[0][2];
-            words[0][2] = words[2][2];
-            words[2][2] = temp;
+            temp = words[0].data[2];
+            words[0].data[2] = words[2].data[2];
+            words[2].data[2] = temp;
 
-            temp = words[1][2];
-            words[1][2] = words[3][2];
-            words[3][2] = temp;
+            temp = words[1].data[2];
+            words[1].data[2] = words[3].data[2];
+            words[3].data[2] = temp;
 
             // Rotate third row 3 columns to left
-            temp = words[0][3];
-            words[0][3] = words[3][3];
-            words[3][3] = words[2][3];
-            words[2][3] = words[1][3];
-            words[1][3] = temp;
+            temp = words[0].data[3];
+            words[0].data[3] = words[3].data[3];
+            words[3].data[3] = words[2].data[3];
+            words[2].data[3] = words[1].data[3];
+            words[1].data[3] = temp;
         }
 
         /// <summary>
         /// MixColumns function mixes the columns of the state matrix
         /// </summary>
-        internal void MixColumns()
+        internal unsafe void MixColumns()
         {
             var xtime = (byte x) => (byte)((x << 1) ^ (((x >> 7) & 1) * 0x1b));
+            var words = this.words;
 
             for (byte i = 0; i < 4; ++i)
             {
-                byte t = words[i][0];
-                byte Tmp = (byte)(words[i][0] ^ words[i][1] ^ words[i][2] ^ words[i][3]);
-                byte Tm = (byte)(words[i][0] ^ words[i][1]);
+                byte t = words[i].data[0];
+                byte Tmp = (byte)(words[i].data[0] ^ words[i].data[1] ^ words[i].data[2] ^ words[i].data[3]);
+                byte Tm = (byte)(words[i].data[0] ^ words[i].data[1]);
                 Tm = xtime(Tm);
-                words[i][0] = (byte)(words[i][0] ^ (Tm ^ Tmp));
-                Tm = (byte)(words[i][1] ^ words[i][2]);
+                words[i].data[0] ^= (byte)(Tm ^ Tmp);
+                Tm = (byte)(words[i].data[1] ^ words[i].data[2]);
                 Tm = xtime(Tm);
-                words[i][1] = (byte)(words[i][1] ^ (Tm ^ Tmp));
-                Tm = (byte)(words[i][2] ^ words[i][3]);
+                words[i].data[1] ^= (byte)(Tm ^ Tmp);
+                Tm = (byte)(words[i].data[2] ^ words[i].data[3]);
                 Tm = xtime(Tm);
-                words[i][2] = (byte)(words[i][2] ^ (Tm ^ Tmp));
-                Tm = (byte)(words[i][3] ^ t);
+                words[i].data[2] ^= (byte)(Tm ^ Tmp);
+                Tm = (byte)(words[i].data[3] ^ t);
                 Tm = xtime(Tm);
-                words[i][3] = (byte)(words[i][3] ^ (Tm ^ Tmp));
+                words[i].data[3] ^= (byte) (Tm ^ Tmp);
             }
         }
 

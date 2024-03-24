@@ -62,7 +62,7 @@ namespace Wheel.Crypto.AES
             // The block in AES is always 128bit no matter the key size
             for (int i = 0; i < TypeByteSz; ++i)
             {
-                data[i] ^= Iv[i];
+                data[i] ^= Iv.data[i];
             }
         }
 
