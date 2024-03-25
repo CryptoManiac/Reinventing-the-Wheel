@@ -17,6 +17,7 @@ foreach (var s in shares)
 }
 
 Span<byte> reconstructed = stackalloc byte[scheme.MergeShares(null, shares)];
-scheme.MergeShares(reconstructed, shares);
+int secretLen = scheme.MergeShares(reconstructed, shares);
+reconstructed = reconstructed.Slice(0, secretLen);
 
 Console.WriteLine("Reconstructed secret: {0}", Encoding.ASCII.GetString(reconstructed));
