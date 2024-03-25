@@ -54,7 +54,7 @@ static class ShamirUtil
 
         var secret = File.ReadAllBytes(o.Secret);
 
-        Share[] chunks = (o.Password != null) ? scheme.CreateEncryptedShares(secret, Encoding.ASCII.GetBytes(o.Password)) : scheme.CreateShares(secret);
+        Share[] chunks = scheme.CreateEncryptedShares(secret, Encoding.ASCII.GetBytes(o.Password ?? string.Empty));
 
         using (StreamWriter sharesFile = new StreamWriter(o.Shares))
         {
@@ -120,19 +120,9 @@ static class ShamirUtil
             }
         }
 
-
         Share[] shares = collected.ToArray();
-        int recSz = scheme.MergeShares(null, shares);
-        Span<byte> reconstructed = stackalloc byte[recSz];
-
-        if (o.Password != null)
-        {
-            recSz = scheme.MergeEncrypted(reconstructed, shares, Encoding.ASCII.GetBytes(o.Password));
-        }
-        else
-        {
-            recSz = scheme.MergeShares(reconstructed, shares);
-        }
+        Span<byte> reconstructed = stackalloc byte[scheme.MergeShares(null, shares)];
+        int recSz = scheme.MergeEncrypted(reconstructed, shares, Encoding.ASCII.GetBytes(o.Password ?? string.Empty));
 
         reconstructed = reconstructed.Slice(0, recSz);
 

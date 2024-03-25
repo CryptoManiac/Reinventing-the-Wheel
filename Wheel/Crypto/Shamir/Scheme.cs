@@ -125,12 +125,13 @@ namespace Wheel.Crypto.Shamir
 
             if (!aesIV.SequenceEqual(aesIVCheck))
             {
-                throw new InvalidDataException("Unable to decrypt reconstructed secret (incorrect password?)");
+                throw new InvalidDataException("Reconstructed secret hash mismatch (incorrect password? corrupt shares?)");
             }
 
             return secretSz;
         }
 
+        #region Secret splitting and merging implementation
         /// <summary>
         /// Construct new shares from a given secret
         /// </summary>
@@ -211,6 +212,7 @@ namespace Wheel.Crypto.Shamir
 
             return secretSz;
         }
+        #endregion
 
         #region AES-256-CTR
         /// <summary>
