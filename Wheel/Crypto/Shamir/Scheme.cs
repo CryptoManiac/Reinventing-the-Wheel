@@ -48,40 +48,117 @@ namespace Wheel.Crypto.Shamir
         }
 
         /// <summary>
+        /// Create encrypted shares
+        /// </summary>
+        /// <param name="secret"></param>
+        /// <param name="seed"></param>
+        /// <returns></returns>
+        public Share[] CreateEncryptedShares(ReadOnlySpan<byte> secret, ReadOnlySpan<byte> seed)
+        {
+            // IV + encrypted secret
+            Span<byte> expanded = stackalloc byte[AESBlock.TypeByteSz + EncryptSecret(null, secret, null, null)];
+
+            Span<byte> aesIV = expanded.Slice(0, AESBlock.TypeByteSz);
+            Span<byte> cipherText = expanded.Slice(AESBlock.TypeByteSz);
+            Span<byte> aesKey = stackalloc byte[32];
+
+            // IV = HMAC(seed, secret)
+            HMAC_SHA512 hasher = new();
+            hasher.Init(seed);
+            hasher.Update(secret);
+            hasher.Digest(aesIV);
+
+            // Key = PBKDF2(seed, IV)
+            PBKDF2.Derive<HMAC_SHA512>(aesKey, seed, aesIV, 4096);
+
+            // IV + Encrypted secret
+            EncryptSecret(cipherText, secret, aesKey, aesIV);
+
+            // Split the IV + encrypted secret pair
+            return CreateShares(expanded);
+        }
+
+        /// <summary>
+        /// Merge and decrypt the password protected shares
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="shares"></param>
+        /// <param name="seed"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidDataException"></exception>
+        public int MergeEncrypted(Span<byte> result, Share[] shares, ReadOnlySpan<byte> seed)
+        {
+            // IV + encrypted secret
+            Span<byte> expanded = stackalloc byte[MergeShares(null, shares)];
+            MergeShares(expanded, shares);
+
+            int secretSz = expanded.Length - AESBlock.TypeByteSz;
+
+            if (secretSz > result.Length)
+            {
+                // Prepare for the worst outcome
+                return secretSz;
+            }
+
+            Span<byte> aesIV = expanded.Slice(0, AESBlock.TypeByteSz);
+            Span<byte> cipherText = expanded.Slice(AESBlock.TypeByteSz);
+            Span<byte> plainText = result.Slice(0, secretSz);
+
+            // Key = PBKDF2(seed, IV)
+            Span<byte> aesKey = stackalloc byte[32];
+            PBKDF2.Derive<HMAC_SHA512>(aesKey, seed, aesIV, 4096);
+
+            // Decrypt and return the number of written bytes
+            secretSz = DecryptSecret(plainText, cipherText, aesKey, aesIV);
+
+            // Truncate padding
+            plainText = plainText.Slice(0, secretSz);
+
+            // Calculate HMAC and compare it with IV for the intergity check
+            // IV = HMAC(seed, secret)
+            Span<byte> aesIVCheck = stackalloc byte[AESBlock.TypeByteSz];
+
+            HMAC_SHA512 hasher = new();
+            hasher.Init(seed);
+            hasher.Update(plainText);
+            hasher.Digest(aesIVCheck);
+
+            if (!aesIV.SequenceEqual(aesIVCheck))
+            {
+                throw new InvalidDataException("Unable to decrypt reconstructed secret (incorrect password?)");
+            }
+
+            return secretSz;
+        }
+
+        /// <summary>
         /// Construct new shares from a given secret
         /// </summary>
         /// <param name="secret">Byte array or Span</param>
         /// <returns>Array of share objects</returns>
         public Share[] CreateShares(ReadOnlySpan<byte> secret)
         {
-            // Allocate memory for the expanded secret (AES encryption key + AES IV + encrypted secret blocks)
-            Span<byte> expandedSecret = stackalloc byte[32 + AESBlock.TypeByteSz + EncryptSecret(null, secret, null, null)];
-            SplitCombined(out Span<byte> aesKey, out Span<byte> aesIV, out Span<byte> cipherText, expandedSecret);
-
-            // Derive encryption keys
-            DeriveKeys(aesKey, aesIV, secret);
-
-            // Encrypt secret
-            EncryptSecret(cipherText, secret, aesKey, aesIV);
+            // "Shamir" in ASCII
+            Span<byte> shamirTag = stackalloc byte[] { 0x53, 0x68, 0x61, 0x6d, 0x69, 0x72 };
 
             // With threshold = K shares we will need up to K * SECRET_LENGTH bytes of the random data
-            Span<byte> randomBytes = stackalloc byte[expandedSecret.Length * Threshold];
+            Span<byte> randomBytes = stackalloc byte[secret.Length * Threshold];
 
             // We presume that PBKDF2 output is equivalent to the uniform random distribution
             // 128 iterations are more than enough here
-            PBKDF2.Derive<HMAC_SHA512>(randomBytes, aesIV, aesKey, 128);
+            PBKDF2.Derive<HMAC_SHA384>(randomBytes, shamirTag, secret, 128);
 
             Share[] all = new Share[Participants];
 
             for (int i = 0; i < Participants; ++i)
             {
-                all[i] = new Share(expandedSecret.Length);
+                all[i] = new Share(secret.Length);
             }
 
-            for (int secretIdx = 0; secretIdx < expandedSecret.Length; ++secretIdx)
+            for (int secretIdx = 0; secretIdx < secret.Length; ++secretIdx)
             {
                 ShareByte[] coefficients = new ShareByte[Threshold];
-                coefficients[0] = expandedSecret[secretIdx];
+                coefficients[0] = secret[secretIdx];
                 for (int i = 1; i < Threshold; i++)
                 {
                     coefficients[i] = randomBytes[secretIdx * i];
@@ -115,34 +192,22 @@ namespace Wheel.Crypto.Shamir
                 throw new InvalidOperationException("At least " + Threshold + " shares are needed");
             }
 
-            int extendedSecretSize = shares[0].Length;
-            int cipherTextSize = extendedSecretSize - 32 - AESBlock.TypeByteSz;
+            int secretSz = shares[0].Length;
 
-            if (cipherTextSize > secret.Length)
+            if (secretSz > secret.Length)
             {
-                return cipherTextSize;
+                return secretSz;
             }
 
-            // Allocate memory for the expanded secret (AES encryption key + AES IV + encrypted secret blocks)
-            Span<byte> expandedSecret = stackalloc byte[extendedSecretSize];
-
             Share mergedPoints = new(Threshold);
-            for (int di = 0; di < extendedSecretSize; ++di)
+            for (int di = 0; di < secretSz; ++di)
             {
                 for (int i = 0; i < Threshold; i++)
                 {
                     mergedPoints[i] = shares[i][di];
                 }
-                expandedSecret[di] = GroupFieldMath.Interpolation(mergedPoints);
+                secret[di] = GroupFieldMath.Interpolation(mergedPoints);
             }
-
-            SplitCombined(out Span<byte> aesKey, out Span<byte> aesIV, out Span<byte> cipherText, expandedSecret);
-
-            // Decrypt and return the number of written bytes
-            int secretSz = DecryptSecret(secret, cipherText, aesKey, aesIV);
-
-            // Not needed anymore
-            expandedSecret.Clear();
 
             return secretSz;
         }
@@ -196,21 +261,8 @@ namespace Wheel.Crypto.Shamir
             Span<AESBlock> blocks = MemoryMarshal.Cast<byte, AESBlock>(result);
             cipherText.CopyTo(result);
             ctx.ProcessBlocks(blocks);
-
             // Return actual data length (without padding)
             return reqSz - AESBlock.GetPaddingLen(blocks[blocks.Length - 1]);
-        }
-        #endregion
-
-        #region RNG
-        private static void DeriveKeys(Span<byte> aesKey, Span<byte> aesIV, ReadOnlySpan<byte> secret)
-        {
-            // "Shamir" in ASCII
-            Span<byte> shamirTag = stackalloc byte[] { 0x53, 0x68, 0x61, 0x6d, 0x69, 0x72 };
-
-            // First of all, derive AES encryption key and IV
-            PBKDF2.Derive<HMAC_SHA512>(aesKey, shamirTag, secret, 1024);
-            PBKDF2.Derive<HMAC_SHA384>(aesIV, shamirTag, secret, 1024);
         }
         #endregion
     }

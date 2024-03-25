@@ -1,10 +1,11 @@
-﻿using CommandLine;
+﻿using System.Text;
+using CommandLine;
 using Wheel.Crypto.Shamir;
 using Wheel.Encoders;
 
 public class CommandLineOptions
 {
-    [Option('p', "participants", Required = true, HelpText = "Number of participants")]
+    [Option('n', "number", Required = true, HelpText = "Number of participants")]
     public int Participants { get; set; }
 
     [Option('t', "threshold", Required = true, HelpText = "Quorum to recover a secret")]
@@ -18,6 +19,9 @@ public class CommandLineOptions
 
     [Option("shares", Required = true, HelpText = "Shares file path")]
     public required string Shares { get; set; }
+
+    [Option("password", HelpText = "Encryption password")]
+    public string? Password { get; set; }
 }
 
 static class ShamirUtil
@@ -49,7 +53,8 @@ static class ShamirUtil
         Sharing scheme = new(o.Participants, o.Threshold);
 
         var secret = File.ReadAllBytes(o.Secret);
-        var chunks = scheme.CreateShares(secret);
+
+        Share[] chunks = (o.Password != null) ? scheme.CreateEncryptedShares(secret, Encoding.ASCII.GetBytes(o.Password)) : scheme.CreateShares(secret);
 
         using (StreamWriter sharesFile = new StreamWriter(o.Shares))
         {
@@ -91,7 +96,7 @@ static class ShamirUtil
 
         Base58Codec b58 = new();
         Sharing scheme = new(o.Participants, o.Threshold);
-        List<Share> chunks = new();
+        List<Share> collected = new();
 
         using (StreamReader sharesFile = new StreamReader(o.Shares))
         {
@@ -111,13 +116,26 @@ static class ShamirUtil
 
                 int shareSz = b58.Decode(decoded, encoded);
                 decoded = decoded.Slice(0, shareSz);
-                chunks.Add(new(decoded));
+                collected.Add(new(decoded));
             }
         }
 
-        Span<byte> reconstructed = stackalloc byte[scheme.MergeShares(null, chunks.ToArray())];
-        int secretLen = scheme.MergeShares(reconstructed, chunks.ToArray());
-        reconstructed = reconstructed.Slice(0, secretLen);
+
+        Share[] shares = collected.ToArray();
+        int recSz = scheme.MergeShares(null, shares);
+        Span<byte> reconstructed = stackalloc byte[recSz];
+
+        if (o.Password != null)
+        {
+            recSz = scheme.MergeEncrypted(reconstructed, shares, Encoding.ASCII.GetBytes(o.Password));
+        }
+        else
+        {
+            recSz = scheme.MergeShares(reconstructed, shares);
+        }
+
+        reconstructed = reconstructed.Slice(0, recSz);
+
         File.WriteAllBytes(o.Secret, reconstructed.ToArray());
 
         Console.WriteLine("Done, secret is written into {0}", o.Secret);
