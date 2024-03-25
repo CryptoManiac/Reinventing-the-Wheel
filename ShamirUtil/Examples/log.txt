@@ -1,0 +1,9 @@
+ % ../bin/Debug/net8.0/ShamirUtil --secret secret32.bin --shares shares32.txt --password 123SuperSecurePassword321 -n 8 -t 4 -c split
+Executiong split command for configuration 4-of-8
+Done, shares are written into shares32.txt
+ % ../bin/Debug/net8.0/ShamirUtil --secret secret32.bin.reconstructed --shares shares32.txt --password 123SuperSecurePassword321 -n 8 -t 4 -c merge
+Executiong merge command for configuration 4-of-8
+Done, secret is written into secret32.bin.reconstructed
+ % shasum secret32.bin secret32.bin.reconstructed
+c691f282a612b1c70b24015ce42473b769283d7b  secret32.bin
+c691f282a612b1c70b24015ce42473b769283d7b  secret32.bin.reconstructed
