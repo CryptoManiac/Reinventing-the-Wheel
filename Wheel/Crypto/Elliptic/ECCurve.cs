@@ -5,13 +5,21 @@ using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
 
 namespace Wheel.Crypto.Elliptic
 {
+    internal static class RNG
+    {
+        internal static object RNG_LOCK = new();
+        internal static readonly RandomNumberGenerator gen = RandomNumberGenerator.Create();
+    }
+
     /// <summary>
     /// Properties and methods every EC implementation must provide
     /// </summary>
+#pragma warning disable CS0661
+#pragma warning disable CS0660
     public readonly struct ECCurve
+#pragma warning restore CS0660
+#pragma warning restore CS0661
     {
-        private static readonly RandomNumberGenerator RNG = RandomNumberGenerator.Create();
-        private static object RNG_LOCK = new();
 
         public delegate void XSide_IMPL(Span<ulong> result, ReadOnlySpan<ulong> x);
         public delegate void ModSquare_IMPL(Span<ulong> result, ReadOnlySpan<ulong> left);
@@ -56,10 +64,10 @@ namespace Wheel.Crypto.Elliptic
             // It's okay to allocate this in heap here since the lifetime of this value is not deterministic
             ulong[] random = new ulong[1 + SECP256K1.NUM_BITS / VLI.WORD_BITS];
 
-            lock (RNG_LOCK)
+            lock (RNG.RNG_LOCK)
             {
                 Span<byte> byteView = MemoryMarshal.Cast<ulong, byte>(random);
-                RNG.GetBytes(byteView);
+                RNG.gen.GetBytes(byteView);
             }
 
             this.randomId = random[0];

@@ -34,55 +34,17 @@ namespace Wheel.Crypto.Shamir
         }
 
         /// <summary>
-        /// Expand and encrypt secret with AES-256-CTR
+        /// Split combined secret memory into constituent parts
         /// </summary>
-        /// <param name="result">Encrypted secret data</param>
-        /// <param name="secret">Secret to encrypt</param>
-        /// <param name="key">Encryption key (derived by PBKDF2)</param>
-        /// <param name="iv">Initial vector (derived by HMAC)</param>
-        /// <returns>Number of bytes (required for / written to) result</returns>
-        private static int EncryptSecret(Span<byte> result, ReadOnlySpan<byte> secret, ReadOnlySpan<byte> key, ReadOnlySpan<byte> iv)
+        /// <param name="aesKey"></param>
+        /// <param name="aesIV"></param>
+        /// <param name="cipherText"></param>
+        /// <param name="expandedSecret"></param>
+        private static void SplitCombined(out Span<byte> aesKey, out Span<byte> aesIV, out Span<byte> cipherText, Span<byte> expandedSecret)
         {
-            int reqSz = AESBlock.GetBlocksWithPadding(secret.Length) * AESBlock.TypeByteSz;
-            if (reqSz > result.Length) {
-                // Must provide enough space to accomodate
-                // AES-CTR-256(secret + padding) output
-                return reqSz;
-            }
-
-            AESContext ctx = new AESContext(key, iv);
-            Span<AESBlock> blocks = MemoryMarshal.Cast<byte, AESBlock>(result);
-            secret.CopyTo(result);
-            AESBlock.FillPaddingBlock(ref blocks[blocks.Length - 1], secret.Length);
-            ctx.ProcessBlocks(blocks);
-            return reqSz;
-        }
-
-        /// <summary>
-        /// Decrypt secret with AES-256-CTR
-        /// </summary>
-        /// <param name="result">Decrypted secret data</param>
-        /// <param name="secret">Secret to decrypt</param>
-        /// <param name="key">Encryption key (provided by merged shares)</param>
-        /// <param name="iv">Initial vector (provided by merged shares)</param>
-        /// <returns>Number of bytes (required for / written to) result</returns>
-        private static int DecryptSecret(Span<byte> result, ReadOnlySpan<byte> cipherText, ReadOnlySpan<byte> key, ReadOnlySpan<byte> iv)
-        {
-            int reqSz = cipherText.Length;
-            if (reqSz > result.Length)
-            {
-                // Must provide enough space to accomodate
-                // AES-CTR-256(secret + padding) output
-                return reqSz;
-            }
-
-            AESContext ctx = new AESContext(key, iv);
-            Span<AESBlock> blocks = MemoryMarshal.Cast<byte, AESBlock>(result);
-            cipherText.CopyTo(result);
-            ctx.ProcessBlocks(blocks);
-
-            // Return actual data length (without padding)
-            return reqSz - AESBlock.GetPaddingLen(blocks[blocks.Length - 1]);
+            aesKey = expandedSecret.Slice(0, 32);
+            aesIV = expandedSecret.Slice(32, AESBlock.TypeByteSz);
+            cipherText = expandedSecret.Slice(aesKey.Length + aesIV.Length);
         }
 
         /// <summary>
@@ -92,27 +54,12 @@ namespace Wheel.Crypto.Shamir
         /// <returns>Array of share objects</returns>
         public Share[] CreateShares(ReadOnlySpan<byte> secret)
         {
-            // "Shamir" in ASCII
-            Span<byte> shamirTag = stackalloc byte[] { 0x53, 0x68, 0x61, 0x6d, 0x69, 0x72 };
-
             // Allocate memory for the expanded secret (AES encryption key + AES IV + encrypted secret blocks)
             Span<byte> expandedSecret = stackalloc byte[32 + AESBlock.TypeByteSz + EncryptSecret(null, secret, null, null)];
-            Span<byte> aesKey = expandedSecret.Slice(0, 32);
-            Span<byte> aesIV = expandedSecret.Slice(32, AESBlock.TypeByteSz);
-            Span<byte> cipherText = expandedSecret.Slice(aesKey.Length + aesIV.Length);
+            SplitCombined(out Span<byte> aesKey, out Span<byte> aesIV, out Span<byte> cipherText, expandedSecret);
 
-            HMAC_SHA384 saltHasher = new();
-
-            Span<byte> salt = stackalloc byte[saltHasher.HashSz];
-
-            saltHasher.Init(shamirTag);
-            saltHasher.Update(secret);
-            saltHasher.Digest(salt);
-            saltHasher.Dispose();
-
-            // First of all, derive AES encryption key and IV
-            PBKDF2.Derive<HMAC_SHA512>(aesKey, secret, salt, 4096);
-            PBKDF2.Derive<HMAC_SHA384>(aesIV, secret, salt, 4096);
+            // Derive encryption keys
+            DeriveKeys(aesKey, aesIV, secret);
 
             // Encrypt secret
             EncryptSecret(cipherText, secret, aesKey, aesIV);
@@ -120,16 +67,9 @@ namespace Wheel.Crypto.Shamir
             // With threshold = K shares we will need up to K * SECRET_LENGTH bytes of the random data
             Span<byte> randomBytes = stackalloc byte[expandedSecret.Length * Threshold];
 
-            // Re-calculate salt for random bytes generation
-            saltHasher.Init(shamirTag);
-            saltHasher.Update(aesKey);
-            saltHasher.Update(aesIV);
-            saltHasher.Digest(salt);
-            saltHasher.Dispose();
-
             // We presume that PBKDF2 output is equivalent to the uniform random distribution
             // 128 iterations are more than enough here
-            PBKDF2.Derive<HMAC_SHA512>(randomBytes, secret, salt, 128);
+            PBKDF2.Derive<HMAC_SHA512>(randomBytes, aesIV, aesKey, 128);
 
             Share[] all = new Share[Participants];
 
@@ -196,10 +136,7 @@ namespace Wheel.Crypto.Shamir
                 expandedSecret[di] = GroupFieldMath.Interpolation(mergedPoints);
             }
 
-            // Split the expanded secret into its constituent parts
-            Span<byte> aesKey = expandedSecret.Slice(0, 32);
-            Span<byte> aesIV = expandedSecret.Slice(32, AESBlock.TypeByteSz);
-            Span<byte> cipherText = expandedSecret.Slice(aesKey.Length + aesIV.Length, cipherTextSize);
+            SplitCombined(out Span<byte> aesKey, out Span<byte> aesIV, out Span<byte> cipherText, expandedSecret);
 
             // Decrypt and return the number of written bytes
             int secretSz = DecryptSecret(secret, cipherText, aesKey, aesIV);
@@ -209,6 +146,73 @@ namespace Wheel.Crypto.Shamir
 
             return secretSz;
         }
+
+        #region AES-256-CTR
+        /// <summary>
+        /// Expand and encrypt secret with AES-256-CTR
+        /// </summary>
+        /// <param name="result">Encrypted secret data</param>
+        /// <param name="secret">Secret to encrypt</param>
+        /// <param name="key">Encryption key (derived by PBKDF2)</param>
+        /// <param name="iv">Initial vector (derived by HMAC)</param>
+        /// <returns>Number of bytes (required for / written to) result</returns>
+        private static int EncryptSecret(Span<byte> result, ReadOnlySpan<byte> secret, ReadOnlySpan<byte> key, ReadOnlySpan<byte> iv)
+        {
+            int reqSz = AESBlock.GetBlocksWithPadding(secret.Length) * AESBlock.TypeByteSz;
+            if (reqSz > result.Length)
+            {
+                // Must provide enough space to accomodate
+                // AES-CTR-256(secret + padding) output
+                return reqSz;
+            }
+
+            AESContext ctx = new(key, iv);
+            Span<AESBlock> blocks = MemoryMarshal.Cast<byte, AESBlock>(result);
+            secret.CopyTo(result);
+            AESBlock.FillPaddingBlock(ref blocks[blocks.Length - 1], secret.Length);
+            ctx.ProcessBlocks(blocks);
+            return reqSz;
+        }
+
+        /// <summary>
+        /// Decrypt secret with AES-256-CTR
+        /// </summary>
+        /// <param name="result">Decrypted secret data</param>
+        /// <param name="secret">Secret to decrypt</param>
+        /// <param name="key">Encryption key (provided by merged shares)</param>
+        /// <param name="iv">Initial vector (provided by merged shares)</param>
+        /// <returns>Number of bytes (required for / written to) result</returns>
+        private static int DecryptSecret(Span<byte> result, ReadOnlySpan<byte> cipherText, ReadOnlySpan<byte> key, ReadOnlySpan<byte> iv)
+        {
+            int reqSz = cipherText.Length;
+            if (reqSz > result.Length)
+            {
+                // Must provide enough space to accomodate
+                // AES-CTR-256(secret + padding) output
+                return reqSz;
+            }
+
+            AESContext ctx = new(key, iv);
+            Span<AESBlock> blocks = MemoryMarshal.Cast<byte, AESBlock>(result);
+            cipherText.CopyTo(result);
+            ctx.ProcessBlocks(blocks);
+
+            // Return actual data length (without padding)
+            return reqSz - AESBlock.GetPaddingLen(blocks[blocks.Length - 1]);
+        }
+        #endregion
+
+        #region RNG
+        private static void DeriveKeys(Span<byte> aesKey, Span<byte> aesIV, ReadOnlySpan<byte> secret)
+        {
+            // "Shamir" in ASCII
+            Span<byte> shamirTag = stackalloc byte[] { 0x53, 0x68, 0x61, 0x6d, 0x69, 0x72 };
+
+            // First of all, derive AES encryption key and IV
+            PBKDF2.Derive<HMAC_SHA512>(aesKey, shamirTag, secret, 1024);
+            PBKDF2.Derive<HMAC_SHA384>(aesIV, shamirTag, secret, 1024);
+        }
+        #endregion
     }
 }
 
