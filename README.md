@@ -6,14 +6,41 @@ Don't take this seriously. Just fooling around with the Visual Studio for Mac to
 
 ## Contents
 
+### Hashing functions
+
 The well tested implementations of the following hash functions are provided as a bonus:
 
 * RIPEMD-160
 * SHA-256, SHA-224
 * SHA-512, SHA-384, SHA-512/256, SHA-512-224
-* HMAC-SHA-224, HMAC-SHA-256, HMAC-SHA-512_224, HMAC-SHA-512_256, HMAC-SHA-384, HMAC-SHA-512
 * SHA3-512, SHA3-384, SHA3-256
 * Keccak-512, Keccak-384, Keccak-256
+
+### HMAC
+
+* HMAC-SHA-224, HMAC-SHA-256
+* HMAC-SHA-512_224, HMAC-SHA-512_256, HMAC-SHA-384, HMAC-SHA-512
+
+### Key derivation
+
+* The generic implementation of PBKDF2 which is able to work on top of all HMAC hashers
+
+### Elliptic cryptography
+
+* The reimplementation of uECC (limited by the secp256k1 subset):
+    * Key generation
+    * Message signing
+    * Signature verification
+    * ECDH
+    * Private and public key tweak by scalar
+
+### Symmetric cryptography
+
+* AES256-CTR with PKCS7 padding
+
+### MISC
+
+* ShamirUtil for secret sharing
 
 ## API
 
