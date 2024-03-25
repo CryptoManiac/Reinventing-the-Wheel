@@ -38,6 +38,10 @@ The well tested implementations of the following hash functions are provided as 
 
 * AES256-CTR with PKCS7 padding
 
+### MISC
+
+* ShamirUtil for secret sharing
+
 ## API
 
 All hashers are implementing the well known Init - Update - Finalize paradighm. 
