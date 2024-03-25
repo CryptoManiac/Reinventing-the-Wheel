@@ -56,7 +56,6 @@
     <Folder Include="Crypto\Hashing\HMAC\SHA2\" />
     <Folder Include="Crypto\Hashing\PBKDF\" />
     <Folder Include="Crypto\Elliptic\Internal\VeryLongInt\" />
-    <Folder Include="Crypto\Shamir\" />
     <Folder Include="Crypto\Shamir\Internal\" />
   </ItemGroup>
 </Project>
