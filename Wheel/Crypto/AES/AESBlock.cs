@@ -76,13 +76,12 @@ namespace Wheel.Crypto.AES
         /// </summary>
         /// <param name="block">Last block to be encrypted</param>
         /// <param name="totalLen">Total length of encypted data (excluding the padding block)</param>
-        public unsafe static void FillPaddingBlock(ref AESBlock block, int totalLen)
+        public static void FillPaddingBlock(ref AESBlock block, int totalLen)
         {
-            int padLen = TypeByteSz - totalLen % TypeByteSz;
-            fixed(byte* ptr = &block.data[TypeByteSz - padLen])
-            {
-                new Span<byte>(ptr, padLen).Fill((byte)padLen);
-            }
+            // Check out this page to understand what is happening here: https://asecuritysite.com/hazmat/hashnew28
+            // Choose PKCS7 and 128-bit block size.
+            int padLen = TypeByteSz - (totalLen % TypeByteSz);
+            block.bytes.Slice(TypeByteSz - padLen).Fill((byte)padLen);
         }
 
         /// <summary>
@@ -102,7 +101,7 @@ namespace Wheel.Crypto.AES
         /// <returns>Number of data blocks plus padding block</returns>
         public static int GetBlocksWithPadding(int totalLen)
         {
-            int padLen = TypeByteSz - totalLen / TypeByteSz;
+            int padLen = TypeByteSz - (totalLen % TypeByteSz);
             return (totalLen + padLen) / TypeByteSz;
         }
     }

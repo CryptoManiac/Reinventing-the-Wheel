@@ -31,8 +31,13 @@ dataToEncrypt.CopyTo(blockBytes);
 // Write padding bytes to last block
 AESBlock.FillPaddingBlock(ref blocks[blocks.Length - 1], dataToEncrypt.Length);
 
-Console.WriteLine("Plaintext bytes: {0}", Convert.ToHexString(blockBytes.Slice(0, dataToEncrypt.Length)));
+Console.WriteLine("Encryption key: {0}", Convert.ToHexString(key));
+Console.WriteLine("IV: {0}", Convert.ToHexString(iv));
+Console.WriteLine("---");
 Console.WriteLine("Plaintext string: {0}", Encoding.ASCII.GetString(blockBytes.Slice(0, dataToEncrypt.Length)));
+Console.WriteLine("Plaintext bytes: {0}", Convert.ToHexString(blockBytes.Slice(0, dataToEncrypt.Length)));
+Console.WriteLine("Plaintext bytes with PKCS7 padding: {0}", Convert.ToHexString(blockBytes));
+Console.WriteLine("---");
 
 // Encrypt data with the configured Key and IV
 ctx.ProcessBlocks(blocks);
@@ -57,5 +62,6 @@ if (!decryptedData.SequenceEqual(dataToEncrypt))
     throw new SystemException("Decrypted data mismatch");
 }
 
+Console.WriteLine("---");
 Console.WriteLine("Decrypted bytes: {0}", Convert.ToHexString(decryptedData));
 Console.WriteLine("Decrypted string: {0}", Encoding.ASCII.GetString(decryptedData));
