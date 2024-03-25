@@ -232,7 +232,7 @@ namespace Wheel.Crypto.Shamir
             }
 
             AESContext ctx = new(key, iv);
-            Span<AESBlock> blocks = MemoryMarshal.Cast<byte, AESBlock>(result);
+            Span<AESBlock> blocks = MemoryMarshal.Cast<byte, AESBlock>(result.Slice(0, reqSz));
             secret.CopyTo(result);
             AESBlock.FillPaddingBlock(ref blocks[blocks.Length - 1], secret.Length);
             ctx.ProcessBlocks(blocks);
@@ -258,7 +258,8 @@ namespace Wheel.Crypto.Shamir
             }
 
             AESContext ctx = new(key, iv);
-            Span<AESBlock> blocks = MemoryMarshal.Cast<byte, AESBlock>(result);
+
+            Span<AESBlock> blocks = MemoryMarshal.Cast<byte, AESBlock>(result.Slice(0, cipherText.Length));
             cipherText.CopyTo(result);
             ctx.ProcessBlocks(blocks);
             // Return actual data length (without padding)
