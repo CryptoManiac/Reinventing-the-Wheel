@@ -2,7 +2,7 @@
 
 ## Disclaimer
 
-Don't take this seriously. Just fooling around with the Visual Studio for Mac to see how usable it is.
+Provided with any warranty.
 
 ## Contents
 
@@ -40,7 +40,7 @@ The well tested implementations of the following hash functions are provided as 
 
 ### MISC
 
-* ShamirUtil for secret sharing
+* ShamirUtil for secret sharing with optional master password
 
 ## API
 
