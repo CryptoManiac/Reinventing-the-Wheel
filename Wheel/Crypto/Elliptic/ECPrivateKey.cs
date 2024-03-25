@@ -8,10 +8,9 @@ using Wheel.Crypto.Hashing.HMAC;
 
 namespace Wheel.Crypto.Elliptic
 {
-    /// <summary>
-    /// ECPrivateKey is defined as a ref struct to ensure that its copies
-    ///  are not being kept anywhere without user being aware of this fact
-    /// </summary>
+        /// <summary>
+        /// Encapsulated ECC private key
+        /// </summary>
 	public struct ECPrivateKey
 	{
         /// <summary>
@@ -36,19 +35,6 @@ namespace Wheel.Crypto.Elliptic
                     return new Span<ulong>(ptr, curve.NUM_WORDS);
                 }
             }
-        }
-
-        private readonly void UnXOR(Action<nint> fn)
-        {
-            VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS);
-            unsafe
-            {
-                fixed(ulong* ptr = &private_key_data[0])
-                {
-                    fn(new nint(ptr));
-                }
-            }
-            VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS);
         }
 
         /// <summary>
