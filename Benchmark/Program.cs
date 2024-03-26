@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics;
-using Wheel.Crypto.Hashing;
-using Wheel.Crypto.Hashing.RIPEMD;
-using Wheel.Crypto.Hashing.SHA.SHA256;
-using Wheel.Crypto.Hashing.SHA.SHA512;
-using Wheel.Crypto.Hashing.SHA3;
+using Wheel.Hashing;
+using Wheel.Hashing.RIPEMD;
+using Wheel.Hashing.SHA.SHA256;
+using Wheel.Hashing.SHA.SHA512;
+using Wheel.Hashing.SHA3;
 
 SortedDictionary<string, Func<IHasher>> algorithms = new()
 {

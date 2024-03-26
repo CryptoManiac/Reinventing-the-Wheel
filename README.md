@@ -94,7 +94,7 @@ public void Dispose();
 public int HashSz;
 ```
 
-The only available implementations are currently limited by the SHA2 based ones. The `HMAC_SHA224`, `HMAC_SHA256`, `HMAC_SHA384` and `HMAC_SHA512` structures are residing in the `Wheel.Crypto.Hashing.HMAC.SHA2` namespace.
+The only available implementations are currently limited by the SHA2 based ones. The `HMAC_SHA224`, `HMAC_SHA256`, `HMAC_SHA384` and `HMAC_SHA512` structures are residing in the `Wheel.Hashing.HMAC.SHA2` namespace.
 
 ## Notable features
 

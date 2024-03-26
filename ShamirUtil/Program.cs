@@ -1,6 +1,6 @@
 ﻿using System.Text;
 using CommandLine;
-using Wheel.Crypto.Shamir;
+using Wheel.Symmetric.Shamir;
 using Wheel.Encoders;
 
 public class CommandLineOptions

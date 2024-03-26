@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Internal\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Internal\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\PBKDF2\PBKDF2.csproj" />
+    <ProjectReference Include="..\..\Hashing\Hashing.csproj" />
+    <ProjectReference Include="..\AES\AES.csproj" />
+  </ItemGroup>
+</Project>
