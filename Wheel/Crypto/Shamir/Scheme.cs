@@ -70,6 +70,7 @@ namespace Wheel.Crypto.Shamir
 
             // IV + Encrypted secret
             EncryptSecret(cipherText, secret, aesKey, aesIV);
+            aesKey.Clear();
 
             // Split the IV + encrypted secret pair
             return CreateShares(expanded);
@@ -87,7 +88,6 @@ namespace Wheel.Crypto.Shamir
         {
             // IV + encrypted secret
             Span<byte> expanded = stackalloc byte[MergeShares(null, shares)];
-            MergeShares(expanded, shares);
 
             // First 16 bytes of secret are the initializing vector
             //  which is not returned to user
@@ -100,6 +100,7 @@ namespace Wheel.Crypto.Shamir
                 return secretSz;
             }
 
+            MergeShares(expanded, shares);
             SplitCombined(out Span<byte> aesIV, out Span<byte> cipherText, expanded);
 
             // Take a slice of just enough bytes to write the decrypted secret
@@ -112,6 +113,7 @@ namespace Wheel.Crypto.Shamir
             // Decrypt and truncate padding bytes
             secretSz = DecryptSecret(plainText, cipherText, aesKey, aesIV);
             plainText = plainText.Slice(0, secretSz);
+            aesKey.Clear();
 
             // Calculate HMAC and compare it with IV for the intergity check
             // IV = HMAC(seed, secret)
@@ -251,6 +253,7 @@ namespace Wheel.Crypto.Shamir
             secret.CopyTo(result);
             AESBlock.FillPaddingBlock(ref blocks[blocks.Length - 1], secret.Length);
             ctx.ProcessBlocks(blocks);
+            ctx.Dispose();
             return reqSz;
         }
 
@@ -258,7 +261,7 @@ namespace Wheel.Crypto.Shamir
         /// Decrypt secret with AES-256-CTR
         /// </summary>
         /// <param name="result">Decrypted secret data</param>
-        /// <param name="secret">Secret to decrypt</param>
+        /// <param name="cipherText">Secret to decrypt</param>
         /// <param name="key">Encryption key (provided by merged shares)</param>
         /// <param name="iv">Initial vector (provided by merged shares)</param>
         /// <returns>Number of bytes (required for / written to) result</returns>
@@ -277,6 +280,7 @@ namespace Wheel.Crypto.Shamir
             Span<AESBlock> blocks = MemoryMarshal.Cast<byte, AESBlock>(result.Slice(0, cipherText.Length));
             cipherText.CopyTo(result);
             ctx.ProcessBlocks(blocks);
+            ctx.Dispose();
             // Return actual data length (without padding)
             return reqSz - AESBlock.GetPaddingLen(blocks[blocks.Length - 1]);
         }
