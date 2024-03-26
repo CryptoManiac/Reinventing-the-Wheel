@@ -180,9 +180,9 @@ namespace Wheel.Symmetric.Shamir
                     coefficients[i] = randomBytes[secretIdx * i];
                 }
 
-                for (int i = 0; i < Participants; ++i)
+                for (byte i = 0; i < Participants; ++i)
                 {
-                    ShareByte x = i + 1, y = 0;
+                    ShareByte x = (byte)(i + 1), y = 0;
                     for (int j = 0; j < Threshold; ++j)
                     {
                         y ^= coefficients[j] * GroupFieldMath.Pow(x, j);
