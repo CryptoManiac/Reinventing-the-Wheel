@@ -158,40 +158,46 @@ namespace Wheel.Symmetric.Shamir
             Span<byte> shamirTag = stackalloc byte[] { 0x53, 0x68, 0x61, 0x6d, 0x69, 0x72 };
 
             // With threshold = K shares we will need up to K * SECRET_LENGTH bytes of the random data
-            Span<byte> randomBytes = stackalloc byte[secret.Length * Threshold];
+            Span<ShareByte> garbage = stackalloc ShareByte[secret.Length * Threshold];
 
-            // We presume that PBKDF2 output is equivalent to the uniform random distribution
-            // 128 iterations are more than enough here
-            PBKDF2.Derive<HMAC_SHA384>(randomBytes, shamirTag, secret, 128);
+            // Use PBKDF2 to generate some deterministic garbage from the secret
+            // The random data is required to be uniform and unpredictable, so the PBKDF2 is just what we need here
+            PBKDF2.Derive<HMAC_SHA384>(MemoryMarshal.Cast<ShareByte, byte>(garbage), shamirTag, secret, 128);
 
-            Share[] all = new Share[Participants];
+            Share[] generated = new Share[Participants];
 
             for (int i = 0; i < Participants; ++i)
             {
-                all[i] = new Share(secret.Length);
+                generated[i] = new(secret.Length);
             }
+
+            Span<ShareByte> coefficients = stackalloc ShareByte[Threshold];
 
             for (int secretIdx = 0; secretIdx < secret.Length; ++secretIdx)
             {
-                ShareByte[] coefficients = new ShareByte[Threshold];
                 coefficients[0] = secret[secretIdx];
                 for (int i = 1; i < Threshold; i++)
                 {
-                    coefficients[i] = randomBytes[secretIdx * i];
+                    coefficients[i] = garbage[secretIdx * i];
                 }
 
-                for (byte i = 0; i < Participants; ++i)
+                for (int shareIdx = 0; shareIdx < Participants; ++shareIdx)
                 {
-                    ShareByte x = (byte)(i + 1), y = 0;
-                    for (int j = 0; j < Threshold; ++j)
+                    ShareByte x = (byte)(shareIdx + 1);
+                    ShareByte y = 0;
+
+                    for (int thresholdIdx = 0; thresholdIdx < Threshold; ++thresholdIdx)
                     {
-                        y ^= coefficients[j] * GroupFieldMath.Pow(x, j);
+                        y ^= coefficients[thresholdIdx] * GroupFieldMath.Pow(x, thresholdIdx);
                     }
-                    all[i][secretIdx] = new SharePoint(x, y);
+
+                    generated[shareIdx][secretIdx] = new(x, y);
                 }
             }
 
-            return all;
+            coefficients.Clear();
+
+            return generated;
         }
 
         /// <summary>
@@ -225,13 +231,13 @@ namespace Wheel.Symmetric.Shamir
             }
 
             Span<SharePoint> merged = stackalloc SharePoint[Threshold];
-            for (int di = 0; di < secretSz; ++di)
+            for (int secretIdx = 0; secretIdx < secretSz; ++secretIdx)
             {
-                for (int i = 0; i < Threshold; i++)
+                for (int shareIdx = 0; shareIdx < Threshold; shareIdx++)
                 {
-                    merged[i] = shares[i][di];
+                    merged[shareIdx] = shares[shareIdx][secretIdx];
                 }
-                secret[di] = GroupFieldMath.Interpolation(merged);
+                secret[secretIdx] = GroupFieldMath.Interpolation(merged);
             }
 
             merged.Clear();
