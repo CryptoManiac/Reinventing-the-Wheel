@@ -131,7 +131,7 @@ namespace Wheel.Hashing.SHA.SHA256
             }
         }
 
-        private void Transform()
+        private unsafe void Transform()
         {
             // Initialize with first 16 words filled from the
             // pending block and reverted to big endian
@@ -140,14 +140,14 @@ namespace Wheel.Hashing.SHA.SHA256
             // Remaining 48 blocks
             for (uint i = 16; i < 64; ++i)
             {
-                wordPad[i] = InternalSHA256Ops.SIG1(wordPad[i - 2]) + wordPad[i - 7] + InternalSHA256Ops.SIG0(wordPad[i - 15]) + wordPad[i - 16];
+                wordPad.registers[i] = InternalSHA256Ops.SIG1(wordPad.registers[i - 2]) + wordPad.registers[i - 7] + InternalSHA256Ops.SIG0(wordPad.registers[i - 15]) + wordPad.registers[i - 16];
             }
 
             InternalSHA256State loc = state;
 
             for (uint i = 0; i < 64; ++i)
             {
-                uint t1 = loc.h + InternalSHA256Ops.SIGMA1(loc.e) + InternalSHA256Ops.CHOOSE(loc.e, loc.f, loc.g) + InternalSHA256Constants.K[i] + wordPad[i];
+                uint t1 = loc.h + InternalSHA256Ops.SIGMA1(loc.e) + InternalSHA256Ops.CHOOSE(loc.e, loc.f, loc.g) + InternalSHA256Constants.K.registers[i] + wordPad.registers[i];
                 uint t2 = InternalSHA256Ops.SIGMA0(loc.a) + InternalSHA256Ops.MAJ(loc.a, loc.b, loc.c);
 
                 loc.h = loc.g;
@@ -167,15 +167,21 @@ namespace Wheel.Hashing.SHA.SHA256
         {
             uint i = blockLen;
             uint end = (blockLen < 56u) ? 56u : 64u;
-            pendingBlock.bytes[i++] = 0x80; // Append a bit 1
+            unsafe
+            {
+                pendingBlock.bytes[i++] = 0x80; // Append a bit 1
+            }
             pendingBlock.Wipe(i, end - i); // Pad with zeros
 
             if (blockLen >= 56)
             {
                 Transform();
-                uint lastWord = pendingBlock[15];
-                pendingBlock.Reset();
-                pendingBlock[15] = lastWord;
+                unsafe
+                {
+                    uint lastWord = pendingBlock.registers[15];
+                    pendingBlock.Reset();
+                    pendingBlock.registers[15] = lastWord;
+                }
             }
 
             // Append to the padding the total message's

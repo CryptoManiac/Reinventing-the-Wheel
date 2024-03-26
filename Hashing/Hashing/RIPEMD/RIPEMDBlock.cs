@@ -4,75 +4,6 @@ using System.Runtime.InteropServices;
 namespace Wheel.Hashing.RIPEMD.Internal
 {
     /// <summary>
-    /// Access to individual block bytes through index operator
-    /// </summary>
-    [StructLayout(LayoutKind.Explicit)]
-    internal struct InternalRIPEMDBlockBytes
-    {
-        /// <summary>
-        /// Index access to individual registers
-        /// </summary>
-        /// <param name="key">Byte field index [0 .. 63]</param>
-        /// <returns>Word value</returns>
-        public byte this[uint key]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            readonly get => GetRegisterByte(key);
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => SetRegisterByte(key, value);
-        }
-
-        #region Byte access logic
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly byte GetRegisterByte(uint index)
-        {
-            if (index >= TypeByteSz)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeByteSz + ") range");
-            }
-
-            unsafe
-            {
-                return data[index];
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SetRegisterByte(uint index, byte value)
-        {
-            if (index >= TypeByteSz)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeByteSz + ") range");
-            }
-
-            unsafe
-            {
-                data[index] = value;
-            }
-        }
-        #endregion
-
-        /// <summary>
-        /// Set to zeros
-        /// </summary>
-        public unsafe void Reset()
-        {
-            fixed (void* ptr = &this)
-            {
-                new Span<byte>(ptr, TypeByteSz).Clear();
-            }
-        }
-
-        /// <summary>
-        /// Size of structure in memory when treated as a collection of bytes
-        /// </summary>
-        public const int TypeByteSz = InternalRIPEMDBlock.TypeByteSz;
-
-        [FieldOffset(0)]
-        private unsafe fixed byte data[TypeByteSz];
-    }
-
-    /// <summary>
     /// Represents the block data for the RIPEMD-160
     /// Note: Mostly identical to that of SHA-256
     /// </summary>
@@ -109,54 +40,14 @@ namespace Wheel.Hashing.RIPEMD.Internal
         }
 
         /// <summary>
-        /// Index access to individual registers
-        /// </summary>
-        /// <param name="key">Field index [0 .. 7]</param>
-        /// <returns>Word value</returns>
-        public uint this[uint key]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            readonly get => GetRegisterUint(key);
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => SetRegisterUint(key, value);
-        }
-
-        #region Register access logic
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly uint GetRegisterUint(uint index)
-        {
-            if (index >= TypeUintSz)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeUintSz + ") range");
-            }
-
-            unsafe
-            {
-                return registers[index];
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SetRegisterUint(uint index, uint value)
-        {
-            if (index >= TypeUintSz)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeUintSz + ") range");
-            }
-
-            unsafe
-            {
-                registers[index] = value;
-            }
-        }
-        #endregion
-
-        /// <summary>
         /// Set to zero
         /// </summary>
-        public void Reset()
+        public unsafe void Reset()
         {
-            bytes.Reset();
+            fixed(byte* ptr = &bytes[0])
+            {
+                new Span<byte>(ptr, TypeByteSz).Clear();
+            }
         }
 
         /// <summary>
@@ -169,16 +60,17 @@ namespace Wheel.Hashing.RIPEMD.Internal
         /// </summary>
         public const int TypeUintSz = TypeByteSz / sizeof(uint);
 
-        #region Fixed size buffer for registers
-        [FieldOffset(0)]
-        private unsafe fixed uint registers[TypeUintSz];
-        #endregion
-
         /// <summary>
-        /// Public access to the individual block bytes
+        /// Fixed size buffer for registers
         /// </summary>
         [FieldOffset(0)]
-        public InternalRIPEMDBlockBytes bytes;
+        internal unsafe fixed uint registers[TypeUintSz];
+
+        /// <summary>
+        /// Fixed size buffer for the individual block bytes
+        /// </summary>
+        [FieldOffset(0)]
+        internal unsafe fixed byte bytes[TypeByteSz];
 
         #region Individual word public access
         [FieldOffset(0)]

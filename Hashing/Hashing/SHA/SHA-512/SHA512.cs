@@ -131,7 +131,7 @@ namespace Wheel.Hashing.SHA.SHA512
             return hash;
         }
 
-        private void Transform()
+        private unsafe void Transform()
         {
             // Initialize with first 16 words filled from the
             // pending block and reverted to big endian
@@ -140,14 +140,14 @@ namespace Wheel.Hashing.SHA.SHA512
             // Remaining blocks
             for (uint i = 16; i < 80; ++i)
             {
-                wordPad[i] = InternalSHA512Ops.SIG1(wordPad[i - 2]) + wordPad[i - 7] + InternalSHA512Ops.SIG0(wordPad[i - 15]) + wordPad[i - 16];
+                wordPad.registers[i] = InternalSHA512Ops.SIG1(wordPad.registers[i - 2]) + wordPad.registers[i - 7] + InternalSHA512Ops.SIG0(wordPad.registers[i - 15]) + wordPad.registers[i - 16];
             }
 
             InternalSHA512State loc = state;
 
             for (uint i = 0; i < InternalSHA512Round.TypeUlongSz; ++i)
             {
-                ulong t1 = loc.h + InternalSHA512Ops.SIGMA1(loc.e) + InternalSHA512Ops.CHOOSE(loc.e, loc.f, loc.g) + InternalSHA512Constants.K[i] + wordPad[i];
+                ulong t1 = loc.h + InternalSHA512Ops.SIGMA1(loc.e) + InternalSHA512Ops.CHOOSE(loc.e, loc.f, loc.g) + InternalSHA512Constants.K.registers[i] + wordPad.registers[i];
                 ulong t2 = InternalSHA512Ops.SIGMA0(loc.a) + InternalSHA512Ops.MAJ(loc.a, loc.b, loc.c);
 
                 loc.h = loc.g;
@@ -167,15 +167,21 @@ namespace Wheel.Hashing.SHA.SHA512
         {
             uint i = blockLen;
             uint end = (blockLen < 112u) ? 112u : 128u;
-            pendingBlock.bytes[i++] = 0x80; // Append a bit 1
+            unsafe
+            {
+                pendingBlock.bytes[i++] = 0x80; // Append a bit 1
+            }
             pendingBlock.Wipe(i, end - i); // Fill with zeros
 
             if (blockLen >= 112)
             {
                 Transform();
-                ulong lastWord = pendingBlock[15];
-                pendingBlock.Reset();
-                pendingBlock[15] = lastWord;
+                unsafe
+                {
+                    ulong lastWord = pendingBlock.registers[15];
+                    pendingBlock.Reset();
+                    pendingBlock.registers[15] = lastWord;
+                }
             }
 
             // Append to the padding the total message's

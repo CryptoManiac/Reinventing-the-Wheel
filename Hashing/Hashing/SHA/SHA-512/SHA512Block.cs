@@ -5,56 +5,6 @@ using Wheel.Miscellaneous.Support;
 namespace Wheel.Hashing.SHA.SHA512.Internal
 {
     /// <summary>
-    /// Access to individual block bytes through index operator
-    /// </summary>
-	[StructLayout(LayoutKind.Explicit)]
-    internal unsafe struct InternalSHA512BlockBytes
-    {
-        /// <summary>
-        /// Index access to individual registers
-        /// </summary>
-        /// <param name="key">Byte field index [0 .. 63]</param>
-        /// <returns>Word value</returns>
-        public byte this[uint key]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            readonly get => GetRegisterByte(key);
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => SetRegisterByte(key, value);
-        }
-
-        #region Byte access logic
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly byte GetRegisterByte(uint index)
-        {
-            if (index >= TypeByteSz)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeByteSz + ") range");
-            }
-            return data[index];
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SetRegisterByte(uint index, byte value)
-        {
-            if (index >= TypeByteSz)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeByteSz + ") range");
-            }
-            data[index] = value;
-        }
-        #endregion
-
-        /// <summary>
-        /// Size of structure in memory when treated as a collection of bytes
-        /// </summary>
-        public const int TypeByteSz = InternalSHA512Block.TypeByteSz;
-
-        [FieldOffset(0)]
-        private fixed byte data[TypeByteSz];
-    }
-
-    /// <summary>
     /// Represents the block data for the 512-bit family of SHA functions
     /// </summary>
 	[StructLayout(LayoutKind.Explicit)]
@@ -119,41 +69,6 @@ namespace Wheel.Hashing.SHA.SHA512.Internal
         }
 
         /// <summary>
-        /// Index access to individual registers
-        /// </summary>
-        /// <param name="key">Field index [0 .. 7]</param>
-        /// <returns>Word value</returns>
-        public ulong this[uint key]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            readonly get => GetRegisterUlong(key);
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => SetRegisterUlong(key, value);
-        }
-
-        #region Register access logic
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly ulong GetRegisterUlong(uint index)
-        {
-            if (index >= TypeUlongSz)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeUlongSz + ") range");
-            }
-            return registers[index];
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe void SetRegisterUlong(uint index, ulong value)
-        {
-            if (index >= TypeUlongSz)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeUlongSz + ") range");
-            }
-            registers[index] = value;
-        }
-        #endregion
-
-        /// <summary>
         /// Set to zero
         /// </summary>
         public unsafe void Reset()
@@ -175,16 +90,16 @@ namespace Wheel.Hashing.SHA.SHA512.Internal
         public const int TypeUlongSz = TypeByteSz / sizeof(ulong);
 
         /// <summary>
-        /// Fixed size buffers for actual storage
+        /// Fixed size buffer for registers
         /// </summary>
         [FieldOffset(0)]
-        private fixed ulong registers[TypeUlongSz];
+        internal fixed ulong registers[TypeUlongSz];
 
         /// <summary>
-        /// Public indexed access to the individual block bytes
+        /// Buffer for the individuab block bytes
         /// </summary>
         [FieldOffset(0)]
-        public InternalSHA512BlockBytes bytes;
+        internal fixed byte bytes[TypeByteSz];
 
         /// <summary>
         /// Special case: Public access to the last QWord for length addition

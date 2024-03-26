@@ -42,41 +42,6 @@ namespace Wheel.Hashing.SHA.SHA256.Internal
         }
 
         /// <summary>
-        /// Index access to individual registers
-        /// </summary>
-        /// <param name="key">Byte field index [0 .. 63]</param>
-        /// <returns>Word value</returns>
-        public uint this[uint key]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            readonly get => GetRegisterUint(key);
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => SetRegisterUint(key, value);
-        }
-
-        #region Register access logic
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe readonly uint GetRegisterUint(uint index)
-        {
-            if (index >= TypeUintSz)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeUintSz + ") range");
-            }
-            return registers[index];
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe void SetRegisterUint(uint index, uint value)
-        {
-            if (index >= TypeUintSz)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeUintSz + ") range");
-            }
-            registers[index] = value;
-        }
-        #endregion
-
-        /// <summary>
         /// Set first 16 registers from the provided container
         /// </summary>
         /// <param name="block">A context to provide 16 registers</param>
@@ -127,6 +92,6 @@ namespace Wheel.Hashing.SHA.SHA256.Internal
         /// Fixed size buffer for registers
         /// </summary>
         [FieldOffset(0)]
-        private unsafe fixed uint registers[TypeUintSz];
+        internal unsafe fixed uint registers[TypeUintSz];
     }
 }

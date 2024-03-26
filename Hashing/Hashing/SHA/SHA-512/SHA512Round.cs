@@ -42,41 +42,6 @@ namespace Wheel.Hashing.SHA.SHA512.Internal
         }
 
         /// <summary>
-        /// Index access to individual registers
-        /// </summary>
-        /// <param name="key">Field index [0 .. 79]</param>
-        /// <returns>Word value</returns>
-        public ulong this[uint key]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            readonly get => GetRegisterUlong(key);
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => SetRegisterUlong(key, value);
-        }
-
-        #region Register access logic
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe readonly ulong GetRegisterUlong(uint index)
-        {
-            if (index >= TypeUlongSz)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeUlongSz + ") range");
-            }
-            return registers[index];
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe void SetRegisterUlong(uint index, ulong value)
-        {
-            if (index >= TypeUlongSz)
-            {
-                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be within [0 .. " + TypeUlongSz + ") range");
-            }
-            registers[index] = value;
-        }
-        #endregion
-
-        /// <summary>
         /// Set first 16 registers from the provided container
         /// </summary>
         /// <param name="block">A context to provide 16 registers</param>
@@ -127,6 +92,6 @@ namespace Wheel.Hashing.SHA.SHA512.Internal
         /// Fixed size buffer for registers
         /// </summary>
         [FieldOffset(0)]
-        private unsafe fixed ulong registers[TypeUlongSz];
+        internal unsafe fixed ulong registers[TypeUlongSz];
     }
 }

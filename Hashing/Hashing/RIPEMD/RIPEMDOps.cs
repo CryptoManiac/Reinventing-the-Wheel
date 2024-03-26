@@ -349,12 +349,18 @@
             // put bytes from strptr into X
             for (uint i = 0, offset = 0; i < (lswlen & 63); ++i)
             {
-                // byte i goes into word X[i div 4] at pos. 8*(i mod 4)
-                X[i >> 2] ^= (uint)block.bytes[offset++] << (8 * ((int)i & 3));
+                unsafe
+                {
+                    // byte i goes into word X[i div 4] at pos. 8*(i mod 4)
+                    X.registers[i >> 2] ^= (uint)block.bytes[offset++] << (8 * ((int)i & 3));
+                }
             }
 
-            // append the bit m_n == 1
-            X[(lswlen >> 2) & 15] ^= (uint)1 << (8 * ((int)lswlen & 3) + 7);
+            unsafe
+            {
+                // append the bit m_n == 1
+                X.registers[(lswlen >> 2) & 15] ^= (uint)1 << (8 * ((int)lswlen & 3) + 7);
+            }
 
             if ((lswlen & 63) > 55)
             {
