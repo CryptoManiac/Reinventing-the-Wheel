@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,7 +10,7 @@ namespace Wheel.Crypto.AES.Internal
     /// <summary>
     /// Expanded encryption key
     /// </summary>
-    public struct AESRoundKey
+    public struct AESRoundKey : IDisposable
     {
         internal unsafe fixed byte data[TypeByteSz];
         public const int TypeByteSz = 4 * AESCTR.AES_keyExpSize;
@@ -62,6 +63,14 @@ namespace Wheel.Crypto.AES.Internal
                 data[j + 1] = (byte)(data[k + 1] ^ tempa.data[1]);
                 data[j + 2] = (byte)(data[k + 2] ^ tempa.data[2]);
                 data[j + 3] = (byte)(data[k + 3] ^ tempa.data[3]);
+            }
+        }
+
+        public unsafe void Dispose()
+        {
+            fixed (byte* ptr = &data[0])
+            {
+                Unsafe.InitBlockUnaligned(ptr, 0, TypeByteSz);
             }
         }
     }

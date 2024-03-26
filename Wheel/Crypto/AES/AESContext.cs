@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Wheel.Crypto.AES.Internal;
 
 namespace Wheel.Crypto.AES
@@ -39,10 +40,10 @@ namespace Wheel.Crypto.AES
         public void ProcessBlock(ref AESBlock block)
         {
             AESBuffer buffer = stackalloc byte[AESBlock.TypeByteSz];
-            buffer.AsBlock = IV;
-            buffer.AsState.Cipher(RoundKey);
+            buffer.Block = IV;
+            buffer.State.Cipher(RoundKey);
             IV++;
-            block.XorWithIv(buffer.AsBlock);
+            block.XorWithIv(buffer.Block);
         }
 
         /// <summary>
@@ -54,11 +55,21 @@ namespace Wheel.Crypto.AES
             AESBuffer buffer = stackalloc byte[AESBlock.TypeByteSz];
             foreach (ref AESBlock block in blocks)
             {
-                buffer.AsBlock = IV;
-                buffer.AsState.Cipher(RoundKey);
+                buffer.Block = IV;
+                buffer.State.Cipher(RoundKey);
                 IV++;
-                block.XorWithIv(buffer.AsBlock);
+                block.XorWithIv(buffer.Block);
             }
         }
+
+        /// <summary>
+        /// Fill the context data with zeros
+        /// </summary>
+        public void Dispose()
+        {
+            RoundKey.Dispose();
+            IV.Dispose();
+        }
+
     }
 }

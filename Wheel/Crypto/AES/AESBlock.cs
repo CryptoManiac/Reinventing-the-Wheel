@@ -1,11 +1,12 @@
-﻿using Wheel.Crypto.AES.Internal;
+﻿using System.Runtime.CompilerServices;
+using Wheel.Crypto.AES.Internal;
 
 namespace Wheel.Crypto.AES
 {
     /// <summary>
     /// Represents the AES data block
     /// </summary>
-    public struct AESBlock
+    public struct AESBlock : IDisposable
     {
         private unsafe fixed byte data[TypeByteSz];
         public const int TypeByteSz = AESCTR.AES_BLOCK_LEN;
@@ -25,7 +26,7 @@ namespace Wheel.Crypto.AES
         /// Initialize new block by making a copy of provided data
         /// </summary>
         /// <param name="data">Block data</param>
-        public AESBlock(ReadOnlySpan<byte> data)
+        public AESBlock(in ReadOnlySpan<byte> data)
         {
             bytes.Clear();
             data.CopyTo(bytes);
@@ -66,7 +67,11 @@ namespace Wheel.Crypto.AES
             }
         }
 
-        public static implicit operator AESBlock(ReadOnlySpan<byte> data)
+        /// <summary>
+        /// Converts by making a copy
+        /// </summary>
+        /// <param name="data"></param>
+        public static implicit operator AESBlock(in ReadOnlySpan<byte> data)
         {
             return new AESBlock(data);
         }
@@ -103,6 +108,11 @@ namespace Wheel.Crypto.AES
         {
             int padLen = TypeByteSz - (totalLen % TypeByteSz);
             return (totalLen + padLen) / TypeByteSz;
+        }
+
+        public void Dispose()
+        {
+            bytes.Clear();
         }
     }
 

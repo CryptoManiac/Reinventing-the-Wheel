@@ -1,4 +1,5 @@
-﻿using Wheel.Crypto.AES.Internal;
+﻿using System.Runtime.CompilerServices;
+using Wheel.Crypto.AES.Internal;
 
 namespace Wheel.Crypto.AES
 {
@@ -7,37 +8,22 @@ namespace Wheel.Crypto.AES
     /// </summary>
     public ref struct AESKey
     {
-        internal unsafe fixed byte data[TypeByteSz];
+        internal ReadOnlySpan<byte> data;
         public const int TypeByteSz = 4 * AESCTR.Nk;
 
         /// <summary>
-        /// Initialize new key by making a copy of provided bytes
+        /// Initialize by keeping a slice of provided key buffer.
+        /// No data actually being copied.
         /// </summary>
         /// <param name="key">Secret data</param>
-        public AESKey(ReadOnlySpan<byte> key) 
+        public AESKey(in ReadOnlySpan<byte> key) 
         {
-            bytes.Clear();
-            key.CopyTo(bytes);
+            data = key.Slice(0, TypeByteSz);
         }
 
-        private readonly unsafe Span<byte> bytes
-        {
-            get
-            {
-                fixed (void* ptr = &data[0])
-                {
-                    return new Span<byte>(ptr, TypeByteSz);
-                }
-            }
-        }
+        internal readonly byte this[int index] => data[index];
 
-        internal byte this[int index]
-        {
-            readonly get => bytes[index];
-            set => bytes[index] = value;
-        }
-
-        public static implicit operator AESKey(ReadOnlySpan<byte> key)
+        public static implicit operator AESKey(in ReadOnlySpan<byte> key)
         {
             return new AESKey(key);
         }
