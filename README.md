@@ -2,7 +2,7 @@
 
 ## Disclaimer
 
-Provided with any warranty.
+Provided without any warranty.
 
 ## Contents
 
