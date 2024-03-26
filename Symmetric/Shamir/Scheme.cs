@@ -215,15 +215,26 @@ namespace Wheel.Symmetric.Shamir
                 return secretSz;
             }
 
-            Share mergedPoints = new(Threshold);
+            foreach(var share in shares)
+            {
+                if (share.Length != secretSz)
+                {
+                    // All shares must have the identical size
+                    throw new InvalidDataException("Inconsistent share set detected");
+                }
+            }
+
+            Span<SharePoint> merged = stackalloc SharePoint[Threshold];
             for (int di = 0; di < secretSz; ++di)
             {
                 for (int i = 0; i < Threshold; i++)
                 {
-                    mergedPoints[i] = shares[i][di];
+                    merged[i] = shares[i][di];
                 }
-                secret[di] = GroupFieldMath.Interpolation(mergedPoints);
+                secret[di] = GroupFieldMath.Interpolation(merged);
             }
+
+            merged.Clear();
 
             return secretSz;
         }

@@ -23,19 +23,19 @@
             return (ans * ans);
         }
 
-        public static byte Interpolation(Share share)
+        public static byte Interpolation(ReadOnlySpan<SharePoint> points)
         {
             ShareByte secret = 0;
 
-            for (int i = 0; i < share.Length; i++)
+            for (int i = 0; i < points.Length; i++)
             {
                 ShareByte term = 1;
-                for (int j = 0; j < share.Length; j++)
+                for (int j = 0; j < points.Length; j++)
                 {
                     if (i == j) continue;
-                    term *= (share[j].X / (share[j].X ^ share[i].X));
+                    term *= points[j].X / (points[j].X ^ points[i].X);
                 }
-                term *= share[i].Y;
+                term *= points[i].Y;
                 secret ^= term;
             }
             return secret;
