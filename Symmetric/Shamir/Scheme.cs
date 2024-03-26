@@ -176,7 +176,7 @@ namespace Wheel.Symmetric.Shamir
             for (int secretIdx = 0; secretIdx < secret.Length; ++secretIdx)
             {
                 coefficients[0] = secret[secretIdx];
-                for (int i = 1; i < Threshold; i++)
+                for (int i = 1; i < Threshold; ++i)
                 {
                     coefficients[i] = garbage[secretIdx * i];
                 }
@@ -233,7 +233,7 @@ namespace Wheel.Symmetric.Shamir
             Span<SharePoint> merged = stackalloc SharePoint[Threshold];
             for (int secretIdx = 0; secretIdx < secretSz; ++secretIdx)
             {
-                for (int shareIdx = 0; shareIdx < Threshold; shareIdx++)
+                for (int shareIdx = 0; shareIdx < Threshold; ++shareIdx)
                 {
                     merged[shareIdx] = shares[shareIdx][secretIdx];
                 }

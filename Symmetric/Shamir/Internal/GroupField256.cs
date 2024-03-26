@@ -27,10 +27,10 @@
         {
             ShareByte secret = 0;
 
-            for (int i = 0; i < points.Length; i++)
+            for (int i = 0; i < points.Length; ++i)
             {
                 ShareByte term = 1;
-                for (int j = 0; j < points.Length; j++)
+                for (int j = 0; j < points.Length; ++j)
                 {
                     if (i == j) continue;
                     term *= points[j].X / (points[j].X ^ points[i].X);

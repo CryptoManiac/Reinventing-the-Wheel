@@ -79,7 +79,7 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
         /// <param name="num_words"></param>
         public static void XorWith(Span<ulong> words, ReadOnlySpan<ulong> vli, int num_words)
         {
-            for (int i = 0; i < num_words; i++)
+            for (int i = 0; i < num_words; ++i)
             {
                 words[i] ^= vli[i];
             }

@@ -196,7 +196,7 @@ namespace Wheel.Hashing.SHA3.Internal
             //  Considering that Itanium is dead, this is unlikely to ever be useful
             if (!BitConverter.IsLittleEndian)
             {
-                for (uint i = 0; i < KeccakConstants.SHA3_SPONGE_WORDS; i++)
+                for (uint i = 0; i < KeccakConstants.SHA3_SPONGE_WORDS; ++i)
                 {
                     unsafe
                     {

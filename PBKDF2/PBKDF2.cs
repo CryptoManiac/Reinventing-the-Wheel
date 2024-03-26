@@ -54,7 +54,7 @@ namespace Wheel.Hashing.Derivation
                 /* T_i = U_1 ... */
                 U.CopyTo(T);
 
-                for (int j = 2; j <= c; j++)
+                for (int j = 2; j <= c; ++j)
                 {
                     /* Compute U_j. */
                     hctx.Init(password_bytes);
@@ -62,7 +62,7 @@ namespace Wheel.Hashing.Derivation
                     hctx.Digest(U);
 
                     /* ... xor U_j ... */
-                    for (int k = 0; k < HashSz; k++)
+                    for (int k = 0; k < HashSz; ++k)
                     {
                         T[k] ^= U[k];
                     }

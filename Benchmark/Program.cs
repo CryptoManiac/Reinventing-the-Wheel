@@ -34,7 +34,7 @@ static void Benchmark(string name, Action action, int n, int bytes)
     var watch = new Stopwatch();
     var start = DateTime.UtcNow;
     var values = new float[n];
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < n; ++i)
     {
         watch.Restart();
         action();

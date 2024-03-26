@@ -76,7 +76,7 @@ namespace Wheel.Hashing.HMAC.SHA2
                 block_opad.Slice(keySz, fill).Fill(0x5c);
             }
 
-            for (int i = 0; i < keySz; i++)
+            for (int i = 0; i < keySz; ++i)
             {
                 block_ipad[i] = (byte) (key_used[i] ^ 0x36);
                 block_opad[i] = (byte) (key_used[i] ^ 0x5c);

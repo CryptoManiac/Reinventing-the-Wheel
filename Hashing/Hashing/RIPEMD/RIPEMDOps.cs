@@ -347,7 +347,7 @@
             InternalRIPEMDBlock X = new();
 
             // put bytes from strptr into X
-            for (uint i = 0, offset = 0; i < (lswlen & 63); i++)
+            for (uint i = 0, offset = 0; i < (lswlen & 63); ++i)
             {
                 // byte i goes into word X[i div 4] at pos. 8*(i mod 4)
                 X[i >> 2] ^= (uint)block.bytes[offset++] << (8 * ((int)i & 3));
