@@ -26,12 +26,11 @@
         public static byte Interpolation(Share share)
         {
             ShareByte secret = 0;
-            int n = share.Length;
 
-            for (int i = 0; i < n; i++)
+            for (int i = 0; i < share.Length; i++)
             {
                 ShareByte term = 1;
-                for (int j = 0; j < n; j++)
+                for (int j = 0; j < share.Length; j++)
                 {
                     if (i == j) continue;
                     term *= (share[j].X / (share[j].X ^ share[i].X));
