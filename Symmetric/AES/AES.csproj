@@ -15,7 +15,4 @@
   <ItemGroup>
     <None Remove="Internal\" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Internal\" />
-  </ItemGroup>
 </Project>

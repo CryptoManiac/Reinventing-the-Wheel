@@ -32,8 +32,8 @@ namespace Wheel.Symmetric.AES
         }
 
         public byte this[int index]
-        {
-            get => bytes[index];
+        { 
+            readonly get => bytes[index];
             set => bytes[index] = value;
         }
 
