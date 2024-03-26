@@ -22,6 +22,9 @@ public class CommandLineOptions
 
     [Option("password", HelpText = "Encryption password")]
     public string? Password { get; set; }
+
+    [Option("verbose", HelpText = "Be verbose about what is going on", Default = false)]
+    public bool Verbose { get; set; }
 }
 
 static class ShamirUtil
@@ -30,21 +33,24 @@ static class ShamirUtil
     {
         if (File.Exists(o.Shares))
         {
-            throw new InvalidOperationException("Specified shares file already exists");
+            Console.Error.WriteLine("Specified shares file already exists");
+            Environment.Exit(-1);
         }
 
         var info = new FileInfo(o.Secret);
 
         if (!info.Exists)
         {
-            throw new InvalidOperationException("Specified secrets file doesn't exist");
+            Console.Error.WriteLine("Specified secrets file doesn't exist");
+            Environment.Exit(-2);
         }
 
         // This doesn't mean that it would be wise
         //  to generate 1M share or secret files
         if (info.Length > 125000)
         {
-            throw new InvalidOperationException("Secrets file is unreasonably big");
+            Console.Error.WriteLine("Secrets file is unreasonably big");
+            Environment.Exit(-3);
         }
 
         Console.WriteLine("Executiong split command for configuration {0}-of-{1}", o.Threshold, o.Participants);
@@ -64,6 +70,13 @@ static class ShamirUtil
                 Span<char> encoded = new char[b58.Encode(null, data)];
                 int b58Len = b58.Encode(encoded, data);
                 encoded = encoded.Slice(0, b58Len);
+
+                if (o.Verbose)
+                {
+                    Console.WriteLine("# Generated share for participant #{0}", share.Index);
+                    Console.WriteLine(encoded.ToString());
+                }
+
                 sharesFile.WriteLine(encoded);
             }
         }
@@ -75,21 +88,24 @@ static class ShamirUtil
     {
         if (File.Exists(o.Secret))
         {
-            throw new InvalidOperationException("Specified secrets file already exists");
+            Console.Error.WriteLine("Specified secrets file already exists");
+            Environment.Exit(-4);
         }
 
         var info = new FileInfo(o.Shares);
 
         if (!info.Exists)
         {
-            throw new InvalidOperationException("Specified shares file doesn't exist");
+            Console.Error.WriteLine("Specified shares file doesn't exist");
+            Environment.Exit(-5);
         }
 
         // This doesn't mean that it would be wise
         //  to generate 1M share or secret files
         if (info.Length > 1000000)
         {
-            throw new InvalidOperationException("Shares file is unreasonably big");
+            Console.Error.WriteLine("Shares file is unreasonably big");
+            Environment.Exit(-6);
         }
 
         Console.WriteLine("Executiong merge command for configuration {0}-of-{1}", o.Threshold, o.Participants);
@@ -105,18 +121,42 @@ static class ShamirUtil
                 string? encoded = sharesFile.ReadLine();
                 if (encoded == null)
                 {
+                    if (collected.Count < scheme.Threshold)
+                    {
+                        Console.Error.WriteLine("Not enough shares for the recovery quorum, you have {0} while the requirement is {1}", collected.Count, scheme.Threshold);
+                        Environment.Exit(-8);
+                    }
                     break;
                 }
 
                 Span<byte> decoded = new byte[b58.Decode(null, encoded)];
                 if (0 == decoded.Length)
                 {
-                    throw new InvalidDataException("Truncated share found");
+                    Console.Error.WriteLine("Truncated share found");
+                    Environment.Exit(-9);
                 }
 
                 int shareSz = b58.Decode(decoded, encoded);
                 decoded = decoded.Slice(0, shareSz);
-                collected.Add(new(decoded));
+
+                Share share = new(decoded);
+
+                if (o.Verbose)
+                {
+                    Console.WriteLine("# Read share of participant #{0}", share.Index);
+                    Console.WriteLine(encoded.ToString());
+                }
+
+                collected.Add(share);
+
+                if (collected.Count >= scheme.Threshold)
+                {
+                    if (o.Verbose) {
+                        Console.WriteLine("Collected just enough shares to fill the quorum");
+                    }
+                    //  no need to proceed further
+                    break;
+                }
             }
         }
 
@@ -136,9 +176,14 @@ static class ShamirUtil
         Parser.Default.ParseArguments<CommandLineOptions>(args).WithParsed<CommandLineOptions>(o => {
             switch(o.Command.ToLower())
             {
-                case "merge": Merge(o); return;
-                case "split": Split(o); return;
-                default: throw new ArgumentException("Unsupported command");
+                case "merge":
+                    Merge(o); return;
+                case "split":
+                    Split(o); return;
+                default:
+                    Console.Error.WriteLine("You must specify operation type by setting the --command option");
+                    Environment.Exit(-10);
+                    return;
             }
         });
     }
