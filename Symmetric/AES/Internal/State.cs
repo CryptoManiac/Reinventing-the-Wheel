@@ -48,17 +48,6 @@ namespace Wheel.Symmetric.AES.Internal
         internal unsafe fixed byte data[TypeWordSz * StateWord.TypeByteSz];
         internal const int TypeWordSz = 4;
 
-        private readonly unsafe Span<StateWord> words
-        {
-            get
-            {
-                fixed (void* ptr = &this)
-                {
-                    return new Span<StateWord>(ptr, TypeWordSz);
-                }
-            }
-        }
-
         /// <summary>
         /// This function adds the round key to state.
         /// The round key is added to the state by an XOR function.
@@ -67,12 +56,15 @@ namespace Wheel.Symmetric.AES.Internal
         /// <param name="RoundKey"></param>
         internal unsafe void AddRoundKey(byte round, in AESRoundKey RoundKey)
         {
-            var words = this.words;
-            for (byte i = 0; i < 4; ++i)
+            fixed (void* ptr = &this)
             {
-                for (byte j = 0; j < 4; ++j)
+                StateWord* words = (StateWord*)ptr;
+                for (byte i = 0; i < 4; ++i)
                 {
-                    words[i].data[j] ^= RoundKey.data[(round * AESCTR.Nb * 4) + (i * AESCTR.Nb) + j];
+                    for (byte j = 0; j < 4; ++j)
+                    {
+                        words[i].data[j] ^= RoundKey.data[(round * AESCTR.Nb * 4) + (i * AESCTR.Nb) + j];
+                    }
                 }
             }
         }
@@ -83,12 +75,15 @@ namespace Wheel.Symmetric.AES.Internal
         /// </summary>
         internal unsafe void SubBytes()
         {
-            var words = this.words;
-            for (byte i = 0; i < 4; ++i)
+            fixed (void* ptr = &this)
             {
-                for (byte j = 0; j < 4; ++j)
+                StateWord* words = (StateWord*)ptr;
+                for (byte i = 0; i < 4; ++i)
                 {
-                    words[j].data[i] = AESCTR.sbox[words[j].data[i]];
+                    for (byte j = 0; j < 4; ++j)
+                    {
+                        words[j].data[i] = AESCTR.sbox[words[j].data[i]];
+                    }
                 }
             }
         }
@@ -101,30 +96,38 @@ namespace Wheel.Symmetric.AES.Internal
         internal unsafe void ShiftRows()
         {
             byte temp;
-            var words = this.words;
+            fixed (void* ptr = &this)
+            {
+                StateWord* words = (StateWord*)ptr;
 
-            // Rotate first row 1 column to left
-            temp = words[0].data[1];
-            words[0].data[1] = words[1].data[1];
-            words[1].data[1] = words[2].data[1];
-            words[2].data[1] = words[3].data[1];
-            words[3].data[1] = temp;
+                // Rotate first row 1 column to left
+                temp = words[0].data[1];
+                words[0].data[1] = words[1].data[1];
+                words[1].data[1] = words[2].data[1];
+                words[2].data[1] = words[3].data[1];
+                words[3].data[1] = temp;
 
-            // Rotate second row 2 columns to left
-            temp = words[0].data[2];
-            words[0].data[2] = words[2].data[2];
-            words[2].data[2] = temp;
+                // Rotate second row 2 columns to left
+                temp = words[0].data[2];
+                words[0].data[2] = words[2].data[2];
+                words[2].data[2] = temp;
 
-            temp = words[1].data[2];
-            words[1].data[2] = words[3].data[2];
-            words[3].data[2] = temp;
+                temp = words[1].data[2];
+                words[1].data[2] = words[3].data[2];
+                words[3].data[2] = temp;
 
-            // Rotate third row 3 columns to left
-            temp = words[0].data[3];
-            words[0].data[3] = words[3].data[3];
-            words[3].data[3] = words[2].data[3];
-            words[2].data[3] = words[1].data[3];
-            words[1].data[3] = temp;
+                // Rotate third row 3 columns to left
+                temp = words[0].data[3];
+                words[0].data[3] = words[3].data[3];
+                words[3].data[3] = words[2].data[3];
+                words[2].data[3] = words[1].data[3];
+                words[1].data[3] = temp;
+            }
+        }
+
+        private static byte XTime(byte x)
+        {
+            return (byte)((x << 1) ^ (((x >> 7) & 1) * 0x1b));
         }
 
         /// <summary>
@@ -132,25 +135,26 @@ namespace Wheel.Symmetric.AES.Internal
         /// </summary>
         internal unsafe void MixColumns()
         {
-            var xtime = (byte x) => (byte)((x << 1) ^ (((x >> 7) & 1) * 0x1b));
-            var words = this.words;
-
-            for (byte i = 0; i < 4; ++i)
+            fixed (void* ptr = &this)
             {
-                byte t = words[i].data[0];
-                byte Tmp = (byte)(words[i].data[0] ^ words[i].data[1] ^ words[i].data[2] ^ words[i].data[3]);
-                byte Tm = (byte)(words[i].data[0] ^ words[i].data[1]);
-                Tm = xtime(Tm);
-                words[i].data[0] ^= (byte)(Tm ^ Tmp);
-                Tm = (byte)(words[i].data[1] ^ words[i].data[2]);
-                Tm = xtime(Tm);
-                words[i].data[1] ^= (byte)(Tm ^ Tmp);
-                Tm = (byte)(words[i].data[2] ^ words[i].data[3]);
-                Tm = xtime(Tm);
-                words[i].data[2] ^= (byte)(Tm ^ Tmp);
-                Tm = (byte)(words[i].data[3] ^ t);
-                Tm = xtime(Tm);
-                words[i].data[3] ^= (byte) (Tm ^ Tmp);
+                StateWord* words = (StateWord*)ptr;
+                for (byte i = 0; i < 4; ++i)
+                {
+                    byte t = words[i].data[0];
+                    byte Tmp = (byte)(words[i].data[0] ^ words[i].data[1] ^ words[i].data[2] ^ words[i].data[3]);
+                    byte Tm = (byte)(words[i].data[0] ^ words[i].data[1]);
+                    Tm = XTime(Tm);
+                    words[i].data[0] ^= (byte)(Tm ^ Tmp);
+                    Tm = (byte)(words[i].data[1] ^ words[i].data[2]);
+                    Tm = XTime(Tm);
+                    words[i].data[1] ^= (byte)(Tm ^ Tmp);
+                    Tm = (byte)(words[i].data[2] ^ words[i].data[3]);
+                    Tm = XTime(Tm);
+                    words[i].data[2] ^= (byte)(Tm ^ Tmp);
+                    Tm = (byte)(words[i].data[3] ^ t);
+                    Tm = XTime(Tm);
+                    words[i].data[3] ^= (byte)(Tm ^ Tmp);
+                }
             }
         }
 
