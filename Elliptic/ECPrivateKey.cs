@@ -524,8 +524,6 @@ namespace Wheel.Crypto.Elliptic
         {
             // The K value requirements are identical to shose for the secret key.
             // This means that any valis secret key is acceptable to be used as K value.
-
-            // 128 iterations are more than enough for our purposes here
             DeriveHMAC<HMAC_IMPL>(out ECPrivateKey pk, message_hash, sequence);
 
             // The generated private key is used as secret K value
