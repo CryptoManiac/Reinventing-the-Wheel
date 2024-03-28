@@ -388,9 +388,8 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="result">New secret key will be placed here</param>
         /// <param name="entropy">Entropy bytes (random or some user input, not necessarily secret)</param>
         /// <param name="sequence">Key sequence (to generate the different keys for the same source key and entropy bytes array pair)</param>
-        /// <param name="expand_iterations">Number of PBKDF2 iterations for the seed and personalize bytes expansion</param>
         /// <exception cref="InvalidOperationException">Thrown when called on the either empty or invalid ECPrivateKey instance</exception>
-        public readonly void DeriveHMAC<HMAC_IMPL>(out ECPrivateKey result, ReadOnlySpan<byte> entropy, int sequence, int expand_iterations) where HMAC_IMPL : unmanaged, IMac
+        public readonly void DeriveHMAC<HMAC_IMPL>(out ECPrivateKey result, ReadOnlySpan<byte> entropy, int sequence) where HMAC_IMPL : unmanaged, IMac
         {
             // We're using our private key as secret seed and the entropy is
             //  being used as the personalization string
@@ -400,7 +399,7 @@ namespace Wheel.Crypto.Elliptic
                 throw new InvalidOperationException("Trying to derive from the invalid private key");
             }
 
-            GenerateSecret<HMAC_IMPL>(curve, out result, seed, entropy, sequence, expand_iterations);
+            GenerateSecret<HMAC_IMPL>(curve, out result, seed, entropy, sequence);
             seed.Clear();
         }
 
@@ -414,7 +413,7 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="personalization">Personalization (to generate the different keys for the same seed)</param>
         /// <param name="sequence">Key sequence (to generate the different keys for the same seed and personalization bytes array pair)</param>
         /// <param name="expand_iterations">Number of PBKDF2 iterations for the seed and personalize bytes expansion, 4096 or more is recommended for the new secret keys</param>
-        public static void GenerateSecret<HMAC_IMPL>(ECCurve curve, out ECPrivateKey result, ReadOnlySpan<byte> seed, ReadOnlySpan<byte> personalization, int sequence, int expand_iterations) where HMAC_IMPL : unmanaged, IMac
+        public static void GenerateSecret<HMAC_IMPL>(ECCurve curve, out ECPrivateKey result, ReadOnlySpan<byte> seed, ReadOnlySpan<byte> personalization, int sequence) where HMAC_IMPL : unmanaged, IMac
         {
             // See 3..2 of the RFC 6979 to get what is going on here
             // We're not following it to the letter, but our algorithm is very similar
@@ -424,15 +423,9 @@ namespace Wheel.Crypto.Elliptic
             Span<byte> separator_01 = stackalloc byte[1] { 0x01 };
 
             Span<byte> sequence_data = stackalloc byte[sizeof(int)];
-            Span<byte> expanded_seed = stackalloc byte[hmac.HashSz];
-            Span<byte> expanded_personalization = stackalloc byte[hmac.HashSz];
 
             // Convert sequence to bytes
             MemoryMarshal.Cast<byte, int>(sequence_data)[0] = sequence;
-
-            // Expand the secret seed and personalization string bytes
-            PBKDF2.Derive<HMAC_IMPL>(expanded_seed, seed, sequence_data, expand_iterations);
-            PBKDF2.Derive<HMAC_IMPL>(expanded_personalization, sequence_data, seed, expand_iterations);
 
             // Allocate buffer for HMAC results
             Span<byte> K = stackalloc byte[hmac.HashSz];
@@ -445,12 +438,13 @@ namespace Wheel.Crypto.Elliptic
             V.Fill(0x01); // V = 01 01 01 ..
 
             // D
-            hmac.Init(K); // K = HMAC_K(V || 00 || expanded_seed || 00 || expanded_personalization)
+            hmac.Init(K); // K = HMAC_K(V || 00 || seed || 00 || personalization || 00 || sequence_data)
             hmac.Update(V);
             hmac.Update(separator_00);
-            hmac.Update(expanded_seed);
+            hmac.Update(seed);
             hmac.Update(separator_00);
-            hmac.Update(expanded_personalization);
+            hmac.Update(personalization);
+            hmac.Update(sequence_data);
             hmac.Digest(K);
 
             // E
@@ -459,12 +453,13 @@ namespace Wheel.Crypto.Elliptic
             hmac.Digest(V);
 
             // F
-            hmac.Init(K); // K = HMAC_K(V || 01 || expanded_seed || 01 || expanded_personalization)
+            hmac.Init(K); // K = HMAC_K(V || 01 || seed || 01 || personalization || 01 || sequence_data)
             hmac.Update(V);
             hmac.Update(separator_01);
-            hmac.Update(expanded_seed);
+            hmac.Update(seed);
             hmac.Update(separator_01);
-            hmac.Update(expanded_personalization);
+            hmac.Update(personalization);
+            hmac.Update(sequence_data);
             hmac.Digest(K);
 
             // G
@@ -505,12 +500,12 @@ namespace Wheel.Crypto.Elliptic
                 }
 
                 // H3
-                hmac.Init(K);  // K = HMAC_K(V || 00 || expanded_seed || 00 || expanded_personalization)
+                hmac.Init(K);  // K = HMAC_K(V || 00 || seed || 00 || personalization)
                 hmac.Update(V);
                 hmac.Update(separator_00);
-                hmac.Update(expanded_seed);
+                hmac.Update(seed);
                 hmac.Update(separator_00);
-                hmac.Update(expanded_personalization);
+                hmac.Update(personalization);
                 hmac.Digest(K);
 
                 hmac.Init(K); // V = HMAC_K(V)
@@ -531,7 +526,7 @@ namespace Wheel.Crypto.Elliptic
             // This means that any valis secret key is acceptable to be used as K value.
 
             // 128 iterations are more than enough for our purposes here
-            DeriveHMAC<HMAC_IMPL>(out ECPrivateKey pk, message_hash, sequence, 128);
+            DeriveHMAC<HMAC_IMPL>(out ECPrivateKey pk, message_hash, sequence);
 
             // The generated private key is used as secret K value
             pk.UnWrap(result);
