@@ -17,7 +17,7 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Hashing\Hashing.csproj" />
+    <ProjectReference Include="..\..\Hashing\Hashing.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="doc\" />
