@@ -5,6 +5,23 @@ using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
 
 namespace Wheel.Crypto.Elliptic
 {
+    #region Random number generator
+    internal static class RNG
+    {
+        private static RandomNumberGenerator gen = RandomNumberGenerator.Create();
+        private static object LockGuard = new();
+
+        public static void Fill(Span<ulong> rnd)
+        {
+            lock (LockGuard)
+            {
+                Span<byte> byteView = MemoryMarshal.Cast<ulong, byte>(rnd);
+                RNG.gen.GetBytes(byteView);
+            }
+        }
+    }
+    #endregion
+
     #region Curve points
     /// <summary>
     /// A set of ECC curve points is defined as the separate structure because you can't declare fixed buffer as readonly
@@ -135,13 +152,8 @@ namespace Wheel.Crypto.Elliptic
 
         private unsafe ECCurve(int num_bits, int num_n_bits, ulong[] p, ulong[] n, ulong[] half_n, ulong[] G, ulong[] b, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> XSide, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> ModSquare, delegate* managed<Span<ulong>, Span<ulong>, ReadOnlySpan<ulong>, void> ModMult, delegate* managed<Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian)
         {
-            // It's okay to allocate this in heap here since we're making a
-            //  copy of this value and not using the original after doing this.
-            ulong[] random = new ulong[1 + SECP256K1.NUM_BITS / VLI.WORD_BITS];
-
-            RandomNumberGenerator gen = RandomNumberGenerator.Create();
-            Span<byte> byteView = MemoryMarshal.Cast<ulong, byte>(random);
-            gen.GetBytes(byteView);
+            Span<ulong> random = stackalloc ulong[1 + SECP256K1.NUM_BITS / VLI.WORD_BITS];
+            RNG.Fill(random);
 
             randomId = random[0];
 
@@ -151,7 +163,7 @@ namespace Wheel.Crypto.Elliptic
 
             fixed (ulong* ptr = &curveBuffers.scrambleKey[0])
             {
-                random.AsSpan().Slice(1).CopyTo(new Span<ulong>(ptr, NUM_WORDS));
+                random.Slice(1).CopyTo(new Span<ulong>(ptr, NUM_WORDS));
             }
 
             fixed (ulong* ptr = &curveBuffers.p[0])
@@ -187,9 +199,7 @@ namespace Wheel.Crypto.Elliptic
         }
 
         /// <summary>
-        /// Construct a new instance of the secp256k1 context. The structure itself has a deterministic size and can be kept on stack,
-        ///  but the function itself will trigger a heap allocation due to necessity of invoking the CLR's random number generator.
-        /// </summary>
+        /// Construct a new instance of the secp256k1 context.
         /// <returns></returns>
         public static unsafe ECCurve Get_SECP256K1()
         {
