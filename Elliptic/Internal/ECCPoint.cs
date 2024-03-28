@@ -40,8 +40,11 @@ namespace Wheel.Crypto.Elliptic.Internal
                 return false;
             }
 
-            curve.ModSquare(tmp1, point.Slice(num_words));
-            curve.XSide(tmp2, point); // tmp2 = x^3 + ax + b 
+            unsafe
+            {
+                curve.ModSquare(tmp1, point.Slice(num_words));
+                curve.XSide(tmp2, point); // tmp2 = x^3 + ax + b
+            }
 
             // Make sure that y^2 == x^3 + ax + b
             return VLI.Equal(tmp1, tmp2, num_words);
@@ -69,10 +72,17 @@ namespace Wheel.Crypto.Elliptic.Internal
             ECCUtil.XYcZ_Add(curve, P, P.Slice(num_words), Q, Q.Slice(num_words));
 
             // Find final 1/Z value.
-            curve.ModMult(z, input_P, P.Slice(num_words));
+            unsafe
+            {
+                curve.ModMult(z, input_P, P.Slice(num_words));
+            }
             VLI.ModInv(z, z, curve.p, num_words);
-            curve.ModMult(z, z, P);
-            curve.ModMult(z, z, input_P.Slice(num_words));
+            unsafe
+            {
+                curve.ModMult(z, z, P);
+                curve.ModMult(z, z, input_P.Slice(num_words));
+            }
+
             // End 1/Z calculation
 
             ECCUtil.ApplyZ(curve, Q, Q.Slice(num_words), z);
@@ -132,12 +142,20 @@ namespace Wheel.Crypto.Elliptic.Internal
 
             // Find final 1/Z value.
             VLI.ModSub(z, Rx[1], Rx[0], curve.p, num_words); // X1 - X0
-            curve.ModMult(z, z, Ry[1 - nb]);               // Yb * (X1 - X0)
-            curve.ModMult(z, z, point);                    // xP * Yb * (X1 - X0)
+            unsafe
+            {
+                curve.ModMult(z, z, Ry[1 - nb]);               // Yb * (X1 - X0)
+                curve.ModMult(z, z, point);                    // xP * Yb * (X1 - X0)
+            }
+
             VLI.ModInv(z, z, curve.p, num_words);            // 1 / (xP * Yb * (X1 - X0))
-            // yP / (xP * Yb * (X1 - X0))
-            curve.ModMult(z, z, point.Slice(num_words));
-            curve.ModMult(z, z, Rx[1 - nb]); // Xb * yP / (xP * Yb * (X1 - X0))
+            unsafe
+            {
+                // yP / (xP * Yb * (X1 - X0))
+                curve.ModMult(z, z, point.Slice(num_words));
+                curve.ModMult(z, z, Rx[1 - nb]); // Xb * yP / (xP * Yb * (X1 - X0))
+            }
+
             /* End 1/Z calculation */
 
             ECCUtil.XYcZ_Add(curve, Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);
@@ -184,12 +202,20 @@ namespace Wheel.Crypto.Elliptic.Internal
 
             // Find final 1/Z value.
             VLI.ModSub(z, Rx[1], Rx[0], curve.p, num_words); // X1 - X0
-            curve.ModMult(z, z, Ry[1 - nb]);               // Yb * (X1 - X0)
-            curve.ModMult(z, z, point);                    // xP * Yb * (X1 - X0)
+            unsafe
+            {
+                curve.ModMult(z, z, Ry[1 - nb]);               // Yb * (X1 - X0)
+                curve.ModMult(z, z, point);                    // xP * Yb * (X1 - X0)
+            }
+
             VLI.ModInv(z, z, curve.p, num_words);            // 1 / (xP * Yb * (X1 - X0))
-            // yP / (xP * Yb * (X1 - X0))
-            curve.ModMult(z, z, point.Slice(num_words));
-            curve.ModMult(z, z, Rx[1 - nb]); // Xb * yP / (xP * Yb * (X1 - X0))
+            unsafe
+            {
+                // yP / (xP * Yb * (X1 - X0))
+                curve.ModMult(z, z, point.Slice(num_words));
+                curve.ModMult(z, z, Rx[1 - nb]); // Xb * yP / (xP * Yb * (X1 - X0))
+            }
+
             /* End 1/Z calculation */
 
             ECCUtil.XYcZ_Add(curve, Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);

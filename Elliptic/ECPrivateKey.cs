@@ -8,11 +8,11 @@ using Wheel.Hashing.HMAC;
 
 namespace Wheel.Crypto.Elliptic
 {
-        /// <summary>
-        /// Encapsulated ECC private key
-        /// </summary>
-	public struct ECPrivateKey
-	{
+    /// <summary>
+    /// Encapsulated ECC private key
+    /// </summary>
+    public struct ECPrivateKey
+    {
         /// <summary>
         /// The secret key funcions are using slices that are being made from this hidden array.
         /// </summary>
@@ -21,7 +21,7 @@ namespace Wheel.Crypto.Elliptic
         /// <summary>
         /// ECC implementation to use
         /// </summary>
-        public readonly ECCurve curve { get; }
+        public readonly ECCurve curve;
 
         /// <summary>
         /// Access to the private scalar data
@@ -41,8 +41,8 @@ namespace Wheel.Crypto.Elliptic
         /// Construct the empty key
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        public ECPrivateKey(ECCurve curve)
-		{
+        public ECPrivateKey(in ECCurve curve)
+        {
             this.curve = curve;
 
             // Init with zeros
@@ -59,7 +59,7 @@ namespace Wheel.Crypto.Elliptic
         /// Construct the the new private key instance from the given serialized scalar
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        public ECPrivateKey(ECCurve curve, ReadOnlySpan<byte> scalar) : this(curve)
+        public ECPrivateKey(in ECCurve curve, ReadOnlySpan<byte> scalar) : this(curve)
         {
             if (!Parse(scalar))
             {
@@ -71,7 +71,7 @@ namespace Wheel.Crypto.Elliptic
         /// Construct the the new private key instance from the given serialized scalar
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        public ECPrivateKey(ECCurve curve, ReadOnlySpan<ulong> native_scalar) : this(curve)
+        public ECPrivateKey(in ECCurve curve, ReadOnlySpan<ulong> native_scalar) : this(curve)
         {
             if (!Wrap(native_scalar))
             {
@@ -86,8 +86,9 @@ namespace Wheel.Crypto.Elliptic
         {
             get
             {
-                if (VLI.IsZero(secret_x, curve.NUM_WORDS)) { 
-                    return false; 
+                if (VLI.IsZero(secret_x, curve.NUM_WORDS))
+                {
+                    return false;
                 }
                 VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS); // Unscramble
                 bool result = VLI.Cmp(curve.n, secret_x, curve.NUM_N_WORDS) == 1;

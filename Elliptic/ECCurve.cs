@@ -5,87 +5,182 @@ using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
 
 namespace Wheel.Crypto.Elliptic
 {
-    internal static class RNG
+    #region Curve points
+    /// <summary>
+    /// A set of ECC curve points is defined as the separate structure because you can't declare fixed buffer as readonly
+    /// </summary>
+    internal unsafe struct CurveBuffers
     {
-        internal static object RNG_LOCK = new();
-        internal static readonly RandomNumberGenerator gen = RandomNumberGenerator.Create();
+        public unsafe fixed ulong scrambleKey[VLI.ECC_MAX_WORDS];
+        public unsafe fixed ulong p[VLI.ECC_MAX_WORDS];
+        public unsafe fixed ulong n[VLI.ECC_MAX_WORDS];
+        public unsafe fixed ulong half_n[VLI.ECC_MAX_WORDS];
+        public unsafe fixed ulong b[VLI.ECC_MAX_WORDS];
+        public unsafe fixed ulong G[2 * VLI.ECC_MAX_WORDS];
+        private const int BuferSize = VLI.ECC_MAX_WORDS * VLI.WORD_SIZE;
+        private const int DoubleBuferSize = 2 * VLI.ECC_MAX_WORDS * VLI.WORD_SIZE;
+        public const int TotalSize = 5 * BuferSize + DoubleBuferSize;
     }
+    #endregion
 
     /// <summary>
     /// Properties and methods every EC implementation must provide
     /// </summary>
 #pragma warning disable CS0661
 #pragma warning disable CS0660
-    public readonly struct ECCurve
+    public unsafe readonly struct ECCurve
 #pragma warning restore CS0660
 #pragma warning restore CS0661
     {
+        /// <summary>
+        /// Curve point parameters
+        /// </summary>
+        private readonly CurveBuffers curveBuffers;
 
-        public delegate void XSide_IMPL(Span<ulong> result, ReadOnlySpan<ulong> x);
-        public delegate void ModSquare_IMPL(Span<ulong> result, ReadOnlySpan<ulong> left);
-        public delegate void ModMult_IMPL(Span<ulong> result, Span<ulong> left, ReadOnlySpan<ulong> right);
-        public delegate void DoubleJacobian_IMPL(Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1);
+        /// <summary>
+        /// Random instance identifier
+        /// </summary>
+        public readonly ulong randomId;
 
-        private readonly ulong[] _scrambleKey;
-        private readonly ulong[] _p;
-        private readonly ulong[] _n;
-        private readonly ulong[] _half_n;
-        private readonly ulong[] _G;
-        private readonly ulong[] _b;
+        #region Curve's point coordinate size
+        public readonly int NUM_BITS;
+        public readonly int NUM_N_BITS;
 
-        private readonly XSide_IMPL _XSide;
-        private readonly ModSquare_IMPL _ModSquare;
-        private readonly ModMult_IMPL _ModMult;
-        private readonly DoubleJacobian_IMPL _DoubleJacobian;
-
-        public readonly ulong randomId { get; }
-        public readonly int NUM_BITS { get; }
-        public readonly int NUM_WORDS => NUM_BITS / VLI.WORD_BITS; 
+        #region Calculated lengths
+        public readonly int NUM_WORDS => NUM_BITS / VLI.WORD_BITS;
+        public readonly int NUM_N_WORDS => NUM_N_BITS / VLI.WORD_BITS;
         public readonly int NUM_BYTES => NUM_BITS / 8;
-        public readonly int NUM_N_BITS { get; }
-        public readonly int NUM_N_WORDS => NUM_N_BITS / VLI.WORD_BITS; 
         public readonly int NUM_N_BYTES => NUM_N_BITS / 8;
+        #endregion
+        #endregion
 
-        public readonly ReadOnlySpan<ulong> scrambleKey => _scrambleKey;
+        #region Implementation pointers
+        internal readonly unsafe delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> XSide;
+        internal readonly unsafe delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> ModSquare;
+        internal readonly unsafe delegate* managed<Span<ulong>, Span<ulong>, ReadOnlySpan<ulong>, void> ModMult;
+        internal readonly unsafe delegate* managed<Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian;
+        #endregion
 
-        public readonly ReadOnlySpan<ulong> p => _p;
-        public readonly ReadOnlySpan<ulong> n => _n;
-        public readonly ReadOnlySpan<ulong> half_n => _half_n;
-        public readonly ReadOnlySpan<ulong> G => _G;
-        public readonly ReadOnlySpan<ulong> b => _b;
+        #region Curve constant getters
+        public unsafe readonly ReadOnlySpan<ulong> scrambleKey
+        {
+            get
+            {
+                fixed (ulong* ptr = &curveBuffers.scrambleKey[0])
+                {
+                    return new ReadOnlySpan<ulong>(ptr, NUM_WORDS);
+                }
+            }
+        }
 
-        public readonly XSide_IMPL XSide => _XSide;
-        public readonly ModSquare_IMPL ModSquare => _ModSquare;
-        public readonly ModMult_IMPL ModMult => _ModMult;
-        public readonly DoubleJacobian_IMPL DoubleJacobian => _DoubleJacobian;
+        public unsafe readonly ReadOnlySpan<ulong> p
+        {
+            get
+            {
+                fixed (ulong* ptr = &curveBuffers.p[0])
+                {
+                    return new ReadOnlySpan<ulong>(ptr, NUM_WORDS);
+                }
+            }
+        }
 
-        private ECCurve(int num_bits, int num_n_bits, ulong[] p, ulong[] n, ulong[] half_n, ulong[] G, ulong[] b, XSide_IMPL XSide, ModSquare_IMPL ModSquare, ModMult_IMPL ModMult, DoubleJacobian_IMPL DoubleJacobian)
+        public unsafe readonly ReadOnlySpan<ulong> n
+        {
+            get
+            {
+                fixed (ulong* ptr = &curveBuffers.n[0])
+                {
+                    return new ReadOnlySpan<ulong>(ptr, NUM_WORDS);
+                }
+            }
+        }
+        public unsafe readonly ReadOnlySpan<ulong> half_n
+        {
+            get
+            {
+                fixed (ulong* ptr = &curveBuffers.half_n[0])
+                {
+                    return new ReadOnlySpan<ulong>(ptr, NUM_WORDS);
+                }
+            }
+        }
+
+        public unsafe readonly ReadOnlySpan<ulong> G
+        {
+            get
+            {
+                fixed (ulong* ptr = &curveBuffers.G[0])
+                {
+                    return new ReadOnlySpan<ulong>(ptr, 2 * NUM_WORDS);
+                }
+            }
+        }
+
+        public unsafe readonly ReadOnlySpan<ulong> b
+        {
+            get
+            {
+                fixed (ulong* ptr = &curveBuffers.b[0])
+                {
+                    return new ReadOnlySpan<ulong>(ptr, NUM_WORDS);
+                }
+            }
+        }
+        #endregion
+
+        private unsafe ECCurve(int num_bits, int num_n_bits, ulong[] p, ulong[] n, ulong[] half_n, ulong[] G, ulong[] b, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> XSide, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> ModSquare, delegate* managed<Span<ulong>, Span<ulong>, ReadOnlySpan<ulong>, void> ModMult, delegate* managed<Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian)
         {
             // It's okay to allocate this in heap here since the lifetime of this value is not deterministic
             ulong[] random = new ulong[1 + SECP256K1.NUM_BITS / VLI.WORD_BITS];
 
-            lock (RNG.RNG_LOCK)
-            {
-                Span<byte> byteView = MemoryMarshal.Cast<ulong, byte>(random);
-                RNG.gen.GetBytes(byteView);
-            }
+            RandomNumberGenerator gen = RandomNumberGenerator.Create();
+            Span<byte> byteView = MemoryMarshal.Cast<ulong, byte>(random);
+            gen.GetBytes(byteView);
 
-            this.randomId = random[0];
+            randomId = random[0];
+
+            #region Set curve constants
             NUM_BITS = num_bits;
             NUM_N_BITS = num_n_bits;
-            _scrambleKey = random.Skip(1).ToArray();
-            _p = p;
-            _n = n;
-            _half_n = half_n;
-            _G = G;
-            _b = b;
-            _XSide = XSide;
-            _ModSquare = ModSquare;
-            _ModMult = ModMult;
-            _DoubleJacobian = DoubleJacobian;
+
+            fixed (ulong* ptr = &curveBuffers.scrambleKey[0])
+            {
+                random.AsSpan().Slice(1).CopyTo(new Span<ulong>(ptr, NUM_WORDS));
+            }
+
+            fixed (ulong* ptr = &curveBuffers.p[0])
+            {
+                p.CopyTo(new Span<ulong>(ptr, NUM_WORDS));
+            }
+
+            fixed (ulong* ptr = &curveBuffers.n[0])
+            {
+                n.CopyTo(new Span<ulong>(ptr, NUM_WORDS));
+            }
+
+            fixed (ulong* ptr = &curveBuffers.half_n[0])
+            {
+                half_n.CopyTo(new Span<ulong>(ptr, NUM_WORDS));
+            }
+
+            fixed (ulong* ptr = &curveBuffers.G[0])
+            {
+                G.CopyTo(new Span<ulong>(ptr, 2 * NUM_WORDS));
+            }
+
+            fixed (ulong* ptr = &curveBuffers.b[0])
+            {
+                b.CopyTo(new Span<ulong>(ptr, NUM_WORDS));
+            }
+            #endregion
+
+            this.XSide = XSide;
+            this.ModSquare = ModSquare;
+            this.ModMult = ModMult;
+            this.DoubleJacobian = DoubleJacobian;
         }
 
-        public static ECCurve Get_SECP256K1()
+        public static unsafe ECCurve Get_SECP256K1()
         {
             return new ECCurve(
                 SECP256K1.NUM_BITS,
@@ -95,10 +190,10 @@ namespace Wheel.Crypto.Elliptic
                 SECP256K1.half_n,
                 SECP256K1.G,
                 SECP256K1.b,
-                SECP256K1.XSide,
-                SECP256K1.ModSquare,
-                SECP256K1.ModMult,
-                SECP256K1.DoubleJacobian
+                &SECP256K1.XSide,
+                &SECP256K1.ModSquare,
+                &SECP256K1.ModMult,
+                &SECP256K1.DoubleJacobian
             );
         }
 

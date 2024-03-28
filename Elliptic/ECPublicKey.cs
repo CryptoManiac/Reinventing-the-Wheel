@@ -1,6 +1,6 @@
-﻿using System.Security.Cryptography.X509Certificates;
-using Wheel.Crypto.Elliptic.Internal;
+﻿using Wheel.Crypto.Elliptic.Internal;
 using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
+using System.Runtime.InteropServices;
 
 namespace Wheel.Crypto.Elliptic
 {
@@ -14,7 +14,7 @@ namespace Wheel.Crypto.Elliptic
         /// <summary>
         /// ECC implementation to use
         /// </summary>
-        public readonly ECCurve curve { get; }
+        public readonly ECCurve curve;
 
         /// <summary>
         /// Access to native point data
@@ -34,7 +34,7 @@ namespace Wheel.Crypto.Elliptic
         /// Construct the empty key
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        public ECPublicKey(ECCurve curve)
+        public ECPublicKey(in ECCurve curve)
 		{
             this.curve = curve;
 
@@ -52,7 +52,7 @@ namespace Wheel.Crypto.Elliptic
         /// Construct the empty key
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        public ECPublicKey(ECCurve curve, ReadOnlySpan<byte> public_key) : this(curve)
+        public ECPublicKey(in ECCurve curve, ReadOnlySpan<byte> public_key) : this(curve)
         {
             if (!Parse(public_key))
             {
@@ -64,7 +64,7 @@ namespace Wheel.Crypto.Elliptic
         /// Construct the key using VLI value
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        public ECPublicKey(ECCurve curve, ReadOnlySpan<ulong> public_point) : this(curve)
+        public ECPublicKey(in ECCurve curve, ReadOnlySpan<ulong> public_point) : this(curve)
         {
             if (!Wrap(public_point))
             {
@@ -174,7 +174,10 @@ namespace Wheel.Crypto.Elliptic
             Span<ulong> y = point.Slice(curve.NUM_WORDS);
 
             VLI.BytesToNative(point, compressed.Slice(1), curve.NUM_BYTES);
-            curve.XSide(y, point);
+            unsafe
+            {
+                curve.XSide(y, point);
+            }
             ECCUtil.ModSQRT(y, curve);
 
             if ((y[0] & 0x01) != ((ulong)compressed[0] & 0x01))
@@ -336,7 +339,10 @@ namespace Wheel.Crypto.Elliptic
 
             for (int i = num_bits - 2; i >= 0; --i)
             {
-                curve.DoubleJacobian(rx, ry, z);
+                unsafe
+                {
+                    curve.DoubleJacobian(rx, ry, z);
+                }
 
                 ulong index = Convert.ToUInt64(VLI.TestBit(u1, i)) | (Convert.ToUInt64(VLI.TestBit(u2, i)) << 1);
                 point = points[index];
@@ -347,7 +353,10 @@ namespace Wheel.Crypto.Elliptic
                     ECCUtil.ApplyZ(curve, tx, ty, z);
                     VLI.ModSub(tz, rx, tx, curve.p, num_words); // Z = x2 - x1
                     ECCUtil.XYcZ_Add(curve, tx, ty, rx, ry);
-                    curve.ModMult(z, z, tz);
+                    unsafe
+                    {
+                        curve.ModMult(z, z, tz);
+                    }
                 }
             }
 

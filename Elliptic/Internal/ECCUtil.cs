@@ -36,10 +36,13 @@ namespace Wheel.Crypto.Elliptic.Internal
             VLI.Add(p1, curve.p, p1, num_words); // p1 = curve_p + 1
             for (i = VLI.NumBits(p1, num_words) - 1; i > 1; --i)
             {
-                curve.ModSquare(l_result, l_result);
-                if (VLI.TestBit(p1, i))
+                unsafe
                 {
-                    curve.ModMult(l_result, l_result, a);
+                    curve.ModSquare(l_result, l_result);
+                    if (VLI.TestBit(p1, i))
+                    {
+                        curve.ModMult(l_result, l_result, a);
+                    }
                 }
             }
             VLI.Set(a, l_result, num_words);
@@ -51,7 +54,7 @@ namespace Wheel.Crypto.Elliptic.Internal
         /// <param name="X1"></param>
         /// <param name="Y1"></param>
         /// <param name="Z"></param>
-        public static void ApplyZ(ECCurve curve, Span<ulong> X1, Span<ulong> Y1, ReadOnlySpan<ulong> Z)
+        public static unsafe void ApplyZ(ECCurve curve, Span<ulong> X1, Span<ulong> Y1, ReadOnlySpan<ulong> Z)
         {
             Span<ulong> t1 = stackalloc ulong[VLI.ECC_MAX_WORDS];
             curve.ModSquare(t1, Z);    // z^2
@@ -74,7 +77,10 @@ namespace Wheel.Crypto.Elliptic.Internal
             VLI.Set(Y2, Y1, num_words);
 
             ApplyZ(curve, X1, Y1, z);
-            curve.DoubleJacobian(X1, Y1, z);
+            unsafe
+            {
+                curve.DoubleJacobian(X1, Y1, z);
+            }
             ApplyZ(curve, X2, Y2, z);
         }
 
@@ -93,7 +99,10 @@ namespace Wheel.Crypto.Elliptic.Internal
             VLI.Set(Y2, Y1, num_words);
 
             ApplyZ(curve, X1, Y1, z);
-            curve.DoubleJacobian(X1, Y1, z);
+            unsafe
+            {
+                curve.DoubleJacobian(X1, Y1, z);
+            }
             ApplyZ(curve, X2, Y2, z);
         }
 
@@ -108,18 +117,30 @@ namespace Wheel.Crypto.Elliptic.Internal
             int num_words = curve.NUM_WORDS;
 
             VLI.ModSub(t5, X2, X1, curve.p, num_words); // t5 = x2 - x1
-            curve.ModSquare(t5, t5);                  // t5 = (x2 - x1)^2 = A
-            curve.ModMult(X1, X1, t5);                // t1 = x1*A = B
-            curve.ModMult(X2, X2, t5);                // t3 = x2*A = C
+            unsafe
+            {
+                curve.ModSquare(t5, t5);                  // t5 = (x2 - x1)^2 = A
+                curve.ModMult(X1, X1, t5);                // t1 = x1*A = B
+                curve.ModMult(X2, X2, t5);                // t3 = x2*A = C
+            }
             VLI.ModSub(Y2, Y2, Y1, curve.p, num_words); // t4 = y2 - y1
-            curve.ModSquare(t5, Y2);                  // t5 = (y2 - y1)^2 = D
+            unsafe
+            {
+                curve.ModSquare(t5, Y2);                  // t5 = (y2 - y1)^2 = D
+            }
 
             VLI.ModSub(t5, t5, X1, curve.p, num_words); // t5 = D - B
             VLI.ModSub(t5, t5, X2, curve.p, num_words); // t5 = D - B - C = x3
             VLI.ModSub(X2, X2, X1, curve.p, num_words); // t3 = C - B
-            curve.ModMult(Y1, Y1, X2);                // t2 = y1*(C - B)
+            unsafe
+            {
+                curve.ModMult(Y1, Y1, X2);                // t2 = y1*(C - B)
+            }
             VLI.ModSub(X2, X1, t5, curve.p, num_words); // t3 = B - x3
-            curve.ModMult(Y2, Y2, X2);                // t4 = (y2 - y1)*(B - x3)
+            unsafe
+            {
+                curve.ModMult(Y2, Y2, X2);                // t4 = (y2 - y1)*(B - x3)
+            }
             VLI.ModSub(Y2, Y2, Y1, curve.p, num_words); // t4 = y3
             VLI.Set(X2, t5, num_words);
         }
@@ -137,26 +158,43 @@ namespace Wheel.Crypto.Elliptic.Internal
             int num_words = curve.NUM_WORDS;
 
             VLI.ModSub(t5, X2, X1, curve.p, num_words); // t5 = x2 - x1
-            curve.ModSquare(t5, t5);                  // t5 = (x2 - x1)^2 = A
-            curve.ModMult(X1, X1, t5);                // t1 = x1*A = B
-            curve.ModMult(X2, X2, t5);                // t3 = x2*A = C
+            unsafe
+            {
+                curve.ModSquare(t5, t5);                  // t5 = (x2 - x1)^2 = A
+                curve.ModMult(X1, X1, t5);                // t1 = x1*A = B
+                curve.ModMult(X2, X2, t5);                // t3 = x2*A = C
+            }
             VLI.ModAdd(t5, Y2, Y1, curve.p, num_words); // t5 = y2 + y1
             VLI.ModSub(Y2, Y2, Y1, curve.p, num_words); // t4 = y2 - y1
 
             VLI.ModSub(t6, X2, X1, curve.p, num_words); // t6 = C - B
-            curve.ModMult(Y1, Y1, t6);                // t2 = y1 * (C - B) = E
+            unsafe
+            {
+                curve.ModMult(Y1, Y1, t6);                // t2 = y1 * (C - B) = E
+            }
             VLI.ModAdd(t6, X1, X2, curve.p, num_words); // t6 = B + C
-            curve.ModSquare(X2, Y2);                  // t3 = (y2 - y1)^2 = D
+            unsafe
+            {
+                curve.ModSquare(X2, Y2);                  // t3 = (y2 - y1)^2 = D
+            }
             VLI.ModSub(X2, X2, t6, curve.p, num_words); // t3 = D - (B + C) = x3
 
             VLI.ModSub(t7, X1, X2, curve.p, num_words); // t7 = B - x3
-            curve.ModMult(Y2, Y2, t7);                // t4 = (y2 - y1)*(B - x3)
+            unsafe
+            {
+                curve.ModMult(Y2, Y2, t7);                // t4 = (y2 - y1)*(B - x3)
+            }
             VLI.ModSub(Y2, Y2, Y1, curve.p, num_words); // t4 = (y2 - y1)*(B - x3) - E = y3
-
-            curve.ModSquare(t7, t5);                  // t7 = (y2 + y1)^2 = F
+            unsafe
+            {
+                curve.ModSquare(t7, t5);                  // t7 = (y2 + y1)^2 = F
+            }
             VLI.ModSub(t7, t7, t6, curve.p, num_words); // t7 = F - (B + C) = x3'
             VLI.ModSub(t6, t7, X1, curve.p, num_words); // t6 = x3' - B
-            curve.ModMult(t6, t6, t5);                // t6 = (y2+y1)*(x3' - B)
+            unsafe
+            {
+                curve.ModMult(t6, t6, t5);                // t6 = (y2+y1)*(x3' - B)
+            }
             VLI.ModSub(Y1, t6, Y1, curve.p, num_words); // t2 = (y2+y1)*(x3' - B) - E = y3'
 
             VLI.Set(X1, t7, num_words);
