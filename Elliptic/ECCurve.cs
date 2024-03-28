@@ -55,6 +55,11 @@ namespace Wheel.Crypto.Elliptic
         #endregion
 
         #region Implementation pointers
+        /*
+         * NOTE: Pointers are used instead of delegates here on purpose. We cound use delegates but then the entire struct 
+         *  and those types that are dependent on it would have been treated as the managed types and we don't want that.
+         */
+
         internal readonly unsafe delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> XSide;
         internal readonly unsafe delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> ModSquare;
         internal readonly unsafe delegate* managed<Span<ulong>, Span<ulong>, ReadOnlySpan<ulong>, void> ModMult;
@@ -130,7 +135,8 @@ namespace Wheel.Crypto.Elliptic
 
         private unsafe ECCurve(int num_bits, int num_n_bits, ulong[] p, ulong[] n, ulong[] half_n, ulong[] G, ulong[] b, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> XSide, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> ModSquare, delegate* managed<Span<ulong>, Span<ulong>, ReadOnlySpan<ulong>, void> ModMult, delegate* managed<Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian)
         {
-            // It's okay to allocate this in heap here since the lifetime of this value is not deterministic
+            // It's okay to allocate this in heap here since we're making a
+            //  copy of this value and not using the original after doing this.
             ulong[] random = new ulong[1 + SECP256K1.NUM_BITS / VLI.WORD_BITS];
 
             RandomNumberGenerator gen = RandomNumberGenerator.Create();
@@ -180,6 +186,11 @@ namespace Wheel.Crypto.Elliptic
             this.DoubleJacobian = DoubleJacobian;
         }
 
+        /// <summary>
+        /// Construct a new instance of the secp256k1 context. The structure itself has a deterministic size and can be kept on stack,
+        ///  but the function itself will trigger a heap allocation due to necessity of invoking the CLR's random number generator.
+        /// </summary>
+        /// <returns></returns>
         public static unsafe ECCurve Get_SECP256K1()
         {
             return new ECCurve(
