@@ -93,13 +93,7 @@ namespace Wheel.Hashing.SHA3.Internal
             byteIndex = 0;
             wordIndex = 0;
             saved = 0;
-            unsafe
-            {
-                fixed (void* ptr = &registers[0])
-                {
-                    new Span<ulong>(ptr, SHA3_SPONGE_WORDS).Clear();
-                }
-            }
+            registers.Clear();
         }
 
         public void Update(ReadOnlySpan<byte> input)
