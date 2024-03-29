@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
+namespace Wheel.Crypto.Elliptic.ECDSA.Internal.VeryLongInt
 {
     /// <summary>
     /// Arithmetic operations with very long integers (aka VLI)

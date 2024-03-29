@@ -1,12 +1,9 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using Wheel.Crypto.Elliptic.Internal;
-using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
+﻿using Wheel.Crypto.Elliptic.ECDSA.Internal;
+using Wheel.Crypto.Elliptic.ECDSA.Internal.VeryLongInt;
 using Wheel.Hashing;
-using Wheel.Hashing.Derivation;
 using Wheel.Hashing.HMAC;
 
-namespace Wheel.Crypto.Elliptic
+namespace Wheel.Crypto.Elliptic.ECDSA
 {
     /// <summary>
     /// Encapsulated ECC private key

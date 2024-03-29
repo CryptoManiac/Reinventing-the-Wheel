@@ -1,8 +1,9 @@
-﻿using Wheel.Hashing.HMAC;
+﻿using Wheel.Crypto.Elliptic.ECDSA;
+using Wheel.Hashing.HMAC;
 
-namespace Wheel.Crypto.Elliptic
+namespace Wheel.Crypto.Elliptic.ECDSA
 {
-	public interface ICurve
+	public interface IECDSACurve
 	{
         /// <summary>
         /// Construct empty public key

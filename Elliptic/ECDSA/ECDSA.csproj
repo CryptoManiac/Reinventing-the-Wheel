@@ -19,7 +19,7 @@
     <Folder Include="Internal\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PBKDF2\PBKDF2.csproj" />
-    <ProjectReference Include="..\Hashing\Hashing.csproj" />
+    <ProjectReference Include="..\..\PBKDF2\PBKDF2.csproj" />
+    <ProjectReference Include="..\..\Hashing\Hashing.csproj" />
   </ItemGroup>
 </Project>

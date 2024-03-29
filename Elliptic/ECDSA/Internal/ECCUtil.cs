@@ -1,6 +1,6 @@
-﻿using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
+﻿using Wheel.Crypto.Elliptic.ECDSA.Internal.VeryLongInt;
 
-namespace Wheel.Crypto.Elliptic.Internal
+namespace Wheel.Crypto.Elliptic.ECDSA.Internal
 {
     /// <summary>
     /// Curve-specific arithmetic functions which are used internally

@@ -1,6 +1,6 @@
-﻿using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
+﻿using Wheel.Crypto.Elliptic.ECDSA.Internal.VeryLongInt;
 
-namespace Wheel.Crypto.Elliptic.Internal.Curves
+namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
 {
 	/// <summary>
 	/// SECP256K1 specific constants and implementations

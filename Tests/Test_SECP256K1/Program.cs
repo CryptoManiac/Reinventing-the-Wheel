@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using Wheel.Crypto.Elliptic;
+using Wheel.Crypto.Elliptic.ECDSA;
 using Wheel.Hashing.HMAC;
 using Wheel.Hashing.HMAC.SHA2;
 using Wheel.Hashing.SHA.SHA256;

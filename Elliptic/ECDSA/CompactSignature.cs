@@ -1,6 +1,6 @@
-﻿using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
+﻿using Wheel.Crypto.Elliptic.ECDSA.Internal.VeryLongInt;
 
-namespace Wheel.Crypto.Elliptic
+namespace Wheel.Crypto.Elliptic.ECDSA
 {
     /// <summary>
     /// Compact signature value pair

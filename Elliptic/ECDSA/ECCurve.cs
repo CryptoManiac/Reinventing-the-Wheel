@@ -1,10 +1,10 @@
 ﻿using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using Wheel.Crypto.Elliptic.Internal.Curves;
-using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
+using Wheel.Crypto.Elliptic.ECDSA.Internal.Curves;
+using Wheel.Crypto.Elliptic.ECDSA.Internal.VeryLongInt;
 using Wheel.Hashing.HMAC;
 
-namespace Wheel.Crypto.Elliptic
+namespace Wheel.Crypto.Elliptic.ECDSA
 {
     #region Random number generator
     internal static class RNG
@@ -46,7 +46,7 @@ namespace Wheel.Crypto.Elliptic
     /// </summary>
 #pragma warning disable CS0661
 #pragma warning disable CS0660
-    public readonly struct ECCurve : ICurve
+    public readonly struct ECCurve : IECDSACurve
 #pragma warning restore CS0660
 #pragma warning restore CS0661
     {

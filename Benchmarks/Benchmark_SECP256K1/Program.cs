@@ -1,10 +1,9 @@
-﻿using Wheel.Crypto.Elliptic;
+﻿using Wheel.Crypto.Elliptic.ECDSA;
 using System.Diagnostics;
 using System.Text;
 using Wheel.Hashing.HMAC.SHA2;
 using Wheel.Hashing.HMAC;
 using Wheel.Hashing.SHA.SHA256;
-using System.Drawing;
 
 static void Benchmark(string name, Action action, int n)
 {

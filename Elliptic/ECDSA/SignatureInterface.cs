@@ -1,4 +1,4 @@
-﻿namespace Wheel.Crypto.Elliptic
+﻿namespace Wheel.Crypto.Elliptic.ECDSA
 {
 	public interface ISignature
 	{

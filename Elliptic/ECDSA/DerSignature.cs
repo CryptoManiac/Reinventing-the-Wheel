@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
-using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
+using Wheel.Crypto.Elliptic.ECDSA.Internal.VeryLongInt;
 
-namespace Wheel.Crypto.Elliptic
+namespace Wheel.Crypto.Elliptic.ECDSA
 {
     /// <summary>
     /// DER encapsulated signature value pair

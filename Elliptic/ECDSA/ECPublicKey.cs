@@ -1,8 +1,7 @@
-﻿using Wheel.Crypto.Elliptic.Internal;
-using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
-using System.Runtime.InteropServices;
+﻿using Wheel.Crypto.Elliptic.ECDSA.Internal;
+using Wheel.Crypto.Elliptic.ECDSA.Internal.VeryLongInt;
 
-namespace Wheel.Crypto.Elliptic
+namespace Wheel.Crypto.Elliptic.ECDSA
 {
 	public struct ECPublicKey
 	{
