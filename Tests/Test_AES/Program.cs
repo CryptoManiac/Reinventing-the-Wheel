@@ -1,4 +1,4 @@
-﻿using Wheel.Symmetric.AES;
+﻿using Wheel.Crypto.Symmetric.AES;
 using System.Text;
 using System.Runtime.InteropServices;
 

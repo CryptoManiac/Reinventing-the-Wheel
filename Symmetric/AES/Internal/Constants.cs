@@ -1,4 +1,4 @@
-﻿namespace Wheel.Symmetric.AES.Internal
+﻿namespace Wheel.Crypto.Symmetric.AES.Internal
 {
     #region AES algorithm constants - DO NOT EDIT
     internal static class AESCTR

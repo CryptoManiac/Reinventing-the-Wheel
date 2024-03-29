@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace Wheel.Symmetric.AES.Internal
+namespace Wheel.Crypto.Symmetric.AES.Internal
 {
     /// <summary>
     /// Expanded encryption key

@@ -1,6 +1,6 @@
-﻿using Wheel.Symmetric.AES.Internal;
+﻿using Wheel.Crypto.Symmetric.AES.Internal;
 
-namespace Wheel.Symmetric.AES
+namespace Wheel.Crypto.Symmetric.AES
 {
     /// <summary>
     /// Encapsulated symmetric encryption key

@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace Wheel.Symmetric.AES.Internal
+namespace Wheel.Crypto.Symmetric.AES.Internal
 {
     /// <summary>
     /// View buffer as either block or state

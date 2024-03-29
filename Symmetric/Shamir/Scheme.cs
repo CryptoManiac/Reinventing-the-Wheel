@@ -1,4 +1,4 @@
-﻿using Wheel.Symmetric.AES;
+﻿using Wheel.Crypto.Symmetric.AES;
 using Wheel.Hashing.HMAC.SHA2;
 using Wheel.Hashing.Derivation;
 using Wheel.Symmetric.Shamir.Internal;
