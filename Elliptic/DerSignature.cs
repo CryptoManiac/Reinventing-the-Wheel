@@ -74,7 +74,7 @@ namespace Wheel.Crypto.Elliptic
         /// Initialize for required curve settings
         /// </summary>
         /// <param name="curve">ECC curve implementation</param>
-        public unsafe void Init(ECCurve curve)
+        public void Init(ECCurve curve)
         {
             this.curve = curve;
             // Sanity check constraint
@@ -83,13 +83,8 @@ namespace Wheel.Crypto.Elliptic
                 throw new SystemException("The configured curve point coordinate size is unexpectedly big");
             }
 
-            unsafe
-            {
-                fixed (ulong* ptr = &signature_data[0])
-                {
-                    new Span<ulong>(ptr, 2 * VLI.ECC_MAX_WORDS).Clear();
-                }
-            }
+            r.Clear();
+            s.Clear();
         }
 
         /// <summary>

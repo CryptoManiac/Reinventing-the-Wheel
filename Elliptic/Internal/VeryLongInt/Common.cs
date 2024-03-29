@@ -15,7 +15,7 @@
         /// Choose between two spans by either zero or non-zero index
         /// </summary>
         /// <typeparam name="T">Index type (comparable value)</typeparam>
-        public ref struct Picker<T> where T : IComparable
+        public readonly ref struct Picker
         {
             readonly Span<ulong> s0;
             readonly Span<ulong> s1;
@@ -24,10 +24,13 @@
                 this.s0 = s0;
                 this.s1 = s1;
             }
-            public Span<ulong> this[T index]
+            public readonly Span<ulong> this[ulong index]
             {
-                readonly get => index.CompareTo(UInt64.MinValue) == 0 ? s0 : s1;
-                set => throw new InvalidOperationException("Not supported");
+                get => index == 0 ? s0 : s1;
+            }
+            public readonly Span<ulong> this[bool index]
+            {
+                get => index ? s1 : s0;
             }
         }
 
@@ -35,7 +38,7 @@
         /// Choose between two spans by either zero or non-zero index
         /// </summary>
         /// <typeparam name="T">Index type (comparable value)</typeparam>
-        public ref struct QuadPicker
+        public readonly ref struct QuadPicker
         {
             readonly ReadOnlySpan<ulong> s0;
             readonly ReadOnlySpan<ulong> s1;
@@ -48,21 +51,15 @@
                 this.s2 = s2;
                 this.s3 = s3;
             }
-            public ReadOnlySpan<ulong> this[ulong index]
+            public readonly ReadOnlySpan<ulong> this[ulong index]
             {
-                readonly get
+                get => (index % 4) switch
                 {
-                    switch(index)
-                    {
-                        case 0: return s0;
-                        case 1: return s1;
-                        case 2: return s2;
-                        case 3: return s3;
-                        default:
-                            throw new InvalidOperationException("Index must be within [0 .. 3] bounds");
-                    }
-                }
-                set => throw new InvalidOperationException("Not supported");
+                    0 => s0,
+                    1 => s1,
+                    2 => s2,
+                    _ => s3,
+                };
             }
         }
     }

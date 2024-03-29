@@ -167,7 +167,7 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
         /// </summary>
         /// <param name="words"></param>
         /// <param name="num_words"></param>
-        public static unsafe void RShift1(Span<ulong> words, int num_words)
+        public static void RShift1(Span<ulong> words, int num_words)
         {
             ulong carry = 0;
             for (int i = num_words - 1; i >= 0; --i)
@@ -229,7 +229,7 @@ namespace Wheel.Crypto.Elliptic.Internal.VeryLongInt
         {
             Span<ulong> mod_multiple = stackalloc ulong[2 * ECC_MAX_WORDS];
             Span<ulong> tmp = stackalloc ulong[2 * ECC_MAX_WORDS];
-            Picker<ulong> v = new(tmp, product);
+            Picker v = new(tmp, product);
             ulong index;
 
             /* Shift mod so its highest set bit is at the maximum position. */

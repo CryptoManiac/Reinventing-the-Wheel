@@ -26,7 +26,7 @@ namespace Wheel.Crypto.Elliptic
     /// <summary>
     /// A set of ECC curve points is defined as the separate structure because you can't declare fixed buffer as readonly
     /// </summary>
-    internal unsafe struct CurveBuffers
+    internal struct CurveBuffers
     {
         public unsafe fixed ulong scrambleKey[VLI.ECC_MAX_WORDS];
         public unsafe fixed ulong p[VLI.ECC_MAX_WORDS];
@@ -45,7 +45,7 @@ namespace Wheel.Crypto.Elliptic
     /// </summary>
 #pragma warning disable CS0661
 #pragma warning disable CS0660
-    public unsafe readonly struct ECCurve
+    public readonly struct ECCurve
 #pragma warning restore CS0660
 #pragma warning restore CS0661
     {
@@ -77,10 +77,17 @@ namespace Wheel.Crypto.Elliptic
          *  and those types that are dependent on it would have been treated as the managed types and we don't want that.
          */
 
-        internal readonly unsafe delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> XSide;
-        internal readonly unsafe delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> ModSquare;
-        internal readonly unsafe delegate* managed<Span<ulong>, Span<ulong>, ReadOnlySpan<ulong>, void> ModMult;
-        internal readonly unsafe delegate* managed<Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian;
+        private readonly unsafe delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> XSide_Impl;
+        private readonly unsafe delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> ModSquare_Impl;
+        private readonly unsafe delegate* managed<Span<ulong>, Span<ulong>, ReadOnlySpan<ulong>, void> ModMult_Impl;
+        private readonly unsafe delegate* managed<Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian_Impl;
+        #endregion
+
+        #region Implementation wrappers
+        public unsafe void XSide(Span<ulong> result, ReadOnlySpan<ulong> x) => XSide_Impl(result, x);
+        public unsafe void ModSquare(Span<ulong> result, ReadOnlySpan<ulong> left) => ModSquare_Impl(result, left);
+        public unsafe void ModMult(Span<ulong> result, Span<ulong> left, ReadOnlySpan<ulong> right) => ModMult_Impl(result, left, right);
+        public unsafe void DoubleJacobian(Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1) => DoubleJacobian_Impl(X1, Y1, Z1);
         #endregion
 
         #region Curve constant getters
@@ -192,10 +199,10 @@ namespace Wheel.Crypto.Elliptic
             }
             #endregion
 
-            this.XSide = XSide;
-            this.ModSquare = ModSquare;
-            this.ModMult = ModMult;
-            this.DoubleJacobian = DoubleJacobian;
+            XSide_Impl = XSide;
+            ModSquare_Impl = ModSquare;
+            ModMult_Impl = ModMult;
+            DoubleJacobian_Impl = DoubleJacobian;
         }
 
         /// <summary>

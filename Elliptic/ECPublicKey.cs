@@ -39,13 +39,7 @@ namespace Wheel.Crypto.Elliptic
             this.curve = curve;
 
             // Init with zeros
-            unsafe
-            {
-                fixed (ulong* ptr = &public_key_data[0])
-                {
-                    new Span<ulong>(ptr, VLI.ECC_MAX_WORDS * 2).Clear();
-                }
-            }
+            Reset();
         }
 
         /// <summary>
@@ -174,10 +168,7 @@ namespace Wheel.Crypto.Elliptic
             Span<ulong> y = point.Slice(curve.NUM_WORDS);
 
             VLI.BytesToNative(point, compressed.Slice(1), curve.NUM_BYTES);
-            unsafe
-            {
-                curve.XSide(y, point);
-            }
+            curve.XSide(y, point);
             ECCUtil.ModSQRT(y, curve);
 
             if ((y[0] & 0x01) != ((ulong)compressed[0] & 0x01))
@@ -339,10 +330,7 @@ namespace Wheel.Crypto.Elliptic
 
             for (int i = num_bits - 2; i >= 0; --i)
             {
-                unsafe
-                {
-                    curve.DoubleJacobian(rx, ry, z);
-                }
+                curve.DoubleJacobian(rx, ry, z);
 
                 ulong index = Convert.ToUInt64(VLI.TestBit(u1, i)) | (Convert.ToUInt64(VLI.TestBit(u2, i)) << 1);
                 point = points[index];
@@ -353,10 +341,7 @@ namespace Wheel.Crypto.Elliptic
                     ECCUtil.ApplyZ(curve, tx, ty, z);
                     VLI.ModSub(tz, rx, tx, curve.p, num_words); // Z = x2 - x1
                     ECCUtil.XYcZ_Add(curve, tx, ty, rx, ry);
-                    unsafe
-                    {
-                        curve.ModMult(z, z, tz);
-                    }
+                    curve.ModMult(z, z, tz);
                 }
             }
 

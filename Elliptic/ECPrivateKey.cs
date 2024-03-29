@@ -46,13 +46,7 @@ namespace Wheel.Crypto.Elliptic
             this.curve = curve;
 
             // Init with zeros
-            unsafe
-            {
-                fixed (ulong* ptr = &private_key_data[0])
-                {
-                    new Span<ulong>(ptr, VLI.ECC_MAX_WORDS).Clear();
-                }
-            }
+            Reset();
         }
 
         /// <summary>
@@ -276,7 +270,7 @@ namespace Wheel.Crypto.Elliptic
         {
             Span<ulong> p = stackalloc ulong[VLI.ECC_MAX_WORDS * 2];
             Span<ulong> tmp = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            VLI.Picker<ulong> k2 = new(tmp, s);
+            VLI.Picker k2 = new(tmp, s);
 
             int num_words = curve.NUM_WORDS;
             int num_bytes = curve.NUM_BYTES;
@@ -296,7 +290,7 @@ namespace Wheel.Crypto.Elliptic
             }
 
             carry = ECCUtil.RegularizeK(curve, k, tmp, s);
-            ECCPoint.PointMul(curve, p, curve.G, k2[Convert.ToUInt64(!Convert.ToBoolean(carry))], num_n_bits + 1);
+            ECCPoint.PointMul(curve, p, curve.G, k2[!Convert.ToBoolean(carry)], num_n_bits + 1);
             if (VLI.IsZero(p, num_words))
             {
                 return false;
@@ -574,14 +568,14 @@ namespace Wheel.Crypto.Elliptic
             VLI.Set(secret_scalar_x, secret_x, num_words);
             VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS); // Scramble
 
-            VLI.Picker<ulong> p2 = new(secret_scalar_x, temp_scalar_k);
+            VLI.Picker p2 = new(secret_scalar_x, temp_scalar_k);
             ulong carry;
 
             // Regularize the bitcount for the private key so that attackers
             // cannot use a side channel attack to learn the number of leading zeros.
             carry = ECCUtil.RegularizeK(curve, secret_scalar_x, secret_scalar_x, temp_scalar_k);
 
-            ECCPoint.PointMul(curve, ecdh_point, ecdh_point, p2[Convert.ToUInt64(!Convert.ToBoolean(carry))], curve.NUM_N_BITS + 1);
+            ECCPoint.PointMul(curve, ecdh_point, ecdh_point, p2[!Convert.ToBoolean(carry)], curve.NUM_N_BITS + 1);
 
             // Will fail if the point is zero
             bool result = shared.Wrap(ecdh_point.Slice(0, num_words));
