@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Symmetric\Shamir\Shamir.csproj" />
     <ProjectReference Include="..\Encoders\Encoders.csproj" />
+    <ProjectReference Include="..\Shamir\Shamir.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Examples\" />

@@ -1,4 +1,4 @@
-﻿namespace Wheel.Symmetric.Shamir.Internal
+﻿namespace Wheel.Crypto.Shamir.Internal
 {
     /// <summary>
     /// TODO: Rewrite the entire thing. It's necessary to ensure the allocation-deterministic behaviour.

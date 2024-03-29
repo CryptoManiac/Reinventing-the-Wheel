@@ -8,6 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Symmetric\Shamir\Shamir.csproj" />
+    <ProjectReference Include="..\..\Shamir\Shamir.csproj" />
   </ItemGroup>
 </Project>

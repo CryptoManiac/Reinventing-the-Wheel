@@ -1,4 +1,4 @@
-﻿namespace Wheel.Symmetric.Shamir.Internal
+﻿namespace Wheel.Crypto.Shamir.Internal
 {
     internal struct ShareByte
     {

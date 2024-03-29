@@ -1,10 +1,10 @@
 ﻿using Wheel.Crypto.Symmetric.AES;
 using Wheel.Hashing.HMAC.SHA2;
 using Wheel.Hashing.Derivation;
-using Wheel.Symmetric.Shamir.Internal;
+using Wheel.Crypto.Shamir.Internal;
 using System.Runtime.InteropServices;
 
-namespace Wheel.Symmetric.Shamir
+namespace Wheel.Crypto.Shamir
 {
     /// <summary>
     /// Shamir's secret sharing context

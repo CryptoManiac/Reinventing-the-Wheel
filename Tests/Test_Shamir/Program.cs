@@ -1,4 +1,4 @@
-﻿using Wheel.Symmetric.Shamir;
+﻿using Wheel.Crypto.Shamir;
 using System.Text;
 
 string secretString = "The quick brown fox jumps over the lazy dog";

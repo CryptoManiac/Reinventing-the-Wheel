@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using Wheel.Symmetric.Shamir.Internal;
+using Wheel.Crypto.Shamir.Internal;
 
-namespace Wheel.Symmetric.Shamir
+namespace Wheel.Crypto.Shamir
 {
     [StructLayout(LayoutKind.Explicit)]
     internal struct SharePoint

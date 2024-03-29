@@ -13,8 +13,8 @@
     <Folder Include="Internal\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\PBKDF2\PBKDF2.csproj" />
-    <ProjectReference Include="..\..\Hashing\Hashing.csproj" />
-    <ProjectReference Include="..\AES\AES.csproj" />
+    <ProjectReference Include="..\PBKDF2\PBKDF2.csproj" />
+    <ProjectReference Include="..\Hashing\Hashing.csproj" />
+    <ProjectReference Include="..\Symmetric\AES\AES.csproj" />
   </ItemGroup>
 </Project>
