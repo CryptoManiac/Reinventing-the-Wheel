@@ -4,6 +4,7 @@ using System.Text;
 using Wheel.Hashing.HMAC.SHA2;
 using Wheel.Hashing.HMAC;
 using Wheel.Hashing.SHA.SHA256;
+using Wheel.Crypto.Elliptic.EllipticCommon;
 
 static void Benchmark(string name, Action action, int n)
 {
@@ -63,23 +64,23 @@ string secret_seed = "The quick brown fox jumps over the lazy dog";
 string personalization = "For signing tests";
 int secret_key_number = 0;
 
-ECCurve curve = ECCurve.Get_SECP256K1();
+ICurve curve = ECCurve.Get_SECP256K1();
 
 // Derive new secret key
-curve.GenerateSecret<HMAC_SHA512>(out ECPrivateKey secretKey, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), secret_key_number);
+curve.GenerateSecret<HMAC_SHA512>(out IPrivateKey secretKey, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), secret_key_number);
 
-if (!secretKey.ComputePublicKey(out ECPublicKey publicKey))
+if (!secretKey.ComputePublicKey(out IPublicKey publicKey))
 {
     throw new SystemException("Computation of the public key has failed");
 }
 
-static void SignData<HMAC_IMPL>(Span<byte> signature, ECPrivateKey sk, string message, ECCurve curve) where HMAC_IMPL : unmanaged, IMac
+static void SignData<HMAC_IMPL>(Span<byte> signature, IPrivateKey sk, string message, ICurve curve) where HMAC_IMPL : unmanaged, IMac
 {
     // Empty for tests
     Span<byte> message_hash = stackalloc byte[32];
     SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
 
-    if (!sk.Sign<HMAC_IMPL, DERSignature>(out DERSignature derSig, message_hash))
+    if (!sk.Sign<HMAC_IMPL>(out DERSignature derSig, message_hash))
     {
         throw new SystemException("Signing failed");
     }
@@ -94,7 +95,7 @@ string message = "aaa";
 byte[] message_hash = new byte[32];
 SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
 
-bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOnlySpan<byte> public_key, ECCurve curve)
+bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOnlySpan<byte> public_key, ICurve curve)
 {
     return new ECPublicKey(curve, public_key).VerifySignature(new DERSignature(curve, signature), message_hash);
 }

@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace Wheel.Crypto.Elliptic.ECDSA.Internal.VeryLongInt
+namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
 {
     /// <summary>
     /// Arithmetic operations with very long integers (aka VLI)
     /// </summary>
-    internal static partial class VLI
+    public static partial class VLI
     {
         /// <summary>
         /// Sets dest = src

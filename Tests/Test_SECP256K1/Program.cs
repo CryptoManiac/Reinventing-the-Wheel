@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Wheel.Crypto.Elliptic.ECDSA;
+using Wheel.Crypto.Elliptic.EllipticCommon;
 using Wheel.Hashing.HMAC;
 using Wheel.Hashing.HMAC.SHA2;
 using Wheel.Hashing.SHA.SHA256;
@@ -22,13 +23,13 @@ SortedDictionary<string, string> vectors = new()
     {  "HMAC_SHA512", "30440220BFDA6D25CCE288D1A2A910813B8AEEC2042AD4CE6FF87841D716502BCC8305F10220A73E717C7BEC5B3B96F7534641A58748B1A4DE4FC2CD62063B25C7B15CA273F7"},
 };
 
-static void SignData<HMAC_IMPL>(Span<byte> signature, ECPrivateKey sk, string message, ECCurve curve) where HMAC_IMPL : unmanaged, IMac
+static void SignData<HMAC_IMPL>(Span<byte> signature, IPrivateKey sk, string message, ECCurve curve) where HMAC_IMPL : unmanaged, IMac
 {
     // Empty for tests
     Span<byte> message_hash = stackalloc byte[32];
     SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
 
-    if (!sk.Sign<HMAC_IMPL, DERSignature>(out DERSignature derSig, message_hash))
+    if (!sk.Sign<HMAC_IMPL>(out DERSignature derSig, message_hash))
     {
         throw new SystemException("Signing failed");
     }
@@ -61,9 +62,9 @@ void CompareSig(string algorithm, Span<byte> signature)
 ECCurve curve = ECCurve.Get_SECP256K1();
 
 // Derive new secret key
-curve.GenerateSecret<HMAC_SHA512>(out ECPrivateKey secretKey, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), secret_key_number);
+curve.GenerateSecret<HMAC_SHA512>(out IPrivateKey secretKey, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), secret_key_number);
 
-if (!secretKey.ComputePublicKey(out ECPublicKey publicKey))
+if (!secretKey.ComputePublicKey(out IPublicKey publicKey))
 {
     throw new SystemException("Computation of the public key has failed");
 }

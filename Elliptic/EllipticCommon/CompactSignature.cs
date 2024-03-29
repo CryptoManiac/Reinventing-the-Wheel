@@ -1,6 +1,7 @@
-﻿using Wheel.Crypto.Elliptic.ECDSA.Internal.VeryLongInt;
+﻿using Wheel.Crypto.Elliptic.EllipticCommon;
+using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
 
-namespace Wheel.Crypto.Elliptic.ECDSA
+namespace Wheel.Crypto.Elliptic.EllipticCommon
 {
     /// <summary>
     /// Compact signature value pair
@@ -10,7 +11,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <summary>
         /// ECC implementation to use
         /// </summary>
-        public ECCurve curve { get; private set; }
+        public ICurve curve { get; private set; }
 
         /// <summary>
         /// R part of the signature
@@ -54,7 +55,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// Construct the empty signature for given curve
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        public CompactSignature(ECCurve curve)
+        public CompactSignature(ICurve curve)
         {
             this.curve = curve;
             // Sanity check constraint
@@ -71,7 +72,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// Create instance and parse provided data
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        public CompactSignature(ECCurve curve, ReadOnlySpan<byte> bytes) : this(curve)
+        public CompactSignature(ICurve curve, ReadOnlySpan<byte> bytes) : this(curve)
         {
             if (!Parse(bytes))
             {
@@ -124,3 +125,4 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         }
     }
 }
+

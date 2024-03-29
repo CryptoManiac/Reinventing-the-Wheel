@@ -1,7 +1,8 @@
 ﻿using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using Wheel.Crypto.Elliptic.ECDSA.Internal.Curves;
-using Wheel.Crypto.Elliptic.ECDSA.Internal.VeryLongInt;
+using Wheel.Crypto.Elliptic.EllipticCommon;
+using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
 using Wheel.Hashing.HMAC;
 
 namespace Wheel.Crypto.Elliptic.ECDSA
@@ -46,7 +47,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
     /// </summary>
 #pragma warning disable CS0661
 #pragma warning disable CS0660
-    public readonly struct ECCurve : IECDSACurve
+    public readonly struct ECCurve : ICurve
 #pragma warning restore CS0660
 #pragma warning restore CS0661
     {
@@ -58,11 +59,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <summary>
         /// Random instance identifier
         /// </summary>
-        public readonly ulong randomId;
+        public readonly ulong randomId { get; }
 
         #region Curve's point coordinate size
-        public readonly int NUM_BITS;
-        public readonly int NUM_N_BITS;
+        public readonly int NUM_BITS { get; }
+        public readonly int NUM_N_BITS { get; }
 
         #region Calculated lengths
         public readonly int NUM_WORDS => NUM_BITS / VLI.WORD_BITS;
@@ -236,20 +237,20 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             return !(x == y);
         }
 
-        public ECPublicKey MakePublicKey() => new(this);
-        public ECPrivateKey MakePrivateKey() => new(this);
+        public IPublicKey MakePublicKey() => new ECPublicKey(this);
+        public IPrivateKey MakePrivateKey() => new ECPrivateKey(this);
         public DERSignature MakeDERSignature() => new(this);
         public CompactSignature MakeCompactSignature() => new(this);
 
-        public ECPublicKey MakePublicKey(ReadOnlySpan<byte> data) => new(this, data);
-        public ECPrivateKey MakePrivateKey(ReadOnlySpan<byte> data) => new(this, data);
+        public IPublicKey MakePublicKey(ReadOnlySpan<byte> data) => new ECPublicKey(this, data);
+        public IPrivateKey MakePrivateKey(ReadOnlySpan<byte> data) => new ECPrivateKey(this, data);
         public DERSignature MakeDERSignature(ReadOnlySpan<byte> data) => new(this, data);
         public CompactSignature MakeCompactSignature(ReadOnlySpan<byte> data) => new(this, data);
 
         public bool IsValidPublicKey(ReadOnlySpan<byte> data) => ECPublicKey.IsValidPublicKey(this, data);
         public bool IsValidPrivateKey(ReadOnlySpan<byte> data) => ECPrivateKey.IsValidPrivateKey(this, data);
 
-        public void GenerateSecret<HMAC_IMPL>(out ECPrivateKey result, ReadOnlySpan<byte> seed, ReadOnlySpan<byte> personalization, int sequence) where HMAC_IMPL : unmanaged, IMac
+        public void GenerateSecret<HMAC_IMPL>(out IPrivateKey result, ReadOnlySpan<byte> seed, ReadOnlySpan<byte> personalization, int sequence) where HMAC_IMPL : unmanaged, IMac
         {
             // See 3..2 of the RFC 6979 to get what is going on here
             // We're not following it to the letter, but our algorithm is very similar

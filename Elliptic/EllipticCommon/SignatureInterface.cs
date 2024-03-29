@@ -1,11 +1,11 @@
-﻿namespace Wheel.Crypto.Elliptic.ECDSA
+﻿namespace Wheel.Crypto.Elliptic.EllipticCommon
 {
-	public interface ISignature
-	{
+    public interface ISignature
+    {
         /// <summary>
         /// ECC implementation to use
         /// </summary>
-        public ECCurve curve { get; }
+        public ICurve curve { get; }
 
         /// <summary>
         /// R part of the signature

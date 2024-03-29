@@ -1,9 +1,9 @@
-﻿namespace Wheel.Crypto.Elliptic.ECDSA.Internal.VeryLongInt
+﻿namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
 {
-	/// <summary>
-	/// Format conversion operations for very long integers (aka VLI)
-	/// </summary>
-	internal static partial class VLI
+    /// <summary>
+    /// Format conversion operations for very long integers (aka VLI)
+    /// </summary>
+    public static partial class VLI
 	{
         /// <summary>
         /// Converts big-endian bytes to an integer in the native format.

@@ -1,26 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>Library</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Internal\" />
+    <None Remove="VeryLongInt\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Internal\" />
+    <Folder Include="VeryLongInt\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\PBKDF2\PBKDF2.csproj" />
     <ProjectReference Include="..\..\Hashing\Hashing.csproj" />
-    <ProjectReference Include="..\EllipticCommon\EllipticCommon.csproj" />
   </ItemGroup>
 </Project>
