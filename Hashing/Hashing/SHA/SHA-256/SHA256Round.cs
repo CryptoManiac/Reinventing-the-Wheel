@@ -15,20 +15,14 @@ namespace Wheel.Hashing.SHA.SHA256.Internal
         /// </summary>
         /// <param name="uints"></param>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public unsafe InternalSHA256Round(params uint[] uints)
+        public InternalSHA256Round(params uint[] uints)
         {
             if (uints.Length != TypeUintSz)
             {
                 throw new ArgumentOutOfRangeException(nameof(uints), uints.Length, "Must provide " + TypeUintSz + " arguments exactly");
             }
 
-            fixed (void* source = &uints[0])
-            {
-                fixed (void* target = &this)
-                {
-                    new Span<byte>(source, TypeByteSz).CopyTo(new Span<byte>(target, TypeByteSz));
-                }
-            }
+            uints.CopyTo(registers);
         }
 
         /// <summary>
@@ -70,11 +64,22 @@ namespace Wheel.Hashing.SHA.SHA256.Internal
         /// <summary>
         /// Set to zero
         /// </summary>
-        public unsafe void Reset()
+        public void Reset()
         {
-            fixed (void* ptr = &this)
+            registers.Clear();
+        }
+
+        /// <summary>
+        /// Safe access to registers
+        /// </summary>
+        public readonly unsafe Span<uint> registers
+        {
+            get
             {
-                new Span<byte>(ptr, TypeByteSz).Clear();
+                fixed (uint* ptr = &words[0])
+                {
+                    return new Span<uint>(ptr, TypeUintSz);
+                }
             }
         }
 
@@ -92,6 +97,6 @@ namespace Wheel.Hashing.SHA.SHA256.Internal
         /// Fixed size buffer for registers
         /// </summary>
         [FieldOffset(0)]
-        internal unsafe fixed uint registers[TypeUintSz];
+        private unsafe fixed uint words[TypeUintSz];
     }
 }

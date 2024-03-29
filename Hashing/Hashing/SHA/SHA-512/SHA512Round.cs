@@ -15,20 +15,13 @@ namespace Wheel.Hashing.SHA.SHA512.Internal
         /// </summary>
         /// <param name="ulongs"></param>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public unsafe InternalSHA512Round(params ulong[] ulongs)
+        public InternalSHA512Round(params ulong[] ulongs)
         {
             if (ulongs.Length != TypeUlongSz)
             {
                 throw new ArgumentOutOfRangeException(nameof(ulongs), ulongs.Length, "Must provide " + TypeUlongSz + " arguments exactly");
             }
-
-            fixed (void* source = &ulongs[0])
-            {
-                fixed (void* target = &this)
-                {
-                    new Span<byte>(source, TypeByteSz).CopyTo(new Span<byte>(target, TypeByteSz));
-                }
-            }
+            ulongs.CopyTo(registers);
         }
 
         /// <summary>
@@ -63,7 +56,7 @@ namespace Wheel.Hashing.SHA.SHA512.Internal
         {
             for (int i = 0; i < InternalSHA512Block.TypeUlongSz; ++i)
             {
-                Common.REVERT(ref registers[i]);
+                Common.REVERT(ref words[i]);
             }
         }
 
@@ -72,9 +65,20 @@ namespace Wheel.Hashing.SHA.SHA512.Internal
         /// </summary>
         public unsafe void Reset()
         {
-            fixed (void* ptr = &this)
+            registers.Clear();
+        }
+
+        /// <summary>
+        /// Safe access to words
+        /// </summary>
+        public readonly unsafe Span<ulong> registers
+        {
+            get
             {
-                new Span<byte>(ptr, TypeByteSz).Clear();
+                fixed (ulong* ptr = &words[0])
+                {
+                    return new Span<ulong>(ptr, TypeUlongSz);
+                }
             }
         }
 
@@ -92,6 +96,6 @@ namespace Wheel.Hashing.SHA.SHA512.Internal
         /// Fixed size buffer for registers
         /// </summary>
         [FieldOffset(0)]
-        internal unsafe fixed ulong registers[TypeUlongSz];
+        private unsafe fixed ulong words[TypeUlongSz];
     }
 }

@@ -131,21 +131,21 @@ namespace Wheel.Hashing.SHA.SHA512
             return hash;
         }
 
-        private unsafe void Transform()
+        private void Transform()
         {
             // Initialize with first 16 words filled from the
             // pending block and reverted to big endian
             InternalSHA512Round wordPad = new(pendingBlock);
 
             // Remaining blocks
-            for (uint i = 16; i < 80; ++i)
+            for (int i = 16; i < 80; ++i)
             {
                 wordPad.registers[i] = InternalSHA512Ops.SIG1(wordPad.registers[i - 2]) + wordPad.registers[i - 7] + InternalSHA512Ops.SIG0(wordPad.registers[i - 15]) + wordPad.registers[i - 16];
             }
 
             InternalSHA512State loc = state;
 
-            for (uint i = 0; i < InternalSHA512Round.TypeUlongSz; ++i)
+            for (int i = 0; i < InternalSHA512Round.TypeUlongSz; ++i)
             {
                 ulong t1 = loc.h + InternalSHA512Ops.SIGMA1(loc.e) + InternalSHA512Ops.CHOOSE(loc.e, loc.f, loc.g) + InternalSHA512Constants.K.registers[i] + wordPad.registers[i];
                 ulong t2 = InternalSHA512Ops.SIGMA0(loc.a) + InternalSHA512Ops.MAJ(loc.a, loc.b, loc.c);
@@ -167,21 +167,15 @@ namespace Wheel.Hashing.SHA.SHA512
         {
             uint i = blockLen;
             uint end = (blockLen < 112u) ? 112u : 128u;
-            unsafe
-            {
-                pendingBlock.bytes[i++] = 0x80; // Append a bit 1
-            }
+            pendingBlock.bytes[(int)i++] = 0x80; // Append a bit 1
             pendingBlock.Wipe(i, end - i); // Fill with zeros
 
             if (blockLen >= 112)
             {
                 Transform();
-                unsafe
-                {
-                    ulong lastWord = pendingBlock.registers[15];
-                    pendingBlock.Reset();
-                    pendingBlock.registers[15] = lastWord;
-                }
+                ulong lastWord = pendingBlock.lastLong;
+                pendingBlock.Reset();
+                pendingBlock.lastLong = lastWord;
             }
 
             // Append to the padding the total message's

@@ -15,28 +15,9 @@ namespace Wheel.Hashing.RIPEMD.Internal
         /// </summary>
         /// <param name="bytes">Bytes to write</param>
         /// <param name="targetIndex">Offset to write them from the beginning of this vector</param>
-        public unsafe void Write(ReadOnlySpan<byte> bytes, uint targetIndex)
+        public void Write(ReadOnlySpan<byte> input, uint targetIndex)
         {
-            // Target index must have a sane value
-            if (targetIndex >= TypeByteSz)
-            {
-                throw new ArgumentOutOfRangeException(nameof(targetIndex), targetIndex, "targetIndex index must be within [0 .. " + TypeByteSz + ") range");
-            }
-
-            // Maximum size is a distance between the
-            //  beginning and the vector size
-            uint limit = TypeByteSz - targetIndex;
-
-            if (bytes.Length > limit)
-            {
-                throw new ArgumentOutOfRangeException(nameof(bytes), bytes.Length, "byte sequence is too long");
-            }
-
-            fixed (void* ptr = &this)
-            {
-                Span<byte> target = new((byte*)ptr + targetIndex, bytes.Length);
-                bytes.CopyTo(target);
-            }
+            input.CopyTo(bytes.Slice((int)targetIndex, input.Length));
         }
 
         /// <summary>
@@ -44,10 +25,7 @@ namespace Wheel.Hashing.RIPEMD.Internal
         /// </summary>
         public unsafe void Reset()
         {
-            fixed(byte* ptr = &bytes[0])
-            {
-                new Span<byte>(ptr, TypeByteSz).Clear();
-            }
+            registers.Clear();
         }
 
         /// <summary>
@@ -61,16 +39,44 @@ namespace Wheel.Hashing.RIPEMD.Internal
         public const int TypeUintSz = TypeByteSz / sizeof(uint);
 
         /// <summary>
-        /// Fixed size buffer for registers
+        /// Fixed size buffer for words
         /// </summary>
         [FieldOffset(0)]
-        internal unsafe fixed uint registers[TypeUintSz];
+        private unsafe fixed uint words[TypeUintSz];
 
         /// <summary>
         /// Fixed size buffer for the individual block bytes
         /// </summary>
         [FieldOffset(0)]
-        internal unsafe fixed byte bytes[TypeByteSz];
+        private unsafe fixed byte data[TypeByteSz];
+
+        /// <summary>
+        /// Safe access to words
+        /// </summary>
+        public readonly unsafe Span<uint> registers
+        {
+            get
+            {
+                fixed (uint* ptr = &words[0])
+                {
+                    return new Span<uint>(ptr, TypeUintSz);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Safe access to bytes
+        /// </summary>
+        public readonly unsafe Span<byte> bytes
+        {
+            get
+            {
+                fixed (byte* ptr = &data[0])
+                {
+                    return new Span<byte>(ptr, TypeByteSz);
+                }
+            }
+        }
 
         #region Individual word public access
         [FieldOffset(0)]

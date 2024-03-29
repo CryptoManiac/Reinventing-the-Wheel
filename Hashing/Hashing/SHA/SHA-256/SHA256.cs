@@ -131,21 +131,21 @@ namespace Wheel.Hashing.SHA.SHA256
             }
         }
 
-        private unsafe void Transform()
+        private void Transform()
         {
             // Initialize with first 16 words filled from the
             // pending block and reverted to big endian
             InternalSHA256Round wordPad = new(pendingBlock);
 
             // Remaining 48 blocks
-            for (uint i = 16; i < 64; ++i)
+            for (int i = 16; i < 64; ++i)
             {
                 wordPad.registers[i] = InternalSHA256Ops.SIG1(wordPad.registers[i - 2]) + wordPad.registers[i - 7] + InternalSHA256Ops.SIG0(wordPad.registers[i - 15]) + wordPad.registers[i - 16];
             }
 
             InternalSHA256State loc = state;
 
-            for (uint i = 0; i < 64; ++i)
+            for (int i = 0; i < 64; ++i)
             {
                 uint t1 = loc.h + InternalSHA256Ops.SIGMA1(loc.e) + InternalSHA256Ops.CHOOSE(loc.e, loc.f, loc.g) + InternalSHA256Constants.K.registers[i] + wordPad.registers[i];
                 uint t2 = InternalSHA256Ops.SIGMA0(loc.a) + InternalSHA256Ops.MAJ(loc.a, loc.b, loc.c);
@@ -167,10 +167,7 @@ namespace Wheel.Hashing.SHA.SHA256
         {
             uint i = blockLen;
             uint end = (blockLen < 56u) ? 56u : 64u;
-            unsafe
-            {
-                pendingBlock.bytes[i++] = 0x80; // Append a bit 1
-            }
+            pendingBlock.bytes[(int)i++] = 0x80; // Append a bit 1
             pendingBlock.Wipe(i, end - i); // Pad with zeros
 
             if (blockLen >= 56)
@@ -178,9 +175,9 @@ namespace Wheel.Hashing.SHA.SHA256
                 Transform();
                 unsafe
                 {
-                    uint lastWord = pendingBlock.registers[15];
+                    uint lastWord = pendingBlock.lastWord;
                     pendingBlock.Reset();
-                    pendingBlock.registers[15] = lastWord;
+                    pendingBlock.lastWord = lastWord;
                 }
             }
 
