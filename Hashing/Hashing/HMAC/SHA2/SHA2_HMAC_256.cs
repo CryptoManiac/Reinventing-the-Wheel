@@ -10,35 +10,31 @@ namespace Wheel.Hashing.HMAC.SHA2
     internal struct SHA256Base_HMAC : IMac
 	{
 		[FieldOffset(0)]
-		private SHA256Base ctx_inside;
+		private SHA256Base inside;
 
         [FieldOffset(SHA256Base.TypeByteSz)]
-        private SHA256Base ctx_outside;
+        private SHA256Base outside;
 
         // For key pre-hashing
         [FieldOffset(SHA256Base.TypeByteSz * 2)]
-        private SHA256Base ctx_prehasher;
+        private SHA256Base prehasher;
 
         #region For Reinit()
         [FieldOffset(SHA256Base.TypeByteSz * 3)]
-        private SHA256Base ctx_inside_reinit;
+        private SHA256Base inside_reinit;
 
         [FieldOffset(SHA256Base.TypeByteSz * 4)]
-        private SHA256Base ctx_outside_reinit;
+        private SHA256Base outside_reinit;
         #endregion
 
         [FieldOffset(SHA256Base.TypeByteSz * 5)]
         private bool initialized;
 
-        public readonly int HashSz => ctx_inside.HashSz;
+        public readonly int HashSz => inside.HashSz;
 
         public SHA256Base_HMAC(in InternalSHA256State constants, int outSz)
         {
-            ctx_inside = new(constants, outSz);
-            ctx_outside = ctx_inside;
-            ctx_prehasher = ctx_inside;
-            ctx_inside_reinit = ctx_inside;
-            ctx_outside_reinit = ctx_inside;
+            inside = outside = prehasher = inside_reinit = outside_reinit = new(constants, outSz);
             initialized = false;
         }
 
@@ -59,10 +55,10 @@ namespace Wheel.Hashing.HMAC.SHA2
             {
                 if (key.Length > InternalSHA256Block.TypeByteSz)
                 {
-                    keySz = ctx_prehasher.HashSz;
-                    ctx_prehasher.Reset();
-                    ctx_prehasher.Update(key);
-                    ctx_prehasher.Digest(key_used.Slice(0, ctx_prehasher.HashSz));
+                    keySz = prehasher.HashSz;
+                    prehasher.Reset();
+                    prehasher.Update(key);
+                    prehasher.Digest(key_used.Slice(0, prehasher.HashSz));
                 }
                 else
                 {
@@ -82,17 +78,15 @@ namespace Wheel.Hashing.HMAC.SHA2
                 block_opad[i] = (byte) (key_used[i] ^ 0x5c);
             }
 
-            ctx_inside.Reset();
-            ctx_outside.Reset();
-            ctx_inside_reinit.Reset();
-            ctx_outside_reinit.Reset();
+            inside.Reset();
+            outside.Reset();
 
-            ctx_inside.Update(block_ipad);
-            ctx_outside.Update(block_opad);
+            inside.Update(block_ipad);
+            outside.Update(block_opad);
 
             // for Reset()
-            ctx_inside_reinit.Update(block_ipad);
-            ctx_outside_reinit.Update(block_opad);
+            inside_reinit = inside;
+            outside_reinit = outside;
 
             // Allow update/digest calls
             initialized = true;
@@ -104,7 +98,7 @@ namespace Wheel.Hashing.HMAC.SHA2
             {
                 throw new InvalidOperationException("Trying to update the uninitialized HMAC structure. Please call the Init() method first.");
             }
-            ctx_inside.Update(message);
+            inside.Update(message);
         }
 
         public void Digest(Span<byte> mac)
@@ -113,30 +107,30 @@ namespace Wheel.Hashing.HMAC.SHA2
             {
                 throw new InvalidOperationException("Trying to get a Digest() result from the uninitialized HMAC structure. Please call the Init() method first.");
             }
-            Span<byte> mac_temp = stackalloc byte[ctx_inside.HashSz];
-            ctx_inside.Digest(mac_temp);
-            ctx_outside.Update(mac_temp);
-            ctx_outside.Digest(mac_temp);
+            Span<byte> mac_temp = stackalloc byte[inside.HashSz];
+            inside.Digest(mac_temp);
+            outside.Update(mac_temp);
+            outside.Digest(mac_temp);
             mac_temp.Slice(0, mac.Length).CopyTo(mac);
             Reset();
         }
 
         public void Reset()
         {
-            ctx_inside = ctx_inside_reinit;
-            ctx_outside = ctx_outside_reinit;
+            inside = inside_reinit;
+            outside = outside_reinit;
         }
 
         public void Dispose()
         {
             initialized = false;
-            ctx_inside.Reset();
-            ctx_outside.Reset();
-            ctx_inside_reinit.Reset();
-            ctx_outside_reinit.Reset();
+            inside.Reset();
+            outside.Reset();
+            inside_reinit.Reset();
+            outside_reinit.Reset();
         }
 
-        public IMac Clone()
+        public readonly IMac Clone()
         {
             return this;
         }
@@ -157,7 +151,7 @@ namespace Wheel.Hashing.HMAC.SHA2
         public void Init(ReadOnlySpan<byte> key) => ctx.Init(key);
         public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         public void Dispose() => ctx.Dispose();
-        public IMac Clone() => ctx.Clone();
+        public readonly IMac Clone() => ctx.Clone();
     }
 
     public struct HMAC_SHA256 : IMac
@@ -175,6 +169,6 @@ namespace Wheel.Hashing.HMAC.SHA2
         public void Init(ReadOnlySpan<byte> key) => ctx.Init(key);
         public void Update(ReadOnlySpan<byte> input) => ctx.Update(input);
         public void Dispose() => ctx.Dispose();
-        public IMac Clone() => ctx.Clone();
+        public readonly IMac Clone() => ctx.Clone();
     }
 }
