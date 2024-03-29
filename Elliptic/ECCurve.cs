@@ -2,6 +2,7 @@
 using System.Security.Cryptography;
 using Wheel.Crypto.Elliptic.Internal.Curves;
 using Wheel.Crypto.Elliptic.Internal.VeryLongInt;
+using Wheel.Hashing.HMAC;
 
 namespace Wheel.Crypto.Elliptic
 {
@@ -45,7 +46,7 @@ namespace Wheel.Crypto.Elliptic
     /// </summary>
 #pragma warning disable CS0661
 #pragma warning disable CS0660
-    public readonly struct ECCurve
+    public readonly struct ECCurve : ICurve
 #pragma warning restore CS0660
 #pragma warning restore CS0661
     {
@@ -225,14 +226,128 @@ namespace Wheel.Crypto.Elliptic
             );
         }
 
-        public static bool operator ==( ECCurve x, ECCurve y )
+        public static bool operator ==(ECCurve x, ECCurve y)
         {
             return x.randomId == y.randomId;
         }
 
-        public static bool operator != ( ECCurve x, ECCurve y )
+        public static bool operator !=(ECCurve x, ECCurve y)
         {
             return !(x == y);
+        }
+
+        public ECPublicKey MakePublicKey() => new(this);
+        public ECPrivateKey MakePrivateKey() => new(this);
+        public DERSignature MakeDERSignature() => new(this);
+        public CompactSignature MakeCompactSignature() => new(this);
+
+        public ECPublicKey MakePublicKey(ReadOnlySpan<byte> data) => new(this, data);
+        public ECPrivateKey MakePrivateKey(ReadOnlySpan<byte> data) => new(this, data);
+        public DERSignature MakeDERSignature(ReadOnlySpan<byte> data) => new(this, data);
+        public CompactSignature MakeCompactSignature(ReadOnlySpan<byte> data) => new(this, data);
+
+        public bool IsValidPublicKey(ReadOnlySpan<byte> data) => ECPublicKey.IsValidPublicKey(this, data);
+        public bool IsValidPrivateKey(ReadOnlySpan<byte> data) => ECPrivateKey.IsValidPrivateKey(this, data);
+
+        public void GenerateSecret<HMAC_IMPL>(out ECPrivateKey result, ReadOnlySpan<byte> seed, ReadOnlySpan<byte> personalization, int sequence) where HMAC_IMPL : unmanaged, IMac
+        {
+            // See 3..2 of the RFC 6979 to get what is going on here
+            // We're not following it to the letter, but our algorithm is very similar
+
+            HMAC_IMPL hmac = new();
+            Span<byte> separator_00 = stackalloc byte[1] { 0x00 };
+            Span<byte> separator_01 = stackalloc byte[1] { 0x01 };
+
+            Span<byte> sequence_data = stackalloc byte[sizeof(int)];
+
+            // Convert sequence to bytes
+            MemoryMarshal.Cast<byte, int>(sequence_data)[0] = sequence;
+
+            // Allocate buffer for HMAC results
+            Span<byte> K = stackalloc byte[hmac.HashSz];
+            Span<byte> V = stackalloc byte[hmac.HashSz];
+
+            // B
+            K.Fill(0); // K = 00 00 00 ..
+
+            // C
+            V.Fill(0x01); // V = 01 01 01 ..
+
+            // D
+            hmac.Init(K); // K = HMAC_K(V || 00 || seed || 00 || personalization || 00 || sequence_data)
+            hmac.Update(V);
+            hmac.Update(separator_00);
+            hmac.Update(seed);
+            hmac.Update(separator_00);
+            hmac.Update(personalization);
+            hmac.Update(sequence_data);
+            hmac.Digest(K);
+
+            // E
+            hmac.Init(K); // V = HMAC_K(V)
+            hmac.Update(V);
+            hmac.Digest(V);
+
+            // F
+            hmac.Init(K); // K = HMAC_K(V || 01 || seed || 01 || personalization || 01 || sequence_data)
+            hmac.Update(V);
+            hmac.Update(separator_01);
+            hmac.Update(seed);
+            hmac.Update(separator_01);
+            hmac.Update(personalization);
+            hmac.Update(sequence_data);
+            hmac.Digest(K);
+
+            // G
+            hmac.Init(K); // V = HMAC_K(V)
+            hmac.Update(V);
+            hmac.Digest(V);
+
+            // H
+            int secret_byte_index = 0;
+            Span<byte> secret_data = stackalloc byte[NUM_N_BYTES];
+
+            while (true)
+            {
+                // H2
+                hmac.Init(K); // V = HMAC_K(V)
+                hmac.Update(V);
+                hmac.Digest(V);
+
+                // T = T || V
+                Span<byte> src = V.Slice(0, Math.Min(V.Length, secret_data.Length - secret_byte_index));
+                Span<byte> target = secret_data.Slice(secret_byte_index);
+                src.CopyTo(target);
+                secret_byte_index += src.Length;
+
+                if (secret_byte_index >= NUM_N_BYTES)
+                {
+                    if (IsValidPrivateKey(secret_data))
+                    {
+                        result = MakePrivateKey(secret_data);
+                        secret_data.Clear();
+                        return;
+                    }
+
+                    // Doesn't meet the curve criteria,
+                    // start filling from zero
+                    secret_data.Clear();
+                    secret_byte_index = 0;
+                }
+
+                // H3
+                hmac.Init(K);  // K = HMAC_K(V || 00 || seed || 00 || personalization)
+                hmac.Update(V);
+                hmac.Update(separator_00);
+                hmac.Update(seed);
+                hmac.Update(separator_00);
+                hmac.Update(personalization);
+                hmac.Digest(K);
+
+                hmac.Init(K); // V = HMAC_K(V)
+                hmac.Update(V);
+                hmac.Digest(V);
+            }
         }
     }
 }

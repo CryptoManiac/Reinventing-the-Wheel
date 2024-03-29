@@ -18,17 +18,6 @@
         public Span<ulong> s { get; }
 
         /// <summary>
-        /// Was this instance initialized with curve settings or not
-        /// </summary>
-        public bool Configured { get; }
-
-        /// <summary>
-        /// Initialize for required curve settings
-        /// </summary>
-        /// <param name="curve">ECC curve implementation</param>
-        public void Init(ECCurve curve);
-
-        /// <summary>
         /// Write signature data in current format
         /// </summary>
         /// <param name="encoded"></param>

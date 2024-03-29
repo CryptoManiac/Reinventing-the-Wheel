@@ -31,6 +31,15 @@ namespace Wheel.Crypto.Elliptic
         }
 
         /// <summary>
+        /// The default constructor should never be called
+        /// </summary>
+        /// <exception cref="SystemException"></exception>
+        public ECPublicKey()
+        {
+            throw new SystemException("The default constructor should never be called");
+        }
+
+        /// <summary>
         /// Construct the empty key
         /// </summary>
         /// <param name="curve">ECC implementation</param>

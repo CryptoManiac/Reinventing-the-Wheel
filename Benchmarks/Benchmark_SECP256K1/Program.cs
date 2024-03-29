@@ -67,7 +67,7 @@ int secret_key_number = 0;
 ECCurve curve = ECCurve.Get_SECP256K1();
 
 // Derive new secret key
-ECPrivateKey.GenerateSecret<HMAC_SHA512>(curve, out ECPrivateKey secretKey, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), secret_key_number);
+curve.GenerateSecret<HMAC_SHA512>(out ECPrivateKey secretKey, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), secret_key_number);
 
 if (!secretKey.ComputePublicKey(out ECPublicKey publicKey))
 {
@@ -80,8 +80,7 @@ static void SignData<HMAC_IMPL>(Span<byte> signature, ECPrivateKey sk, string me
     Span<byte> message_hash = stackalloc byte[32];
     SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
 
-    DERSignature derSig = new();
-    if (!sk.Sign<HMAC_IMPL, DERSignature>(ref derSig, message_hash))
+    if (!sk.Sign<HMAC_IMPL, DERSignature>(out DERSignature derSig, message_hash))
     {
         throw new SystemException("Signing failed");
     }

@@ -38,6 +38,15 @@ namespace Wheel.Crypto.Elliptic
         }
 
         /// <summary>
+        /// The default constructor should never be called
+        /// </summary>
+        /// <exception cref="SystemException"></exception>
+        public ECPrivateKey()
+        {
+            throw new SystemException("The default constructor should never be called");
+        }
+
+        /// <summary>
         /// Construct the empty key
         /// </summary>
         /// <param name="curve">ECC implementation</param>
@@ -146,9 +155,9 @@ namespace Wheel.Crypto.Elliptic
         /// </summary>
         /// <param name="private_key">The private key to check.</param>
         /// <returns>True if the private key is valid.</returns>
-        public static bool IsValidPrivateKey(ReadOnlySpan<byte> private_key, ECCurve curve)
+        public static bool IsValidPrivateKey(ECCurve curve, ReadOnlySpan<byte> private_key)
         {
-            ECPrivateKey pk = new(curve);
+            ECPrivateKey pk = curve.MakePrivateKey();
             return pk.Parse(private_key);
         }
 
@@ -369,9 +378,23 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <returns></returns>
-        public readonly bool Sign<HMAC_IMPL, SIGNATURE_FORMAT_IMPL>(ref SIGNATURE_FORMAT_IMPL signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac where SIGNATURE_FORMAT_IMPL : struct, ISignature
+        public readonly bool Sign<HMAC_IMPL, SIGNATURE_FORMAT_IMPL>(out DERSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac where SIGNATURE_FORMAT_IMPL : struct, ISignature
         {
-            signature.Init(curve);
+            signature = curve.MakeDERSignature();
+            return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
+        }
+
+        /// <summary>
+        /// Generate an ECDSA signature for a given hash value, using a deterministic algorithm
+        /// 
+        /// Usage: Compute a hash of the data you wish to sign and pass it to this function along with your private key and entropy bytes. The entropy bytes argument may be set to empty array if you don't need this feature.
+        /// </summary>
+        /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
+        /// <param name="message_hash">The hash of the message to sign</param>
+        /// <returns></returns>
+        public readonly bool Sign<HMAC_IMPL, SIGNATURE_FORMAT_IMPL>(out CompactSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac where SIGNATURE_FORMAT_IMPL : struct, ISignature
+        {
+            signature = curve.MakeCompactSignature();
             return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
         }
 
@@ -393,119 +416,8 @@ namespace Wheel.Crypto.Elliptic
                 throw new InvalidOperationException("Trying to derive from the invalid private key");
             }
 
-            GenerateSecret<HMAC_IMPL>(curve, out result, seed, entropy, sequence);
+            curve.GenerateSecret<HMAC_IMPL>(out result, seed, entropy, sequence);
             seed.Clear();
-        }
-
-        /// <summary>
-        /// Deterministic derivation of a new private key
-        /// </summary>
-        /// <typeparam name="HMAC_IMPL"></typeparam>
-        /// <param name="curve">ECC implementation to use</param>
-        /// <param name="result">Resulting key to be filled</param>
-        /// <param name="seed">Secret seed</param>
-        /// <param name="personalization">Personalization (to generate the different keys for the same seed)</param>
-        /// <param name="sequence">Key sequence (to generate the different keys for the same seed and personalization bytes array pair)</param>
-        /// <param name="expand_iterations">Number of PBKDF2 iterations for the seed and personalize bytes expansion, 4096 or more is recommended for the new secret keys</param>
-        public static void GenerateSecret<HMAC_IMPL>(ECCurve curve, out ECPrivateKey result, ReadOnlySpan<byte> seed, ReadOnlySpan<byte> personalization, int sequence) where HMAC_IMPL : unmanaged, IMac
-        {
-            // See 3..2 of the RFC 6979 to get what is going on here
-            // We're not following it to the letter, but our algorithm is very similar
-
-            HMAC_IMPL hmac = new();
-            Span<byte> separator_00 = stackalloc byte[1] { 0x00 };
-            Span<byte> separator_01 = stackalloc byte[1] { 0x01 };
-
-            Span<byte> sequence_data = stackalloc byte[sizeof(int)];
-
-            // Convert sequence to bytes
-            MemoryMarshal.Cast<byte, int>(sequence_data)[0] = sequence;
-
-            // Allocate buffer for HMAC results
-            Span<byte> K = stackalloc byte[hmac.HashSz];
-            Span<byte> V = stackalloc byte[hmac.HashSz];
-
-            // B
-            K.Fill(0); // K = 00 00 00 ..
-
-            // C
-            V.Fill(0x01); // V = 01 01 01 ..
-
-            // D
-            hmac.Init(K); // K = HMAC_K(V || 00 || seed || 00 || personalization || 00 || sequence_data)
-            hmac.Update(V);
-            hmac.Update(separator_00);
-            hmac.Update(seed);
-            hmac.Update(separator_00);
-            hmac.Update(personalization);
-            hmac.Update(sequence_data);
-            hmac.Digest(K);
-
-            // E
-            hmac.Init(K); // V = HMAC_K(V)
-            hmac.Update(V);
-            hmac.Digest(V);
-
-            // F
-            hmac.Init(K); // K = HMAC_K(V || 01 || seed || 01 || personalization || 01 || sequence_data)
-            hmac.Update(V);
-            hmac.Update(separator_01);
-            hmac.Update(seed);
-            hmac.Update(separator_01);
-            hmac.Update(personalization);
-            hmac.Update(sequence_data);
-            hmac.Digest(K);
-
-            // G
-            hmac.Init(K); // V = HMAC_K(V)
-            hmac.Update(V);
-            hmac.Digest(V);
-
-            // H
-            int secret_byte_index = 0;
-            Span<byte> secret_data = stackalloc byte[curve.NUM_N_BYTES];
-
-            while (true)
-            {
-                // H2
-                hmac.Init(K); // V = HMAC_K(V)
-                hmac.Update(V);
-                hmac.Digest(V);
-
-                // T = T || V
-                Span<byte> src = V.Slice(0, Math.Min(V.Length, secret_data.Length - secret_byte_index));
-                Span<byte> target = secret_data.Slice(secret_byte_index);
-                src.CopyTo(target);
-                secret_byte_index += src.Length;
-
-                if (secret_byte_index >= curve.NUM_N_BYTES)
-                {
-                    if (IsValidPrivateKey(secret_data, curve))
-                    {
-                        result = new ECPrivateKey(curve, secret_data);
-                        secret_data.Clear();
-                        return;
-                    }
-
-                    // Doesn't meet the curve criteria,
-                    // start filling from zero
-                    secret_data.Clear();
-                    secret_byte_index = 0;
-                }
-
-                // H3
-                hmac.Init(K);  // K = HMAC_K(V || 00 || seed || 00 || personalization)
-                hmac.Update(V);
-                hmac.Update(separator_00);
-                hmac.Update(seed);
-                hmac.Update(separator_00);
-                hmac.Update(personalization);
-                hmac.Digest(K);
-
-                hmac.Init(K); // V = HMAC_K(V)
-                hmac.Update(V);
-                hmac.Digest(V);
-            }
         }
 
         /// <summary>
@@ -535,14 +447,6 @@ namespace Wheel.Crypto.Elliptic
         /// <returns>True if the shared secret was generated successfully, False if an error occurred.</returns>
         public readonly bool ECDH(in ECPublicKey public_key, out ECPrivateKey shared)
         {
-            // Init an empty secret to fill it later
-            shared = new(public_key.curve);
-
-            if (!IsValid)
-            {
-                return false;
-            }
-
             if (curve != public_key.curve)
             {
                 // It doesn't make any sense to use points on non-matching curves
@@ -550,8 +454,16 @@ namespace Wheel.Crypto.Elliptic
                 throw new InvalidOperationException("Curve configuration mismatch");
             }
 
-            int num_words = public_key.curve.NUM_WORDS;
-            int num_bytes = public_key.curve.NUM_BYTES;
+            // Init an empty secret to fill it later
+            shared = curve.MakePrivateKey();
+
+            if (!IsValid)
+            {
+                return false;
+            }
+
+            int num_words = curve.NUM_WORDS;
+            int num_bytes = curve.NUM_BYTES;
 
             Span<ulong> ecdh_point = stackalloc ulong[VLI.ECC_MAX_WORDS * 2];
             if (!public_key.UnWrap(ecdh_point))

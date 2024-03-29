@@ -41,21 +41,13 @@ namespace Wheel.Crypto.Elliptic
         }
 
         /// <summary>
-        /// Was this instance initialized with curve settings or not
-        /// </summary>
-        public readonly bool Configured => !r.IsEmpty && !s.IsEmpty;
-
-        /// <summary>
         /// The r and s are sliced from this hidden array.
         /// </summary>
         private unsafe fixed ulong signature_data[2 * VLI.ECC_MAX_WORDS];
 
-        /// <summary>
-        /// Construct the unconfigured signature
-        /// </summary>
-        /// <param name="curve">ECC implementation</param>
         public CompactSignature()
         {
+            throw new SystemException("The default constructor should never be called");
         }
 
         /// <summary>
@@ -63,11 +55,6 @@ namespace Wheel.Crypto.Elliptic
         /// </summary>
         /// <param name="curve">ECC implementation</param>
         public CompactSignature(ECCurve curve)
-        {
-            Init(curve);
-        }
-
-        public void Init(ECCurve curve)
         {
             this.curve = curve;
             // Sanity check constraint
@@ -99,11 +86,6 @@ namespace Wheel.Crypto.Elliptic
         /// <returns>Number of bytes written/to write</returns>
         public readonly int Encode(Span<byte> encoded)
         {
-            if (!Configured)
-            {
-                throw new InvalidOperationException("No curve settings");
-            }
-
             byte lenR = (byte)curve.NUM_BYTES;
             byte lenS = (byte)curve.NUM_BYTES;
 
@@ -123,11 +105,6 @@ namespace Wheel.Crypto.Elliptic
         /// <returns>True on success</returns>
         public bool Parse(ReadOnlySpan<byte> encoded)
         {
-            if (!Configured)
-            {
-                throw new InvalidOperationException("No curve settings");
-            }
-
             byte lenR = (byte)curve.NUM_BYTES;
             byte lenS = (byte)curve.NUM_BYTES;
 
