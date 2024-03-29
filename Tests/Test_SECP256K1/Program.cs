@@ -43,7 +43,7 @@ static bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOn
 {
     Span<byte> message_hash = stackalloc byte[32];
     SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
-    return new ECPublicKey(curve, public_key).VerifySignature(new DERSignature(curve, signature), message_hash);
+    return curve.MakePublicKey(public_key).VerifySignature(new DERSignature(curve, signature), message_hash);
 }
 
 void CompareSig(string algorithm, Span<byte> signature)
