@@ -75,10 +75,7 @@ namespace Wheel.Hashing.SHA3.Internal
 
         public const int SHA3_SPONGE_WORDS = 25; // Calculated as 1600 / 8 / sizeof(ulong)
 
-        public readonly int HashSz
-        {
-            get { return (int)capacityWords * 4; }
-        }
+        public readonly int HashSz => capacityWords * 4;
 
         public Keccak(int bitSize, bool isKeccak)
         {
