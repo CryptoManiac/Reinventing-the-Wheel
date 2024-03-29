@@ -39,15 +39,11 @@ namespace Wheel.Hashing.SHA.SHA256.Internal
         /// Set first 16 registers from the provided container
         /// </summary>
         /// <param name="block">A context to provide 16 registers</param>
-        private unsafe void SetBlock(in InternalSHA256Block block)
+        private void SetBlock(in InternalSHA256Block block)
         {
-            fixed (void* source = &block)
-            {
-                fixed (void* target = &this)
-                {
-                    new Span<byte>(source, InternalSHA256Block.TypeByteSz).CopyTo(new Span<byte>(target, TypeByteSz));
-                }
-            }
+            block.bytes.CopyTo(
+                MemoryMarshal.Cast<uint, byte>(registers)
+            );
         }
 
         /// <summary>

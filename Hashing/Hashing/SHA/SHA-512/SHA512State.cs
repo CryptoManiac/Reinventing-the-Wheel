@@ -58,22 +58,9 @@ namespace Wheel.Hashing.SHA.SHA512.Internal
                 throw new ArgumentOutOfRangeException(nameof(to), to.Length, "Span must not be longer than " + byteSz + " bytes");
             }
 
-            switch(to.Length)
+            switch (to.Length)
             {
                 case 28:
-                    {
-                        // SHA512_224 is a special one, treat
-                        //  as 32 bit chunks for simplicity
-                        Span<uint> X = MemoryMarshal.Cast<byte, uint>(to);
-                        X[0] = a_hi;
-                        X[1] = a_low;
-                        X[2] = b_hi;
-                        X[3] = b_low;
-                        X[4] = c_hi;
-                        X[5] = c_low;
-                        X[6] = d_hi;
-                        return;
-                    }
                 case 32:
                 case 48:
                 case 64:
@@ -81,13 +68,29 @@ namespace Wheel.Hashing.SHA.SHA512.Internal
                         // Cast to a set of 64-bit integers
                         Span<ulong> X = MemoryMarshal.Cast<byte, ulong>(to);
 
-                        // 0 .. 3 for SHA512_256, SHA-384 and SHA-512
+                        // 0 .. 2 for SHA512_224, SHA512_256, SHA-384 and SHA-512
                         X[0] = a;
                         X[1] = b;
                         X[2] = c;
-                        X[3] = d;
 
-                        if (X.Length == 6 || X.Length == 8)
+                        if (X.Length == 3)
+                        {
+                            // SHA512_224 is a tricky one, treat the output
+                            //  as 32-bit integers for simplicity
+                            Span<uint> X32 = MemoryMarshal.Cast<byte, uint>(to);
+
+                            // Assign the result to the highest significant bits of d
+                            X32[6] = 0xffffffff;
+                            X32[6] &= (uint)d;
+                        }
+
+                        if (X.Length > 3)
+                        {
+                            // 3 for SHA512_256, SHA-384 and SHA-512
+                            X[3] = d;
+                        }
+
+                        if (X.Length > 4)
                         {
                             // 4 and 5 for both SHA-384 and SHA-512
                             X[4] = e;
@@ -132,26 +135,6 @@ namespace Wheel.Hashing.SHA.SHA512.Internal
         /// Size of structure in memory when treated as a collection of bytes
         /// </summary>
         public const int TypeByteSz = TypeUlongSz * sizeof(ulong);
-
-        #region For Store() call from the SHA512_224 intances
-        [FieldOffset(0)]
-        private uint a_hi;
-        [FieldOffset(4)]
-        private uint a_low;
-
-        [FieldOffset(8)]
-        private uint b_hi;
-        [FieldOffset(12)]
-        private uint b_low;
-
-        [FieldOffset(16)]
-        private uint c_hi;
-        [FieldOffset(20)]
-        private uint c_low;
-
-        [FieldOffset(24)]
-        private uint d_hi;
-        #endregion
 
         #region Public access to named register fields
         [FieldOffset(0)]
