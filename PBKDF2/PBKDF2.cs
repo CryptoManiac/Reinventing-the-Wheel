@@ -16,9 +16,13 @@ namespace Wheel.Hashing.Derivation
 		/// <param name="c">Number of hashing iterations</param>
 		public static void Derive<MAC_IMPL>(Span<byte> key, string password, string salt, int c) where MAC_IMPL : struct, IMac
 		{
-            byte[] password_bytes = Encoding.ASCII.GetBytes(password);
-            byte[] salt_bytes = Encoding.ASCII.GetBytes(salt);
+            Span<byte> password_bytes = stackalloc byte[Encoding.ASCII.GetByteCount(password)];
+            Span<byte> salt_bytes = stackalloc byte[Encoding.ASCII.GetByteCount(salt)];
+            Encoding.ASCII.GetBytes(password, password_bytes);
+            Encoding.ASCII.GetBytes(salt, salt_bytes);
             Derive<MAC_IMPL>(key, password_bytes, salt_bytes, c);
+            password_bytes.Clear();
+            salt_bytes.Clear();
         }
 
         /// <summary>
