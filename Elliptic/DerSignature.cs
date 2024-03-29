@@ -59,13 +59,13 @@ namespace Wheel.Crypto.Elliptic
         /// <param name="curve">ECC implementation</param>
         public DERSignature(ECCurve curve)
         {
-            this.curve = curve;
             // Sanity check constraint
             if (curve.NUM_WORDS > VLI.ECC_MAX_WORDS)
             {
                 throw new SystemException("The configured curve point coordinate size is unexpectedly big");
             }
 
+            this.curve = curve;
             r.Clear();
             s.Clear();
         }

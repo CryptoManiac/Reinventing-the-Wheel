@@ -35,7 +35,7 @@ namespace Wheel.Crypto.Elliptic.Internal
             }
 
             // x and y must be smaller than p.
-            if (VLI.CmpUnsafe(curve.p, point, num_words) != 1 || VLI.CmpUnsafe(curve.p, point.Slice(num_words), num_words) != 1)
+            if (VLI.VarTimeCmp(curve.p, point, num_words) != 1 || VLI.VarTimeCmp(curve.p, point.Slice(num_words), num_words) != 1)
             {
                 return false;
             }

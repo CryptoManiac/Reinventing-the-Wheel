@@ -116,7 +116,7 @@ namespace Wheel.Crypto.Elliptic.Internal.Curves
                 --carry;
                 VLI.Sub(result, result, p, num_words);
             }
-            if (VLI.CmpUnsafe(result, p, num_words) > 0)
+            if (VLI.VarTimeCmp(result, p, num_words) > 0)
             {
                 VLI.Sub(result, result, p, num_words);
             }

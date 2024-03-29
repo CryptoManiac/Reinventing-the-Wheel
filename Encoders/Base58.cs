@@ -25,7 +25,7 @@
         /// <summary>
         /// Base58 character mapping table
         /// </summary>
-        private static readonly byte[] StaticAlphaMap =
+        private static readonly byte[] AlphaMap =
         [
           0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
           0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -40,12 +40,18 @@
         /// <summary>
         /// On-stack copy of alphabet characters
         /// </summary>
-        private unsafe fixed char Base58Map[58];
+        private unsafe fixed char AlphabetChars[58];
 
-        /// <summary>
-        /// On-stack copy of character mapping
-        /// </summary>
-        private unsafe fixed byte AlphaMap[256];
+        public unsafe readonly ReadOnlySpan<char> Base58Map
+        {
+            get
+            {
+                fixed (char* ptr = &AlphabetChars[0])
+                {
+                    return new ReadOnlySpan<char>(ptr, 58);
+                }
+            }
+        }
 
         /// <summary>
         /// Construct with a custom Base58 alphabet
@@ -67,11 +73,6 @@
             fixed (char* ptr = &Base58Map[0])
             {
                 alphabet.CopyTo(new Span<char>(ptr, 58));
-            }
-
-            fixed (byte* ptr = &AlphaMap[0])
-            {
-                StaticAlphaMap.CopyTo(new Span<byte>(ptr, 256));
             }
         }
 
@@ -106,7 +107,7 @@
         /// <summary>
         /// Construct a new instance of codec by filling the buffers 
         /// </summary>
-        public unsafe Base58Codec() : this(StaticBase58Map)
+        public Base58Codec() : this(StaticBase58Map)
         {
         }
 
@@ -116,7 +117,7 @@
         /// <param name="result">Character buffer to fill</param>
         /// <param name="data">Data to encode</param>
         /// <returns>Number of written characters, if execution was successful. The required buffer length, if not.</returns>
-        public unsafe int Encode(Span<char> result, ReadOnlySpan<byte> data)
+        public int Encode(Span<char> result, ReadOnlySpan<byte> data)
         {
             // For the worst case
             Span<byte> b256 = stackalloc byte[(data.Length * 138 / 100) + 1];
@@ -166,7 +167,7 @@
         /// <param name="result">Byte buffer to fill with the decoded bytes</param>
         /// <param name="encoded">Characters buffer to decode</param>
         /// <returns>Number of written bytes, if execution was successful. The required buffer length, if not.</returns>
-        public unsafe int Decode(Span<byte> result, ReadOnlySpan<char> encoded)
+        public int Decode(Span<byte> result, ReadOnlySpan<char> encoded)
         {
             // Bitcoin-consistent behaviour:
             // Skip whitespace characters

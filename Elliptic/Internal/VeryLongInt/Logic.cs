@@ -101,7 +101,7 @@
         /// <param name="right"></param>
         /// <param name="num_words"></param>
         /// <returns></returns>
-        public static int Cmp(ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right, int num_words)
+        public static int ConstTimeCmp(ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right, int num_words)
         {
             Span<ulong> tmp = stackalloc ulong[ECC_MAX_WORDS];
             bool neg = Convert.ToBoolean(Sub(tmp, left, right, num_words));
@@ -116,7 +116,7 @@
         /// <param name="right"></param>
         /// <param name="num_words"></param>
         /// <returns></returns>
-        public static int CmpUnsafe(ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right, int num_words) {
+        public static int VarTimeCmp(ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right, int num_words) {
             for (int i = num_words - 1; i >= 0; --i) {
                 if (left[i] > right[i]) {
                     return 1;
@@ -126,8 +126,6 @@
             }
             return 0;
         }
-
-
     }
 }
 

@@ -85,7 +85,7 @@ namespace Wheel.Crypto.Elliptic
         /// <summary>
         /// Does this instance contain a valid key or not
         /// </summary>
-        public unsafe readonly bool IsValid
+        public readonly bool IsValid
         {
             get
             {
@@ -94,7 +94,7 @@ namespace Wheel.Crypto.Elliptic
                     return false;
                 }
                 VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS); // Unscramble
-                bool result = VLI.Cmp(curve.n, secret_x, curve.NUM_N_WORDS) == 1;
+                bool result = VLI.ConstTimeCmp(curve.n, secret_x, curve.NUM_N_WORDS) == 1;
                 VLI.XorWith(secret_x, curve.scrambleKey, curve.NUM_WORDS); // Scramble
                 return result;
             }
@@ -139,7 +139,7 @@ namespace Wheel.Crypto.Elliptic
             }
 
             // Make sure the private key is in the range [1, n-1].
-            if (VLI.IsZero(native_in, curve.NUM_N_WORDS) || VLI.Cmp(curve.n, native_in, curve.NUM_N_WORDS) != 1)
+            if (VLI.IsZero(native_in, curve.NUM_N_WORDS) || VLI.ConstTimeCmp(curve.n, native_in, curve.NUM_N_WORDS) != 1)
             {
                 return false;
             }
@@ -249,7 +249,7 @@ namespace Wheel.Crypto.Elliptic
                 return false;
             }
 
-            if (VLI.Cmp(curve.n, _scalar, curve.NUM_N_WORDS) != 1)
+            if (VLI.ConstTimeCmp(curve.n, _scalar, curve.NUM_N_WORDS) != 1)
             {
                 return false;
             }
@@ -293,7 +293,7 @@ namespace Wheel.Crypto.Elliptic
             VLI.Set(k, K, num_words);
 
             // Make sure 0 < k < curve_n 
-            if (VLI.IsZero(k, num_words) || VLI.Cmp(curve.n, k, num_n_words) != 1)
+            if (VLI.IsZero(k, num_words) || VLI.ConstTimeCmp(curve.n, k, num_n_words) != 1)
             {
                 throw new InvalidDataException("The secret k value does not meet the requirements");
             }
@@ -330,7 +330,7 @@ namespace Wheel.Crypto.Elliptic
                 return false;
             }
 
-            if (VLI.Cmp(s, curve.half_n, num_words) == 1)
+            if (VLI.ConstTimeCmp(s, curve.half_n, num_words) == 1)
             {
                 // Apply Low-S rule to signature
                 VLI.Sub(s, curve.n, s, num_words); // s = n - s 

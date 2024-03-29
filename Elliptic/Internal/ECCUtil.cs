@@ -189,7 +189,7 @@ namespace Wheel.Crypto.Elliptic.Internal
             }
 
             /* Reduce mod curve_n */
-            if (VLI.CmpUnsafe(curve.n, native, num_n_words) != 1)
+            if (VLI.VarTimeCmp(curve.n, native, num_n_words) != 1)
             {
                 VLI.Sub(native, native, curve.n, num_n_words);
             }

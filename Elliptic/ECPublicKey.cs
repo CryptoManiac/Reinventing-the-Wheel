@@ -86,7 +86,7 @@ namespace Wheel.Crypto.Elliptic
         /// <summary>
         /// Erase object state
         /// </summary>
-        public unsafe void Reset()
+        public void Reset()
         {
             // Erase current data
             VLI.Clear(native_point, curve.NUM_WORDS * 2);
@@ -305,7 +305,7 @@ namespace Wheel.Crypto.Elliptic
             }
 
             // r, s must be < n.
-            if (VLI.CmpUnsafe(curve.n, r, num_n_words) != 1 || VLI.CmpUnsafe(curve.n, s, num_n_words) != 1)
+            if (VLI.VarTimeCmp(curve.n, r, num_n_words) != 1 || VLI.VarTimeCmp(curve.n, s, num_n_words) != 1)
             {
                 return false;
             }
@@ -358,7 +358,7 @@ namespace Wheel.Crypto.Elliptic
             ECCUtil.ApplyZ(curve, rx, ry, z);
 
             // v = x1 (mod n)
-            if (VLI.CmpUnsafe(curve.n, rx, num_n_words) != 1)
+            if (VLI.VarTimeCmp(curve.n, rx, num_n_words) != 1)
             {
                 VLI.Sub(rx, rx, curve.n, num_n_words);
             }
