@@ -1,23 +1,30 @@
-﻿namespace Wheel.Hashing.RIPEMD.Internal
+﻿using System.Runtime.CompilerServices;
+
+namespace Wheel.Hashing.RIPEMD.Internal
 {
     internal static class InternalRIPEMDOps
 	{
         /// <summary>
         /// ROL(x, n) cyclically rotates x over n bits to the left.
-        /// x must be of an unsigned 32 bits type and 0 <= n < 32.
+        /// n must be within [0 .. 32) range.
         /// </summary>
         /// <param name="x"></param>
         /// <param name="n"></param>
-        /// <returns></returns>
-        static uint ROL(uint x, int n) => (((x) << (n)) | ((x) >> (32 - (n))));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static uint ROL(uint x, int n) => (x << n) | (x >> (32 - n));
 
         // the three basic functions F(), G() and H()
-        static uint F(uint x, uint y, uint z) => ((x) ^ (y) ^ (z));
-        static uint G(uint x, uint y, uint z) => (((x) & (y)) | (~(x) & (z)));
-        static uint H(uint x, uint y, uint z) => (((x) | ~(y)) ^ (z));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static uint F(uint x, uint y, uint z) => x ^ y ^ z;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static uint G(uint x, uint y, uint z) => (x & y) | (~x & z);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static uint H(uint x, uint y, uint z) => (x | ~y) ^ z;
 
-        static uint I(uint x, uint y, uint z) => (((x) & (z)) | ((y) & ~(z)));
-        static uint J(uint x, uint y, uint z) => ((x) ^ ((y) | ~(z)));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static uint I(uint x, uint y, uint z) => (x & z) | (y & ~z);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static uint J(uint x, uint y, uint z) => x ^ (y | ~z);
 
         // the eight basic operations FF() through III()
         static void FF(ref uint a, uint b, ref uint c, uint d, uint e, uint x, int s)
@@ -93,7 +100,6 @@
         /// <summary>
         /// Compression function
         /// </summary>
-        /// <returns>(AA, BB, CC, DD, EE)</returns>
         public static void Compress(ref InternalRIPEMDState state, in InternalRIPEMDBlock X)
         {
             uint aa = state.X00;
@@ -319,7 +325,7 @@
             }
 
             // append the bit m_n == 1
-            X.registers[(int)((lswlen >> 2) & 15)] ^= (uint)1 << (8 * (lswlen & 3) + 7);
+            X.registers[(lswlen >> 2) & 15] ^= (uint)1 << (8 * (lswlen & 3) + 7);
 
             if ((lswlen & 63) > 55)
             {

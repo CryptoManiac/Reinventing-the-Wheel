@@ -91,12 +91,12 @@ namespace Wheel.Hashing.RIPEMD
             if (i > 0)
             {
                 // First chunk is an odd size
-                var oddChunk = input.Slice(offset, 64 - (int)i);
+                var oddChunk = input.Slice(offset, 64 - i);
                 oddChunk.CopyTo(
                     block.Slice(i, oddChunk.Length)
                 );
                 InternalRIPEMDOps.Compress(ref state, block);
-                offset += 64 - (int)i;
+                offset += 64 - i;
                 len -= 64 - i;
             }
 
