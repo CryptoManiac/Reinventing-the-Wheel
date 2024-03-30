@@ -265,6 +265,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         public IPublicKey MakePublicKey(ReadOnlySpan<byte> data) => new ECPublicKey(this, data);
         public IPrivateKey MakePrivateKey(ReadOnlySpan<byte> data) => new ECPrivateKey(this, data);
         public DERSignature MakeDERSignature(ReadOnlySpan<byte> data) => new(this, data);
+        public DERSignature MakeDERSignature(ReadOnlySpan<byte> data, bool nonCanonical) => new(this, data, nonCanonical);
         public CompactSignature MakeCompactSignature(ReadOnlySpan<byte> data) => new(this, data);
 
         public bool IsValidPublicKey(ReadOnlySpan<byte> data) => ECPublicKey.IsValidPublicKey(this, data);

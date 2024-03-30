@@ -28,6 +28,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         public IPublicKey MakePublicKey(ReadOnlySpan<byte> data);
         public IPrivateKey MakePrivateKey(ReadOnlySpan<byte> data);
         public DERSignature MakeDERSignature(ReadOnlySpan<byte> data);
+        public DERSignature MakeDERSignature(ReadOnlySpan<byte> data, bool nonCanonical);
         public CompactSignature MakeCompactSignature(ReadOnlySpan<byte> data);
 
         public bool IsValidPublicKey(ReadOnlySpan<byte> data);
