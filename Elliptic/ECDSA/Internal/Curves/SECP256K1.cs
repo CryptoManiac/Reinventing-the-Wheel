@@ -57,8 +57,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
             int num_words = NUM_BITS / VLI.WORD_BITS;
 
             // t1 = X, t2 = Y, t3 = Z
-            Span<ulong> t4 = stackalloc ulong[num_words];
-            Span<ulong> t5 = stackalloc ulong[num_words];
+            Span<ulong> t4 = stackalloc ulong[VLI.ECC_MAX_WORDS];
+            Span<ulong> t5 = stackalloc ulong[VLI.ECC_MAX_WORDS];
 
             if (VLI.IsZero(Z1, num_words))
             {
