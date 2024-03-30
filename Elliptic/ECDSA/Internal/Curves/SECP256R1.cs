@@ -38,10 +38,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
             Span<ulong> product = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
             int num_words = NUM_BITS / VLI.WORD_BITS;
             VLI.Square(product, left, num_words);
-            // NOTE: VLI.MMod is VERY slow
-            VLI.MMod(result, product, p, num_words);
-            // TODO: Implement secp256r1-specific MMod function for usable performance
-            //MMod(result, product); 
+            //VLI.MMod(result, product, p, num_words);
+            MMod(result, product); 
         }
 
         public static void ModMult(Span<ulong> result, Span<ulong> left, ReadOnlySpan<ulong> right)
@@ -49,10 +47,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
             Span<ulong> product = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
             int num_words = NUM_BITS / VLI.WORD_BITS;
             VLI.Mult(product, left, right, num_words);
-            // NOTE: VLI.MMod is VERY slow
-            VLI.MMod(result, product, p, num_words);
-            // TODO: Implement secp256r1-specific MMod function for usable performance
-            //MMod(result, product);
+            //VLI.MMod(result, product, p, num_words);
+            MMod(result, product);
         }
 
         /// <summary>
@@ -111,13 +107,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
             VLI.Set(Y1, t4, num_words);
         }
 
-        /*
-         * WARNING: Before trying to compile the following code, don't forget to put your hazmat suit on!
         private static void MMod(Span<ulong> result, Span<ulong> product)
         {
             int num_words_secp256r1 = NUM_BITS / VLI.WORD_BITS;
 
-            Span<ulong> tmp = stackalloc ulong[num_words_secp256r1];
+            Span<ulong> tmp = stackalloc ulong[VLI.ECC_MAX_WORDS];
 
             int carry;
 
@@ -130,7 +124,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
             tmp[2] = product[6];
             tmp[3] = product[7];
             carry = (int)VLI.Add(tmp, tmp, tmp, num_words_secp256r1);
-            carry = (int)VLI.Add(result, result, tmp, num_words_secp256r1);
+            carry += (int)VLI.Add(result, result, tmp, num_words_secp256r1);
 
             // s2
             tmp[1] = product[6] << 32;
@@ -151,7 +145,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
             tmp[1] = (product[5] >> 32) | (product[6] & 0xffffffff00000000);
             tmp[2] = product[7];
             tmp[3] = (product[6] >> 32) | (product[4] << 32);
-            carry += (int)VLI.Sub(result, result, tmp, num_words_secp256r1);
+            carry += (int)VLI.Add(result, result, tmp, num_words_secp256r1);
 
             // d1 
             tmp[0] = (product[5] >> 32) | (product[6] << 32);
@@ -195,7 +189,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
                     carry -= (int)VLI.Sub(result, result, p, num_words_secp256r1);
                 }
             }
-        }*/
+        }
     }
 }
 
