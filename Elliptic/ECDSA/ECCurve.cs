@@ -331,7 +331,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <summary>
         /// Size of compact signature in bytes
         /// </summary>
-        public int CompactSigntureSize => CompactSignature.GetEncodedSize(this);
+        public int CompactSignatureSize => CompactSignature.GetEncodedSize(this);
 
         /// <summary>
         /// Make an empty (invalid) private key for this curve

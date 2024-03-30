@@ -43,7 +43,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// <summary>
         /// Size of compact signature in bytes
         /// </summary>
-        public int CompactSigntureSize { get; }
+        public int CompactSignatureSize { get; }
 
         /// <summary>
         /// Make an empty (invalid) public key for this curve
