@@ -153,6 +153,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
             int rpos, rlen, spos, slen;
             int pos = 0;
             int lenbyte;
+            int len;
 
             int inputlen = encoded.Length;
             int num_bytes = curve.NUM_BYTES;
@@ -169,7 +170,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
             {
                 return false;
             }
-            lenbyte = encoded[pos++];
+            len = lenbyte = encoded[pos++];
             if ((lenbyte & 0x80) != 0)
             {
                 lenbyte -= 0x80;
@@ -274,6 +275,12 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
                 return false;
             }
             spos = pos;
+
+            // Handle invalid sequence length encoding
+            if (!lax && len != (4 + slen + rlen) )
+            {
+                return false;
+            }
 
             // Negate non-canonical r
             if (lax && encoded[rpos] == 0x00)
