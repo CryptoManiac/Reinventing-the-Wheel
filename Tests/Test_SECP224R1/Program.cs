@@ -15,7 +15,6 @@ string secret_seed = "The quick brown fox jumps over the lazy dog";
 string personalization = "For signing tests";
 int secret_key_number = 0;
 
-// Must be valid, check here: http://kjur.github.io/jsrsasign/sample/sample-ecdsa.html (select SECP224R1 curve and SHA256withECDSA algorithm)
 SortedDictionary<string, string> vectors = new()
 {
     {  "HMAC_SHA224", "303C021CEFBE1C9CF08272025950D625242F010EE970CFF4059205BF69EC8A36021C7F2B49F031DFC0D42B46CA7C2C5AA30135A6A724A055CCF40B58B869"},
