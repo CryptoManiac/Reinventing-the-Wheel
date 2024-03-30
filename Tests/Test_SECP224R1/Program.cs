@@ -79,7 +79,7 @@ if (!secretKey.ComputePublicKey(out IPublicKey publicKey))
 }
 
 Span<byte> secret_key = stackalloc byte[curve.PrivateKeySize];
-Span<byte> public_key_uncompressed = stackalloc byte[curve.PublicKeySize];
+Span<byte> public_key_uncompressed = stackalloc byte[curve.UncompressedPublicKeySize];
 Span<byte> public_key_compressed = stackalloc byte[curve.CompressedPublicKeySize];
 
 if (!secretKey.Serialize(secret_key))

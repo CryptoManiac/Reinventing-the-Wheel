@@ -26,9 +26,9 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         public int PrivateKeySize { get; }
 
         /// <summary>
-        /// Size of encoded public key in bytes
+        /// Size of uncompressed public key in bytes
         /// </summary>
-        public int PublicKeySize { get; }
+        public int UncompressedPublicKeySize { get; }
 
         /// <summary>
         /// Size of compressed public key in bytes

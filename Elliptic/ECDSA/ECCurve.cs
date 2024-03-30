@@ -314,9 +314,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         public int PrivateKeySize => ECPrivateKey.GetEncodedSize(this);
 
         /// <summary>
-        /// Size of encoded public key in bytes
+        /// Size of uncompressed public key in bytes
         /// </summary>
-        public int PublicKeySize => ECPublicKey.GetEncodedSize(this);
+        public int UncompressedPublicKeySize => ECPublicKey.GetUncompressedSize(this);
 
         /// <summary>
         /// Size of compressed public key in bytes

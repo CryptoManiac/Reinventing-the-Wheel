@@ -24,7 +24,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <summary>
         /// Encoded key size in bytes
         /// </summary>
-        public readonly int EncodedSize => GetEncodedSize(_curve);
+        public readonly int EncodedSize => GetUncompressedSize(_curve);
 
         /// <summary>
         /// Encoded key size in bytes
@@ -172,11 +172,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         }
 
         /// <summary>
-        /// Size of encoded public key for a given curve
+        /// Size of uncompressed public key for a given curve
         /// </summary>
         /// <param name="curve"></param>
         /// <returns>Number of bytes</returns>
-        public static int GetEncodedSize(ICurve curve)
+        public static int GetUncompressedSize(ICurve curve)
         {
             return 2 * curve.NUM_BYTES;
         }
