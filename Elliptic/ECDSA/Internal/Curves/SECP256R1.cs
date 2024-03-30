@@ -110,6 +110,92 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
             VLI.Set(Z1, Y1, num_words);
             VLI.Set(Y1, t4, num_words);
         }
+
+        /*
+         * WARNING: Before trying to compile the following code, don't forget to put your hazmat suit on!
+        private static void MMod(Span<ulong> result, Span<ulong> product)
+        {
+            int num_words_secp256r1 = NUM_BITS / VLI.WORD_BITS;
+
+            Span<ulong> tmp = stackalloc ulong[num_words_secp256r1];
+
+            int carry;
+
+            // t
+            VLI.Set(result, product, num_words_secp256r1);
+
+            // s1
+            tmp[0] = 0;
+            tmp[1] = product[5] & 0xffffffff00000000;
+            tmp[2] = product[6];
+            tmp[3] = product[7];
+            carry = (int)VLI.Add(tmp, tmp, tmp, num_words_secp256r1);
+            carry = (int)VLI.Add(result, result, tmp, num_words_secp256r1);
+
+            // s2
+            tmp[1] = product[6] << 32;
+            tmp[2] = (product[6] >> 32) | (product[7] << 32);
+            tmp[3] = product[7] >> 32;
+            carry += (int)VLI.Add(tmp, tmp, tmp, num_words_secp256r1);
+            carry += (int)VLI.Add(result, result, tmp, num_words_secp256r1);
+
+            // s3
+            tmp[0] = product[4];
+            tmp[1] = product[5] & 0xffffffff;
+            tmp[2] = 0;
+            tmp[3] = product[7];
+            carry += (int)VLI.Add(result, result, tmp, num_words_secp256r1);
+
+            // s4
+            tmp[0] = (product[4] >> 32) | (product[5] << 32);
+            tmp[1] = (product[5] >> 32) | (product[6] & 0xffffffff00000000);
+            tmp[2] = product[7];
+            tmp[3] = (product[6] >> 32) | (product[4] << 32);
+            carry += (int)VLI.Sub(result, result, tmp, num_words_secp256r1);
+
+            // d1 
+            tmp[0] = (product[5] >> 32) | (product[6] << 32);
+            tmp[1] = (product[6] >> 32);
+            tmp[2] = 0;
+            tmp[3] = (product[4] & 0xffffffff) | (product[5] << 32);
+            carry -= (int)VLI.Sub(result, result, tmp, num_words_secp256r1);
+
+            // d2 
+            tmp[0] = product[6];
+            tmp[1] = product[7];
+            tmp[2] = 0;
+            tmp[3] = (product[4] >> 32) | (product[5] & 0xffffffff00000000);
+            carry -= (int)VLI.Sub(result, result, tmp, num_words_secp256r1);
+
+            // d3 
+            tmp[0] = (product[6] >> 32) | (product[7] << 32);
+            tmp[1] = (product[7] >> 32) | (product[4] << 32);
+            tmp[2] = (product[4] >> 32) | (product[5] << 32);
+            tmp[3] = (product[6] << 32);
+            carry -= (int)VLI.Sub(result, result, tmp, num_words_secp256r1);
+
+            // d4 
+            tmp[0] = product[7];
+            tmp[1] = product[4] & 0xffffffff00000000;
+            tmp[2] = product[5];
+            tmp[3] = product[6] & 0xffffffff00000000;
+            carry -= (int)VLI.Sub(result, result, tmp, num_words_secp256r1);
+
+            if (carry < 0)
+            {
+                do
+                {
+                    carry += (int)VLI.Add(result, result, p, num_words_secp256r1);
+                } while (carry < 0);
+            }
+            else
+            {
+                while (Convert.ToBoolean(carry) || VLI.VarTimeCmp(p, result, num_words_secp256r1) != 1)
+                {
+                    carry -= (int)VLI.Sub(result, result, p, num_words_secp256r1);
+                }
+            }
+        }*/
     }
 }
 
