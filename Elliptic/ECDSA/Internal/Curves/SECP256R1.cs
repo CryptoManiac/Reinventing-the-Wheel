@@ -33,11 +33,6 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
             VLI.ModAdd(result, result, b, p, num_words); // r = x^3 - 3x + b
         }
 
-        /// <summary>
-        /// Compute a = sqrt(a) (mod curve_p).
-        /// </summary>
-        /// <param name="result"></param>
-        /// <param name="left"></param>
         public static void ModSquare(Span<ulong> result, ReadOnlySpan<ulong> left)
         {
             Span<ulong> product = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
