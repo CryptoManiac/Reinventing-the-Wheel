@@ -342,7 +342,7 @@
         /// <param name="block"></param>
         /// <param name="lswlen"></param>
         /// <param name="mswlen"></param>
-        public static void Finish(ref InternalRIPEMDState state, ref InternalRIPEMDBlock block, uint lswlen, uint mswlen)
+        public static void Finish(ref InternalRIPEMDState state, ref InternalRIPEMDBlock block, int lswlen, int mswlen)
         {
             InternalRIPEMDBlock X = new();
 
@@ -354,7 +354,7 @@
             }
 
             // append the bit m_n == 1
-            X.registers[(int)((lswlen >> 2) & 15)] ^= (uint)1 << (8 * ((int)lswlen & 3) + 7);
+            X.registers[(int)((lswlen >> 2) & 15)] ^= (uint)1 << (8 * (lswlen & 3) + 7);
 
             if ((lswlen & 63) > 55)
             {
@@ -364,8 +364,8 @@
             }
 
             // append length in bits
-            X.X14 = lswlen << 3;
-            X.X15 = (lswlen >> 29) | (mswlen << 3);
+            X.X14 = (uint)(lswlen << 3);
+            X.X15 = (uint)((lswlen >> 29) | (mswlen << 3));
             Compress(ref state, X);
         }
     }

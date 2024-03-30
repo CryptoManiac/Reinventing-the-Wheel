@@ -12,7 +12,7 @@ namespace Wheel.Hashing.SHA.SHA512
         /// Current data block length in bytes
         /// </summary>
         [FieldOffset(0)]
-        private uint blockLen = 0;
+        private int blockLen = 0;
 
         /// <summary>
         /// Output length
@@ -88,10 +88,12 @@ namespace Wheel.Hashing.SHA.SHA512
                 ReadOnlySpan<byte> toWrite = input.Slice(i, (remaining < needed) ? remaining : needed);
 
                 // Write data at current index
-                pendingBlock.Write(toWrite, blockLen);
+                toWrite.CopyTo(
+                    pendingBlock.Slice(blockLen, toWrite.Length)
+                );
 
                 i += toWrite.Length;
-                blockLen += (uint)toWrite.Length;
+                blockLen += toWrite.Length;
 
                 if (blockLen == 128)
                 {
@@ -166,10 +168,10 @@ namespace Wheel.Hashing.SHA.SHA512
 
         private void Finish()
         {
-            uint i = blockLen;
-            uint end = (blockLen < 112u) ? 112u : 128u;
-            pendingBlock.bytes[(int)i++] = 0x80; // Append a bit 1
-            pendingBlock.Wipe(i, end - i); // Fill with zeros
+            int i = blockLen;
+            int end = (blockLen < 112) ? 112 : 128;
+            pendingBlock.bytes[i++] = 0x80; // Append a bit 1
+            pendingBlock.Slice(i, end - i).Clear(); // Fill the rest with zeros
 
             if (blockLen >= 112)
             {
@@ -181,7 +183,7 @@ namespace Wheel.Hashing.SHA.SHA512
 
             // Append to the padding the total message's
             // length in bits and transform.
-            bitLen += blockLen * 8;
+            bitLen += (ulong)blockLen * 8;
             pendingBlock.lastQWord = bitLen;
             REVERT(ref pendingBlock.lastQWord);
             Transform();

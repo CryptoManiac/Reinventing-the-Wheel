@@ -48,7 +48,7 @@ namespace Wheel.Hashing.SHA.SHA256.Internal
         /// <summary>
         /// Revert the byte order for the first 16 state registers
         /// </summary>
-        private unsafe void RevertBlock()
+        private void RevertBlock()
         {
             for (int i = 0; i < InternalSHA256Block.TypeUintSz; ++i)
             {

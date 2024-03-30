@@ -10,23 +10,14 @@ namespace Wheel.Hashing.SHA.SHA256.Internal
 	internal struct InternalSHA256Block
 	{
         /// <summary>
-        /// Reset some sequence of bytes to zero
+        /// Shortcut for making slices of the internal storage
         /// </summary>
-        /// <param name="begin">Where to begin</param>
-        /// <param name="sz">How many bytes to erase</param>
-        public void Wipe(uint begin, uint sz)
+        /// <param name="start">Offset of slice start position</param>
+        /// <param name="length">Number of bytes</param>
+        /// <returns>A slice of bytes that can be written to</returns>
+        public readonly Span<byte> Slice(int start, int length)
         {
-            bytes.Slice((int)begin, (int)sz).Clear();
-        }
-
-        /// <summary>
-        /// Overwrite the part of value with a sequence of bytes
-        /// </summary>
-        /// <param name="bytes">Bytes to write</param>
-        /// <param name="targetIndex">Offset to write them from the beginning of this vector</param>
-        public void Write(ReadOnlySpan<byte> input, uint targetIndex)
-        {
-            input.CopyTo(bytes.Slice((int)targetIndex, input.Length));
+            return bytes.Slice(start, length);
         }
 
         /// <summary>

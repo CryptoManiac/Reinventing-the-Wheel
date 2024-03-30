@@ -11,7 +11,7 @@ namespace Wheel.Hashing.SHA.SHA256
         /// Current data block length in bytes
         /// </summary>
         [FieldOffset(0)]
-        private uint blockLen = 0;
+        private int blockLen = 0;
 
         /// <summary>
         /// Output length
@@ -110,16 +110,18 @@ namespace Wheel.Hashing.SHA.SHA256
                 int remaining = input.Length - i;
 
                 // How many bytes are needed to complete this block
-                int needed = 64 - (int)blockLen;
+                int needed = 64 - blockLen;
 
                 // Either entire remaining byte stream or merely a needed chunk of it
                 ReadOnlySpan<byte> toWrite = input.Slice(i, (remaining < needed) ? remaining : needed);
 
                 // Write data at current index
-                pendingBlock.Write(toWrite, blockLen);
+                toWrite.CopyTo(
+                    pendingBlock.Slice(blockLen, toWrite.Length)
+                );
 
                 i += toWrite.Length;
-                blockLen += (uint)toWrite.Length;
+                blockLen += toWrite.Length;
 
                 if (blockLen == 64)
                 {
@@ -165,10 +167,10 @@ namespace Wheel.Hashing.SHA.SHA256
 
         private void Finish()
         {
-            uint i = blockLen;
-            uint end = (blockLen < 56u) ? 56u : 64u;
-            pendingBlock.bytes[(int)i++] = 0x80; // Append a bit 1
-            pendingBlock.Wipe(i, end - i); // Pad with zeros
+            int i = blockLen;
+            int end = (blockLen < 56) ? 56 : 64;
+            pendingBlock.bytes[i++] = 0x80; // Append a bit 1
+            pendingBlock.Slice(i, end - i).Clear(); // Set the rest to padding zeros
 
             if (blockLen >= 56)
             {
@@ -183,7 +185,7 @@ namespace Wheel.Hashing.SHA.SHA256
 
             // Append to the padding the total message's
             // length in bits and transform.
-            bitLen += blockLen * 8;
+            bitLen += (ulong)blockLen * 8;
             pendingBlock.lastDWord = (ulong)IPAddress.HostToNetworkOrder((long)bitLen);
             Transform();
 

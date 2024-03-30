@@ -7,10 +7,10 @@ namespace Wheel.Hashing.RIPEMD
     public struct RIPEMD160 : IHasher
 	{
         [FieldOffset(0)]
-        private uint bytesLo = 0;
+        private int bytesLo = 0;
 
         [FieldOffset(4)]
-        private uint bytesHi = 0;
+        private int bytesHi = 0;
 
         [FieldOffset(8)]
         private InternalRIPEMDState state = InternalRIPEMDConstants.ripemd_init_state;
@@ -62,10 +62,10 @@ namespace Wheel.Hashing.RIPEMD
 
         public void Update(ReadOnlySpan<byte> input)
         {
-            uint len = (uint)input.Length;
+            int len = input.Length;
 
             // Update bitcount
-            uint t = bytesLo;
+            int t = bytesLo;
             if ((bytesLo = t + len) < t)
             {
                 // Carry from low to high
@@ -73,12 +73,14 @@ namespace Wheel.Hashing.RIPEMD
             }
 
             // Bytes already in key
-            uint i = t % 64;
+            int i = t % 64;
 
             // i is always less than block size
             if (64 - i > len)
             {
-                block.Write(input, i);
+                input.CopyTo(
+                    block.Slice(i, input.Length)
+                );
                 return;
             }
 
@@ -89,7 +91,10 @@ namespace Wheel.Hashing.RIPEMD
             if (i > 0)
             {
                 // First chunk is an odd size
-                block.Write(input.Slice(offset, 64 - (int)i), i);
+                var oddChunk = input.Slice(offset, 64 - (int)i);
+                oddChunk.CopyTo(
+                    block.Slice(i, oddChunk.Length)
+                );
                 InternalRIPEMDOps.Compress(ref state, block);
                 offset += 64 - (int)i;
                 len -= 64 - i;
@@ -98,7 +103,10 @@ namespace Wheel.Hashing.RIPEMD
             while (len >= 64)
             {
                 // Process data in 64-byte chunks
-                block.Write(input.Slice(offset, 64), i);
+                var chunk = input.Slice(offset, 64);
+                chunk.CopyTo(
+                    block.Slice(i, chunk.Length)
+                );
                 InternalRIPEMDOps.Compress(ref state, block);
                 offset += 64;
                 len -= 64;
@@ -107,7 +115,10 @@ namespace Wheel.Hashing.RIPEMD
             if (len > 0)
             {
                 // Handle any remaining bytes of data.
-                block.Write(input.Slice(offset, (int)len), 0);
+                var tail = input.Slice(offset, len);
+                tail.CopyTo(
+                    block.Slice(0, tail.Length)
+                );
             }
         }
 

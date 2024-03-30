@@ -47,18 +47,18 @@ namespace Wheel.Hashing.SHA.SHA512.Internal
         /// <summary>
         /// Revert the byte order for the first 16 state registers
         /// </summary>
-        private unsafe void RevertBlock()
+        private void RevertBlock()
         {
             for (int i = 0; i < InternalSHA512Block.TypeUlongSz; ++i)
             {
-                words[i] = (ulong)IPAddress.HostToNetworkOrder((long)words[i]);
+                registers[i] = (ulong)IPAddress.HostToNetworkOrder((long)registers[i]);
             }
         }
 
         /// <summary>
         /// Set to zero
         /// </summary>
-        public unsafe void Reset()
+        public void Reset()
         {
             registers.Clear();
         }

@@ -11,19 +11,20 @@ namespace Wheel.Hashing.RIPEMD.Internal
     internal struct InternalRIPEMDBlock
     {
         /// <summary>
-        /// Overwrite the part of value with a sequence of bytes
+        /// Shortcut for making slices of the internal storage
         /// </summary>
-        /// <param name="bytes">Bytes to write</param>
-        /// <param name="targetIndex">Offset to write them from the beginning of this vector</param>
-        public void Write(ReadOnlySpan<byte> input, uint targetIndex)
+        /// <param name="start">Offset of slice start position</param>
+        /// <param name="length">Number of bytes</param>
+        /// <returns>A slice of bytes that can be written to</returns>
+        public readonly Span<byte> Slice(int start, int length)
         {
-            input.CopyTo(bytes.Slice((int)targetIndex, input.Length));
+            return bytes.Slice(start, length);
         }
 
         /// <summary>
         /// Set to zero
         /// </summary>
-        public unsafe void Reset()
+        public void Reset()
         {
             registers.Clear();
         }
