@@ -156,9 +156,9 @@ if (!secretKey.ComputePublicKey(out IPublicKey publicKey))
     throw new SystemException("Computation of the public key has failed");
 }
 
-Span<byte> secret_key = stackalloc byte[32];
-Span<byte> public_key_uncompressed = stackalloc byte[64];
-Span<byte> public_key_compressed = stackalloc byte[33];
+Span<byte> secret_key = stackalloc byte[curve.NUM_N_BYTES];
+Span<byte> public_key_uncompressed = stackalloc byte[2 * curve.NUM_N_BYTES];
+Span<byte> public_key_compressed = stackalloc byte[1 + curve.NUM_N_BYTES];
 
 if (!secretKey.Serialize(secret_key))
 {
@@ -180,7 +180,7 @@ Console.WriteLine("SECP256R1 public key: 04{0}", Convert.ToHexString(public_key_
 Console.WriteLine("SECP256R1 compressed public key: {0}", Convert.ToHexString(public_key_compressed));
 Console.WriteLine("Message to sign: {0}", message);
 
-Span<byte> signature = stackalloc byte[70];
+Span<byte> signature = stackalloc byte[DERSignature.GetEncodeSize(curve)];
 
 Console.WriteLine("Generated SECP256R1 signatures:");
 

@@ -21,30 +21,6 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
             return carry;
         }
 
-        public static void ModSQRT(Span<ulong> a, ECCurve curve)
-        {
-            int i;
-            Span<ulong> p1 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> l_result = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            p1[0] = l_result[0] = 1;
-
-            int num_words = curve.NUM_WORDS;
-
-            // When curve_secp256k1.p == 3 (mod 4), we can compute
-            //   sqrt(a) = a^((curve_secp256k1.p + 1) / 4) (mod curve_secp256k1.p).
-
-            VLI.Add(p1, curve.p, p1, num_words); // p1 = curve_p + 1
-            for (i = VLI.NumBits(p1, num_words) - 1; i > 1; --i)
-            {
-                curve.ModSquare(l_result, l_result);
-                if (VLI.TestBit(p1, i))
-                {
-                    curve.ModMult(l_result, l_result, a);
-                }
-            }
-            VLI.Set(a, l_result, num_words);
-        }
-
         /// <summary>
         /// Modify (x1, y1) => (x1 * z^2, y1 * z^3)
         /// </summary>

@@ -22,7 +22,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
             {
                 fixed (ulong* ptr = &signature_data[0])
                 {
-                    return new Span<ulong>(ptr, curve.NUM_WORDS);
+                    return new Span<ulong>(ptr, curve.NUM_N_WORDS);
                 }
             }
         }
@@ -34,9 +34,9 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         {
             get
             {
-                fixed (ulong* ptr = &signature_data[curve.NUM_WORDS])
+                fixed (ulong* ptr = &signature_data[curve.NUM_N_WORDS])
                 {
-                    return new Span<ulong>(ptr, curve.NUM_WORDS);
+                    return new Span<ulong>(ptr, curve.NUM_N_WORDS);
                 }
             }
         }
@@ -87,8 +87,8 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// <returns>Number of bytes written/to write</returns>
         public readonly int Encode(Span<byte> encoded)
         {
-            byte lenR = (byte)curve.NUM_BYTES;
-            byte lenS = (byte)curve.NUM_BYTES;
+            byte lenR = (byte)curve.NUM_N_BYTES;
+            byte lenS = (byte)curve.NUM_N_BYTES;
 
             int reqSz = 6 + lenS + lenR;
             if (encoded.Length >= reqSz)
@@ -127,6 +127,16 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         }
 
         /// <summary>
+        /// Size of encoded signature for a given curve
+        /// </summary>
+        /// <param name="curve"></param>
+        /// <returns></returns>
+        public static int GetEncodeSize(ICurve curve)
+        {
+            return 6 + 2 * curve.NUM_N_BYTES;
+        }
+
+        /// <summary>
         /// Parse DER formatted input and construct signature from its contents
         /// Note: based on parse_der_lax routine from the bitcoin distribution
         /// </summary>
@@ -140,7 +150,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
             int lenbyte;
 
             int inputlen = encoded.Length;
-            int num_bytes = curve.NUM_BYTES;
+            int num_bytes = curve.NUM_N_BYTES;
 
             // Sequence tag byte
             if (pos == inputlen || encoded[pos] != 0x30)

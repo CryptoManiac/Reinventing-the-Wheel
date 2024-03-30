@@ -43,12 +43,40 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         }
 
         /// <summary>
+        /// Compute a = sqrt(a) (mod curve_p)
+        /// </summary>
+        /// <param name="a"></param>
+        public static void ModSQRT(Span<ulong> a)
+        {
+            int i;
+            Span<ulong> p1 = stackalloc ulong[VLI.ECC_MAX_WORDS];
+            Span<ulong> l_result = stackalloc ulong[VLI.ECC_MAX_WORDS];
+            p1[0] = l_result[0] = 1;
+
+            int num_words = NUM_BITS / VLI.WORD_BITS;
+
+            // When curve_secp256k1.p == 3 (mod 4), we can compute
+            //   sqrt(a) = a^((curve_secp256k1.p + 1) / 4) (mod curve_secp256k1.p).
+
+            VLI.Add(p1, p, p1, num_words); // p1 = curve_p + 1
+            for (i = VLI.NumBits(p1, num_words) - 1; i > 1; --i)
+            {
+                ModSquare(l_result, l_result);
+                if (VLI.TestBit(p1, i))
+                {
+                    ModMult(l_result, l_result, a);
+                }
+            }
+            VLI.Set(a, l_result, num_words);
+        }
+
+        /// <summary>
         /// Computes result = (left * right) % p
         /// </summary>
         /// <param name="result"></param>
         /// <param name="left"></param>
         /// <param name="right"></param>
-        public static void ModMult(Span<ulong> result, Span<ulong> left, ReadOnlySpan<ulong> right)
+        public static void ModMult(Span<ulong> result, ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right)
         {
             Span<ulong> product = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
             int num_words = NUM_BITS / VLI.WORD_BITS;

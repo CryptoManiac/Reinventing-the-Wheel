@@ -188,7 +188,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <returns>True if successful and this key is valid</returns>
         public readonly bool Serialize(Span<byte> secret_scalar)
         {
-            if (!IsValid || secret_scalar.Length != _curve.NUM_BYTES)
+            if (!IsValid || secret_scalar.Length != _curve.NUM_N_BYTES)
             {
                 return false;
             }

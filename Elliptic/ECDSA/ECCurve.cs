@@ -67,9 +67,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
         #region Calculated lengths
         public readonly int NUM_WORDS => NUM_BITS / VLI.WORD_BITS;
-        public readonly int NUM_N_WORDS => NUM_N_BITS / VLI.WORD_BITS;
+        public readonly int NUM_N_WORDS => (NUM_N_BITS + (VLI.WORD_BITS - 1)) / VLI.WORD_BITS;
         public readonly int NUM_BYTES => NUM_BITS / 8;
-        public readonly int NUM_N_BYTES => NUM_N_BITS / 8;
+        public readonly int NUM_N_BYTES => (NUM_N_BITS + 7) / 8;
         #endregion
         #endregion
 
@@ -81,7 +81,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
         private readonly unsafe delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> XSide_Impl;
         private readonly unsafe delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> ModSquare_Impl;
-        private readonly unsafe delegate* managed<Span<ulong>, Span<ulong>, ReadOnlySpan<ulong>, void> ModMult_Impl;
+        private readonly unsafe delegate* managed<Span<ulong>, void> ModSQRT_Impl;
+        private readonly unsafe delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, ReadOnlySpan<ulong>, void> ModMult_Impl;
         private readonly unsafe delegate* managed<Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian_Impl;
         #endregion
 
@@ -99,6 +100,13 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="result"></param>
         /// <param name="left"></param>
         public unsafe void ModSquare(Span<ulong> result, ReadOnlySpan<ulong> left) => ModSquare_Impl(result, left);
+
+        /// <summary>
+        /// Compute a = sqrt(a) (mod curve_p)
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="left"></param>
+        public unsafe void ModSQRT(Span<ulong> a) => ModSQRT_Impl(a);
 
         /// <summary>
         /// Computes result = (left * right) % p
@@ -185,7 +193,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         }
         #endregion
 
-        private unsafe ECCurve(int num_bits, int num_n_bits, ulong[] p, ulong[] n, ulong[] half_n, ulong[] G, ulong[] b, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> XSide, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> ModSquare, delegate* managed<Span<ulong>, Span<ulong>, ReadOnlySpan<ulong>, void> ModMult, delegate* managed<Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian)
+        private unsafe ECCurve(int num_bits, int num_n_bits, ulong[] p, ulong[] n, ulong[] half_n, ulong[] G, ulong[] b, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> XSide, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> ModSquare, delegate* managed<Span<ulong>, void> ModSQRT, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, ReadOnlySpan<ulong>, void> ModMult, delegate* managed<Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian)
         {
             Span<ulong> random = stackalloc ulong[1 + SECP256K1.NUM_BITS / VLI.WORD_BITS];
             RNG.Fill(random);
@@ -229,6 +237,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             XSide_Impl = XSide;
             ModSquare_Impl = ModSquare;
+            ModSQRT_Impl = ModSQRT;
             ModMult_Impl = ModMult;
             DoubleJacobian_Impl = DoubleJacobian;
         }
@@ -248,6 +257,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 SECP256K1.b,
                 &SECP256K1.XSide,
                 &SECP256K1.ModSquare,
+                &SECP256K1.ModSQRT,
                 &SECP256K1.ModMult,
                 &SECP256K1.DoubleJacobian
             );
@@ -268,8 +278,30 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 SECP256R1.b,
                 &SECP256R1.XSide,
                 &SECP256R1.ModSquare,
+                &SECP256R1.ModSQRT,
                 &SECP256R1.ModMult,
                 &SECP256R1.DoubleJacobian
+            );
+        }
+
+        /// <summary>
+        /// Construct a new instance of the secp224r1 context.
+        /// <returns></returns>
+        public static unsafe ECCurve Get_SECP224R1()
+        {
+            return new ECCurve(
+                SECP224R1.NUM_BITS,
+                SECP224R1.NUM_N_BITS,
+                SECP224R1.p,
+                SECP224R1.n,
+                SECP224R1.half_n,
+                SECP224R1.G,
+                SECP224R1.b,
+                &SECP224R1.XSide,
+                &SECP224R1.ModSquare,
+                &SECP224R1.ModSQRT,
+                &SECP224R1.ModMult,
+                &SECP224R1.DoubleJacobian
             );
         }
 
