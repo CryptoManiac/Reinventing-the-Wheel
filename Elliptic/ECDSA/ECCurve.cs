@@ -86,9 +86,35 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         #endregion
 
         #region Implementation wrappers
+        /// <summary>
+        /// Computes result = x^3 + b. Result must not overlap x.
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="x"></param>
         public unsafe void XSide(Span<ulong> result, ReadOnlySpan<ulong> x) => XSide_Impl(result, x);
+
+        /// <summary>
+        /// Computes result = left^2 % p
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="left"></param>
         public unsafe void ModSquare(Span<ulong> result, ReadOnlySpan<ulong> left) => ModSquare_Impl(result, left);
+
+        /// <summary>
+        /// Computes result = (left * right) % p
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
         public unsafe void ModMult(Span<ulong> result, Span<ulong> left, ReadOnlySpan<ulong> right) => ModMult_Impl(result, left, right);
+
+        /// <summary>
+        /// Double in place
+        /// https://en.wikibooks.org/wiki/Cryptography/Prime_Curve/Jacobian_Coordinates
+        /// </summary>
+        /// <param name="X1"></param>
+        /// <param name="Y1"></param>
+        /// <param name="Z1"></param>
         public unsafe void DoubleJacobian(Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1) => DoubleJacobian_Impl(X1, Y1, Z1);
         #endregion
 

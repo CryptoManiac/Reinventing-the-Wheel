@@ -28,6 +28,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
             VLI.ModAdd(result, result, b, p, NUM_BITS / VLI.WORD_BITS); // r = x^3 + b
         }
 
+        /// <summary>
+        /// Computes result = left^2 % p
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="left"></param>
         public static void ModSquare(Span<ulong> result, ReadOnlySpan<ulong> left)
         {
             Span<ulong> product = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
@@ -37,6 +42,12 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
             MMod(result, product);
         }
 
+        /// <summary>
+        /// Computes result = (left * right) % p
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
         public static void ModMult(Span<ulong> result, Span<ulong> left, ReadOnlySpan<ulong> right)
         {
             Span<ulong> product = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];

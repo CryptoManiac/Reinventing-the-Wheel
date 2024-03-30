@@ -22,7 +22,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// <summary>
         /// Dump the native point data
         /// </summary>
-        /// <param name="native"></param>
+        /// <param name="native_out">A buffer for the native point data</param>
         /// <returns>True if point is valid and copying has been successful</returns>
         public bool UnWrap(Span<ulong> native_out);
 
@@ -36,7 +36,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// <summary>
         /// Serialize the native key into big endian number
         /// </summary>
-        /// <param name="public_point"></param>
+        /// <param name="public_point">Native point data</param>
         /// <returns>True if successful and this key is valid</returns>
         public bool Serialize(Span<byte> public_point);
 
@@ -57,16 +57,16 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// <summary>
         /// Serialize the native key into a compressed point
         /// </summary>
-        /// <param name="compressed"></param>
+        /// <param name="compressed">A buffer for compressed key data</param>
         /// <returns>True if successful and this key is valid</returns>
         public bool Compress(Span<byte> compressed);
 
         /// <summary>
-        /// EC public key tweak by scalar
+        /// Public key tweak by scalar
         /// </summary>
-        /// <param name="result"></param>
-        /// <param name="scalar"></param>
-        /// <returns></returns>
+        /// <param name="result">New public key to be filled</param>
+        /// <param name="scalar">Scalar to be used for addition</param>
+        /// <returns>True on success</returns>
         public bool KeyTweak(out IPublicKey result, ReadOnlySpan<byte> scalar);
 
         /// <summary>

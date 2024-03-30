@@ -18,7 +18,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         public static ulong[] b = new ulong[] { 0x3BCE3C3E27D2604B, 0x651D06B0CC53B0F6, 0xB3EBBD55769886BC, 0x5AC635D8AA3A93E7 };
 
         /// <summary>
-        /// Computes result = x^3 + b. result must not overlap x.
+        /// Computes result = x^3 + b. Result must not overlap x.
         /// </summary>
         /// <param name="result"></param>
         /// <param name="x"></param>
@@ -33,6 +33,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
             VLI.ModAdd(result, result, b, p, num_words); // r = x^3 - 3x + b
         }
 
+        /// <summary>
+        /// Computes result = left^2 % p
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="left"></param>
         public static void ModSquare(Span<ulong> result, ReadOnlySpan<ulong> left)
         {
             Span<ulong> product = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
@@ -42,6 +47,12 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
             MMod(result, product); 
         }
 
+        /// <summary>
+        /// Computes result = (left * right) % p
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
         public static void ModMult(Span<ulong> result, Span<ulong> left, ReadOnlySpan<ulong> right)
         {
             Span<ulong> product = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];

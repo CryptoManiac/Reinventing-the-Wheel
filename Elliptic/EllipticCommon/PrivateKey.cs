@@ -23,14 +23,14 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// <summary>
         /// Dump the native point data
         /// </summary>
-        /// <param name="native"></param>
+        /// <param name="native_out">A buffer for the native representation of private key</param>
         /// <returns>True if point is valid and copying has been successful</returns>
         public bool UnWrap(Span<ulong> native_out);
 
         /// <summary>
         /// Set native secret data to given value
         /// </summary>
-        /// <param name="native_in"></param>
+        /// <param name="native_in">Native representation of the private key</param>
         /// <returns>True if secret is valid and copying has been successful</returns>
         public bool Wrap(ReadOnlySpan<ulong> native_in);
 
@@ -58,16 +58,17 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// <summary>
         /// Private key tweak by scalar
         /// </summary>
-        /// <param name="result"></param>
-        /// <param name="scalar"></param>
-        /// <returns></returns>
+        /// <param name="result">New private key to be filled</param>
+        /// <param name="scalar">Scalar to be used for addition</param>
+        /// <returns>True on success</returns>
         public bool KeyTweak(ref IPrivateKey result, ReadOnlySpan<byte> scalar);
 
         /// <summary>
         /// Generate a signature for a given hash value, using a deterministic algorithm
         /// 
-        /// Usage: Compute a hash of the data you wish to sign and pass it to this function along with your private key and entropy bytes. The entropy bytes argument may be set to empty array if you don't need this feature.
+        /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
         /// </summary>
+        /// <typeparam name="HMAC_IMPL">HMAC implementation to use</typeparam>
         /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <returns></returns>
@@ -76,11 +77,12 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// <summary>
         /// Generate a signature for a given hash value, using a deterministic algorithm
         /// 
-        /// Usage: Compute a hash of the data you wish to sign and pass it to this function along with your private key and entropy bytes. The entropy bytes argument may be set to empty array if you don't need this feature.
+        /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
         /// </summary>
+        /// <typeparam name="HMAC_IMPL">HMAC implementation to use</typeparam>
         /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
         /// <param name="message_hash">The hash of the message to sign</param>
-        /// <returns></returns>
+        /// <returns>True if successful (failure has an unrealisticallly low probability)</returns>
         public bool Sign<HMAC_IMPL>(out CompactSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac;
 
         /// <summary>
