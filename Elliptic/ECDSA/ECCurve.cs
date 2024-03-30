@@ -62,15 +62,12 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         public readonly ulong randomId { get; }
 
         #region Curve's point coordinate size
-        public readonly int NUM_BITS { get; }
-        public readonly int NUM_N_BITS { get; }
-
         #region Calculated lengths
-        public readonly int NUM_WORDS => NUM_BITS / VLI.WORD_BITS;
-        public readonly int NUM_N_WORDS => (NUM_N_BITS + (VLI.WORD_BITS - 1)) / VLI.WORD_BITS;
-        public readonly int NUM_BYTES => NUM_BITS / 8;
-        public readonly int NUM_N_BYTES => (NUM_N_BITS + 7) / 8;
+        public readonly int NUM_WORDS => VLI.BitsToWords(NUM_N_BITS);
+        public readonly int NUM_BYTES => VLI.BitsToBytes(NUM_N_BITS);
         #endregion
+
+        public readonly int NUM_N_BITS { get; }
         #endregion
 
         #region Implementation pointers
@@ -193,15 +190,14 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         }
         #endregion
 
-        private unsafe ECCurve(int num_bits, int num_n_bits, ulong[] p, ulong[] n, ulong[] half_n, ulong[] G, ulong[] b, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> XSide, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> ModSquare, delegate* managed<Span<ulong>, void> ModSQRT, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, ReadOnlySpan<ulong>, void> ModMult, delegate* managed<Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian)
+        private unsafe ECCurve(int num_n_bits, ulong[] p, ulong[] n, ulong[] half_n, ulong[] G, ulong[] b, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> XSide, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> ModSquare, delegate* managed<Span<ulong>, void> ModSQRT, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, ReadOnlySpan<ulong>, void> ModMult, delegate* managed<Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian)
         {
-            Span<ulong> random = stackalloc ulong[1 + SECP256K1.NUM_BITS / VLI.WORD_BITS];
+            Span<ulong> random = stackalloc ulong[1 + VLI.BitsToWords(NUM_N_BITS)];
             RNG.Fill(random);
 
             randomId = random[0];
 
             #region Set curve constants
-            NUM_BITS = num_bits;
             NUM_N_BITS = num_n_bits;
 
             fixed (ulong* ptr = &curveBuffers.scrambleKey[0])
@@ -248,7 +244,6 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         public static unsafe ECCurve Get_SECP256K1()
         {
             return new ECCurve(
-                SECP256K1.NUM_BITS,
                 SECP256K1.NUM_N_BITS,
                 SECP256K1.p,
                 SECP256K1.n,
@@ -269,7 +264,6 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         public static unsafe ECCurve Get_SECP256R1()
         {
             return new ECCurve(
-                SECP256R1.NUM_BITS,
                 SECP256R1.NUM_N_BITS,
                 SECP256R1.p,
                 SECP256R1.n,
@@ -290,7 +284,6 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         public static unsafe ECCurve Get_SECP224R1()
         {
             return new ECCurve(
-                SECP224R1.NUM_BITS,
                 SECP224R1.NUM_N_BITS,
                 SECP224R1.p,
                 SECP224R1.n,
@@ -478,7 +471,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             // H
             int secret_byte_index = 0;
-            Span<byte> secret_data = stackalloc byte[NUM_N_BYTES];
+            Span<byte> secret_data = stackalloc byte[NUM_BYTES];
 
             while (true)
             {
@@ -493,7 +486,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 src.CopyTo(target);
                 secret_byte_index += src.Length;
 
-                if (secret_byte_index >= NUM_N_BYTES)
+                if (secret_byte_index >= NUM_BYTES)
                 {
                     if (IsValidPrivateKey(secret_data))
                     {

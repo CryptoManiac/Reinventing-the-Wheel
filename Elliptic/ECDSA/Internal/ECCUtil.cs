@@ -9,7 +9,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
     {
         public static ulong RegularizeK(ECCurve curve, ReadOnlySpan<ulong> k, Span<ulong> k0, Span<ulong> k1)
         {
-            int num_n_words = curve.NUM_N_WORDS;
+            int num_n_words = curve.NUM_WORDS;
             int num_n_bits = curve.NUM_N_BITS;
 
             ulong carry = VLI.Add(k0, k, curve.n, num_n_words);
@@ -139,7 +139,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
 
         public static void BitsToInt(ECCurve curve, Span<ulong> native, ReadOnlySpan<byte> bits, int bits_size)
         {
-            int num_n_bytes = curve.NUM_N_BYTES;
+            int num_n_bytes = curve.NUM_BYTES;
             int num_n_words = curve.NUM_WORDS;
             int num_n_bits = curve.NUM_N_BITS;
 

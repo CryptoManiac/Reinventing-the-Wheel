@@ -6,6 +6,18 @@
     public static partial class VLI
 	{
         /// <summary>
+        /// Get number of bytes which will be sufficient to encode the required number of bits
+        /// </summary>
+        /// <param name="num_bits"></param>
+        public static int BitsToBytes(int num_bits) => (num_bits + 7) / 8;
+
+        /// <summary>
+        /// Get number of words which will be sufficient to encode the required number of bits
+        /// </summary>
+        /// <param name="num_bits"></param>
+        public static int BitsToWords(int num_bits) => (num_bits + ((WORD_SIZE * 8) - 1)) / (WORD_SIZE * 8);
+
+        /// <summary>
         /// Converts big-endian bytes to an integer in the native format.
         /// </summary>
         /// <param name="native"></param>

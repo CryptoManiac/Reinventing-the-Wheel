@@ -8,7 +8,6 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
 	internal static class SECP256R1
 	{
         // Curve constants
-        public static int NUM_BITS = VLI.ECC_MAX_WORDS * VLI.WORD_BITS;
         public static int NUM_N_BITS = VLI.ECC_MAX_WORDS * VLI.WORD_BITS;
         public static ulong[] p = new ulong[] { 0xFFFFFFFFFFFFFFFF, 0x00000000FFFFFFFF, 0x0000000000000000, 0xFFFFFFFF00000001 };
         public static ulong[] n = new ulong[] { 0xF3B9CAC2FC632551, 0xBCE6FAADA7179E84, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFF00000000 };
@@ -24,7 +23,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         public static void XSide(Span<ulong> result, ReadOnlySpan<ulong> x)
         {
             Span<ulong> _3 = stackalloc ulong[VLI.ECC_MAX_WORDS] { 3, 0, 0, 0 }; // -a = 3
-            int num_words = NUM_BITS / VLI.WORD_BITS;
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
 
             ModSquare(result, x);                             // r = x^2
             VLI.ModSub(result, result, _3, p, num_words);       // r = x^2 - 3
@@ -40,7 +39,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         public static void ModSquare(Span<ulong> result, ReadOnlySpan<ulong> left)
         {
             Span<ulong> product = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
-            int num_words = NUM_BITS / VLI.WORD_BITS;
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
             VLI.Square(product, left, num_words);
             //VLI.MMod(result, product, p, num_words);
             MMod(result, product); 
@@ -52,18 +51,17 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         /// <param name="a"></param>
         public static void ModSQRT(Span<ulong> a)
         {
-            int i;
             Span<ulong> p1 = stackalloc ulong[VLI.ECC_MAX_WORDS];
             Span<ulong> l_result = stackalloc ulong[VLI.ECC_MAX_WORDS];
             p1[0] = l_result[0] = 1;
 
-            int num_words = NUM_BITS / VLI.WORD_BITS;
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
 
             // When curve_secp256k1.p == 3 (mod 4), we can compute
             //   sqrt(a) = a^((curve_secp256k1.p + 1) / 4) (mod curve_secp256k1.p).
 
             VLI.Add(p1, p, p1, num_words); // p1 = curve_p + 1
-            for (i = VLI.NumBits(p1, num_words) - 1; i > 1; --i)
+            for (int i = VLI.NumBits(p1, num_words) - 1; i > 1; --i)
             {
                 ModSquare(l_result, l_result);
                 if (VLI.TestBit(p1, i))
@@ -83,7 +81,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         public static void ModMult(Span<ulong> result, ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right)
         {
             Span<ulong> product = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
-            int num_words = NUM_BITS / VLI.WORD_BITS;
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
             VLI.Mult(product, left, right, num_words);
             //VLI.MMod(result, product, p, num_words);
             MMod(result, product);
@@ -97,11 +95,10 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         /// <param name="Z1"></param>
         public static void DoubleJacobian(Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1)
         {
-            int num_words = NUM_BITS / VLI.WORD_BITS;
-
             // t1 = X, t2 = Y, t3 = Z
             Span<ulong> t4 = stackalloc ulong[VLI.ECC_MAX_WORDS];
             Span<ulong> t5 = stackalloc ulong[VLI.ECC_MAX_WORDS];
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
 
             if (VLI.IsZero(Z1, num_words))
             {
@@ -147,84 +144,82 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
 
         private static void MMod(Span<ulong> result, Span<ulong> product)
         {
-            int num_words_secp256r1 = NUM_BITS / VLI.WORD_BITS;
-
             Span<ulong> tmp = stackalloc ulong[VLI.ECC_MAX_WORDS];
-
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
             int carry;
 
             // t
-            VLI.Set(result, product, num_words_secp256r1);
+            VLI.Set(result, product, num_words);
 
             // s1
             tmp[0] = 0;
             tmp[1] = product[5] & 0xffffffff00000000;
             tmp[2] = product[6];
             tmp[3] = product[7];
-            carry = (int)VLI.Add(tmp, tmp, tmp, num_words_secp256r1);
-            carry += (int)VLI.Add(result, result, tmp, num_words_secp256r1);
+            carry = (int)VLI.Add(tmp, tmp, tmp, num_words);
+            carry += (int)VLI.Add(result, result, tmp, num_words);
 
             // s2
             tmp[1] = product[6] << 32;
             tmp[2] = (product[6] >> 32) | (product[7] << 32);
             tmp[3] = product[7] >> 32;
-            carry += (int)VLI.Add(tmp, tmp, tmp, num_words_secp256r1);
-            carry += (int)VLI.Add(result, result, tmp, num_words_secp256r1);
+            carry += (int)VLI.Add(tmp, tmp, tmp, num_words);
+            carry += (int)VLI.Add(result, result, tmp, num_words);
 
             // s3
             tmp[0] = product[4];
             tmp[1] = product[5] & 0xffffffff;
             tmp[2] = 0;
             tmp[3] = product[7];
-            carry += (int)VLI.Add(result, result, tmp, num_words_secp256r1);
+            carry += (int)VLI.Add(result, result, tmp, num_words);
 
             // s4
             tmp[0] = (product[4] >> 32) | (product[5] << 32);
             tmp[1] = (product[5] >> 32) | (product[6] & 0xffffffff00000000);
             tmp[2] = product[7];
             tmp[3] = (product[6] >> 32) | (product[4] << 32);
-            carry += (int)VLI.Add(result, result, tmp, num_words_secp256r1);
+            carry += (int)VLI.Add(result, result, tmp, num_words);
 
             // d1 
             tmp[0] = (product[5] >> 32) | (product[6] << 32);
             tmp[1] = (product[6] >> 32);
             tmp[2] = 0;
             tmp[3] = (product[4] & 0xffffffff) | (product[5] << 32);
-            carry -= (int)VLI.Sub(result, result, tmp, num_words_secp256r1);
+            carry -= (int)VLI.Sub(result, result, tmp, num_words);
 
             // d2 
             tmp[0] = product[6];
             tmp[1] = product[7];
             tmp[2] = 0;
             tmp[3] = (product[4] >> 32) | (product[5] & 0xffffffff00000000);
-            carry -= (int)VLI.Sub(result, result, tmp, num_words_secp256r1);
+            carry -= (int)VLI.Sub(result, result, tmp, num_words);
 
             // d3 
             tmp[0] = (product[6] >> 32) | (product[7] << 32);
             tmp[1] = (product[7] >> 32) | (product[4] << 32);
             tmp[2] = (product[4] >> 32) | (product[5] << 32);
             tmp[3] = (product[6] << 32);
-            carry -= (int)VLI.Sub(result, result, tmp, num_words_secp256r1);
+            carry -= (int)VLI.Sub(result, result, tmp, num_words);
 
             // d4 
             tmp[0] = product[7];
             tmp[1] = product[4] & 0xffffffff00000000;
             tmp[2] = product[5];
             tmp[3] = product[6] & 0xffffffff00000000;
-            carry -= (int)VLI.Sub(result, result, tmp, num_words_secp256r1);
+            carry -= (int)VLI.Sub(result, result, tmp, num_words);
 
             if (carry < 0)
             {
                 do
                 {
-                    carry += (int)VLI.Add(result, result, p, num_words_secp256r1);
+                    carry += (int)VLI.Add(result, result, p, num_words);
                 } while (carry < 0);
             }
             else
             {
-                while (Convert.ToBoolean(carry) || VLI.VarTimeCmp(p, result, num_words_secp256r1) != 1)
+                while (Convert.ToBoolean(carry) || VLI.VarTimeCmp(p, result, num_words) != 1)
                 {
-                    carry -= (int)VLI.Sub(result, result, p, num_words_secp256r1);
+                    carry -= (int)VLI.Sub(result, result, p, num_words);
                 }
             }
         }

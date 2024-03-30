@@ -22,7 +22,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
             {
                 fixed (ulong* ptr = &signature_data[0])
                 {
-                    return new Span<ulong>(ptr, curve.NUM_N_WORDS);
+                    return new Span<ulong>(ptr, curve.NUM_WORDS);
                 }
             }
         }
@@ -34,9 +34,9 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         {
             get
             {
-                fixed (ulong* ptr = &signature_data[curve.NUM_N_WORDS])
+                fixed (ulong* ptr = &signature_data[curve.NUM_WORDS])
                 {
-                    return new Span<ulong>(ptr, curve.NUM_N_WORDS);
+                    return new Span<ulong>(ptr, curve.NUM_WORDS);
                 }
             }
         }
@@ -92,8 +92,8 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// <returns>Number of bytes written/to write</returns>
         public readonly int Encode(Span<byte> encoded)
         {
-            byte lenR = (byte)curve.NUM_N_BYTES;
-            byte lenS = (byte)curve.NUM_N_BYTES;
+            byte lenR = (byte)curve.NUM_BYTES;
+            byte lenS = (byte)curve.NUM_BYTES;
 
             int reqSz = lenS + lenR;
             if (encoded.Length >= reqSz)
@@ -111,8 +111,8 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// <returns>True on success</returns>
         public bool Parse(ReadOnlySpan<byte> encoded)
         {
-            byte lenR = (byte)curve.NUM_N_BYTES;
-            byte lenS = (byte)curve.NUM_N_BYTES;
+            byte lenR = (byte)curve.NUM_BYTES;
+            byte lenS = (byte)curve.NUM_BYTES;
 
             int reqLen = lenS + lenR;
 
@@ -136,7 +136,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// <returns></returns>
         public static int GetEncodedSize(ICurve curve)
         {
-            return 2 * curve.NUM_N_BYTES;
+            return 2 * curve.NUM_BYTES;
         }
     }
 }

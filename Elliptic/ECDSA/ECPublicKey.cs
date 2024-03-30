@@ -178,7 +178,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <returns>Number of bytes</returns>
         public static int GetEncodedSize(ICurve curve)
         {
-            return 2 * curve.NUM_N_BYTES;
+            return 2 * curve.NUM_BYTES;
         }
 
         /// <summary>
@@ -188,7 +188,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <returns>Number of bytes</returns>
         public static int GetCompressedSize(ICurve curve)
         {
-            return 1 + curve.NUM_N_BYTES;
+            return 1 + curve.NUM_BYTES;
         }
 
         /// <summary>
@@ -200,14 +200,14 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         {
             Reset();
 
-            if (serialized.Length != 2 * _curve.NUM_N_BYTES)
+            if (serialized.Length != 2 * _curve.NUM_BYTES)
             {
                 return false;
             }
 
             Span<ulong> _public = stackalloc ulong[VLI.ECC_MAX_WORDS * 2];
-            VLI.BytesToNative(_public, serialized, _curve.NUM_N_BYTES);
-            VLI.BytesToNative(_public.Slice(_curve.NUM_N_WORDS), serialized.Slice(_curve.NUM_N_BYTES), _curve.NUM_N_BYTES);
+            VLI.BytesToNative(_public, serialized, _curve.NUM_BYTES);
+            VLI.BytesToNative(_public.Slice(_curve.NUM_WORDS), serialized.Slice(_curve.NUM_BYTES), _curve.NUM_BYTES);
             return Wrap(_public);
         }
 
@@ -221,15 +221,15 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
 
             Span<ulong> point = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
-            Span<ulong> y = point.Slice(_curve.NUM_N_WORDS);
+            Span<ulong> y = point.Slice(_curve.NUM_WORDS);
 
-            VLI.BytesToNative(point, compressed.Slice(1), _curve.NUM_N_BYTES);
+            VLI.BytesToNative(point, compressed.Slice(1), _curve.NUM_BYTES);
             _curve.XSide(y, point);
             _curve.ModSQRT(y);
 
             if ((y[0] & 0x01) != ((ulong)compressed[0] & 0x01))
             {
-                VLI.Sub(y, _curve.p, y, _curve.NUM_N_WORDS);
+                VLI.Sub(y, _curve.p, y, _curve.NUM_WORDS);
             }
 
             return Wrap(point);
@@ -242,13 +242,13 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <returns>True if successful and this key is valid</returns>
         public readonly bool Serialize(Span<byte> serialized)
         {
-            if (!IsValid || serialized.Length != _curve.NUM_N_BYTES * 2)
+            if (!IsValid || serialized.Length != _curve.NUM_BYTES * 2)
             {
                 return false;
             }
 
-            VLI.NativeToBytes(serialized, _curve.NUM_N_BYTES, native_point);
-            VLI.NativeToBytes(serialized.Slice(_curve.NUM_N_BYTES), _curve.NUM_N_BYTES, native_point.Slice(_curve.NUM_N_WORDS));
+            VLI.NativeToBytes(serialized, _curve.NUM_BYTES, native_point);
+            VLI.NativeToBytes(serialized.Slice(_curve.NUM_BYTES), _curve.NUM_BYTES, native_point.Slice(_curve.NUM_WORDS));
 
             return true;
         }
@@ -260,12 +260,12 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <returns>True if successful and this key is valid</returns>
         public readonly bool Compress(Span<byte> compressed)
         {
-            if (!IsValid || compressed.Length != (_curve.NUM_N_BYTES + 1))
+            if (!IsValid || compressed.Length != (_curve.NUM_BYTES + 1))
             {
                 return false;
             }
 
-            Span<byte> public_key = stackalloc byte[_curve.NUM_N_BYTES * 2];
+            Span<byte> public_key = stackalloc byte[_curve.NUM_BYTES * 2];
 
             // Serialize, then generate compressed version
             if (!Serialize(public_key))
@@ -273,11 +273,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 return false;
             }
 
-            for (int i = 0; i < _curve.NUM_N_BYTES; ++i)
+            for (int i = 0; i < _curve.NUM_BYTES; ++i)
             {
                 compressed[i + 1] = public_key[i];
             }
-            compressed[0] = (byte)(2 + (public_key[_curve.NUM_N_BYTES * 2 - 1] & 0x01));
+            compressed[0] = (byte)(2 + (public_key[_curve.NUM_BYTES * 2 - 1] & 0x01));
 
             return true;
         }
@@ -302,7 +302,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             Span<ulong> _s_mul_G = stackalloc ulong[VLI.ECC_MAX_WORDS * 2];
             Span<ulong> _scalar = stackalloc ulong[VLI.ECC_MAX_WORDS];
 
-            VLI.BytesToNative(_scalar, scalar, _curve.NUM_N_BYTES);
+            VLI.BytesToNative(_scalar, scalar, _curve.NUM_BYTES);
 
             // Public key is computed by multiplication i.e. scalar*G is what we need
             if (!ECCPoint.ComputePublicPoint(_curve, _s_mul_G, _scalar))
@@ -341,7 +341,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             int num_bytes = _curve.NUM_BYTES;
             int num_words = _curve.NUM_WORDS;
-            int num_n_words = _curve.NUM_N_WORDS;
+            int num_n_words = _curve.NUM_WORDS;
 
             // r, s must not be 0
             if (VLI.IsZero(r, num_words) || VLI.IsZero(s, num_words))

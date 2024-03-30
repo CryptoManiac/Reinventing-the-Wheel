@@ -8,7 +8,6 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
 	internal static class SECP256K1
 	{
         // Curve constants
-        public static int NUM_BITS = VLI.ECC_MAX_WORDS * VLI.WORD_BITS;
         public static int NUM_N_BITS = VLI.ECC_MAX_WORDS * VLI.WORD_BITS;
         public static ulong[] p = new ulong[] { 0xFFFFFFFEFFFFFC2F, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF };
         public static ulong[] n = new ulong[] { 0xBFD25E8CD0364141, 0xBAAEDCE6AF48A03B, 0xFFFFFFFFFFFFFFFE, 0xFFFFFFFFFFFFFFFF };
@@ -25,7 +24,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         {
             ModSquare(result, x);                                // r = x^2
             ModMult(result, result, x);                          // r = x^3
-            VLI.ModAdd(result, result, b, p, NUM_BITS / VLI.WORD_BITS); // r = x^3 + b
+            VLI.ModAdd(result, result, b, p, VLI.BitsToWords(NUM_N_BITS)); // r = x^3 + b
         }
 
         /// <summary>
@@ -36,7 +35,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         public static void ModSquare(Span<ulong> result, ReadOnlySpan<ulong> left)
         {
             Span<ulong> product = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
-            int num_words = NUM_BITS / VLI.WORD_BITS;
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
             VLI.Square(product, left, num_words);
             //VLI_Arithmetic.MMod(result, product, Constants.p, num_words);
             MMod(result, product);
@@ -48,18 +47,17 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         /// <param name="a"></param>
         public static void ModSQRT(Span<ulong> a)
         {
-            int i;
             Span<ulong> p1 = stackalloc ulong[VLI.ECC_MAX_WORDS];
             Span<ulong> l_result = stackalloc ulong[VLI.ECC_MAX_WORDS];
             p1[0] = l_result[0] = 1;
 
-            int num_words = NUM_BITS / VLI.WORD_BITS;
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
 
             // When curve_secp256k1.p == 3 (mod 4), we can compute
             //   sqrt(a) = a^((curve_secp256k1.p + 1) / 4) (mod curve_secp256k1.p).
 
             VLI.Add(p1, p, p1, num_words); // p1 = curve_p + 1
-            for (i = VLI.NumBits(p1, num_words) - 1; i > 1; --i)
+            for (int i = VLI.NumBits(p1, num_words) - 1; i > 1; --i)
             {
                 ModSquare(l_result, l_result);
                 if (VLI.TestBit(p1, i))
@@ -79,7 +77,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         public static void ModMult(Span<ulong> result, ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right)
         {
             Span<ulong> product = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
-            int num_words = NUM_BITS / VLI.WORD_BITS;
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
             VLI.Mult(product, left, right, num_words);
             // VLI_Arithmetic.MMod(result, product, Constants.p, num_words);
             MMod(result, product);
@@ -93,11 +91,10 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         /// <param name="Z1"></param>
         public static void DoubleJacobian(Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1)
         {
-            int num_words = NUM_BITS / VLI.WORD_BITS;
-
             // t1 = X, t2 = Y, t3 = Z
             Span<ulong> t4 = stackalloc ulong[VLI.ECC_MAX_WORDS];
             Span<ulong> t5 = stackalloc ulong[VLI.ECC_MAX_WORDS];
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
 
             if (VLI.IsZero(Z1, num_words))
             {
@@ -136,9 +133,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         private static void MMod(Span<ulong> result, Span<ulong> product)
         {
             Span<ulong> tmp = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
             ulong carry;
-
-            int num_words = NUM_BITS / VLI.WORD_BITS;
 
             VLI.Clear(tmp, num_words);
             VLI.Clear(tmp.Slice(num_words), num_words);
@@ -168,7 +164,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
             ulong r2 = 0;
             int k;
 
-            int num_words = NUM_BITS / VLI.WORD_BITS;
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
 
             /* Multiply by (2^32 + 2^9 + 2^8 + 2^7 + 2^6 + 2^4 + 1). */
             for (k = 0; k < num_words; ++k)

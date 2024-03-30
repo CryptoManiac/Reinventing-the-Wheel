@@ -9,7 +9,6 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
     internal static class SECP224R1
     {
         // Curve constants
-        public static int NUM_BITS = 256;
         public static int NUM_N_BITS = 224;
 
         public static readonly ulong[] p = new ulong[] { 0x0000000000000001, 0xFFFFFFFF00000000, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFF };
@@ -26,7 +25,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         public static void XSide(Span<ulong> result, ReadOnlySpan<ulong> x)
         {
             Span<ulong> _3 = stackalloc ulong[VLI.ECC_MAX_WORDS] { 3, 0, 0, 0 }; // -a = 3
-            int num_words = NUM_BITS / VLI.WORD_BITS;
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
 
             ModSquare(result, x);                             // r = x^2
             VLI.ModSub(result, result, _3, p, num_words);       // r = x^2 - 3
@@ -42,7 +41,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         public static void ModSquare(Span<ulong> result, ReadOnlySpan<ulong> left)
         {
             Span<ulong> product = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
-            int num_words = NUM_BITS / VLI.WORD_BITS;
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
             VLI.Square(product, left, num_words);
             //VLI.MMod(result, product, p, num_words);
             MMod(result, product);
@@ -61,24 +60,23 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
             Span<ulong> f0 = stackalloc ulong[VLI.ECC_MAX_WORDS];
             Span<ulong> d1 = stackalloc ulong[VLI.ECC_MAX_WORDS];
 
-            int i;
-            int num_words_secp224r1 = NUM_BITS / VLI.WORD_BITS;
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
 
             // s = a; using constant instead of random value
             mod_sqrt_secp224r1_rp(d0, e0, f0, a, a);           // RP (d0, e0, f0, c, s)
             mod_sqrt_secp224r1_rs(d1, e1, f1, d0, e0, f0);     // RS (d1, e1, f1, d0, e0, f0)
-            for (i = 1; i <= 95; i++)
+            for (int i = 1; i <= 95; i++)
             {
-                VLI.Set(d0, d1, num_words_secp224r1);          // d0 <-- d1
-                VLI.Set(e0, e1, num_words_secp224r1);          // e0 <-- e1
-                VLI.Set(f0, f1, num_words_secp224r1);          // f0 <-- f1
+                VLI.Set(d0, d1, num_words);          // d0 <-- d1
+                VLI.Set(e0, e1, num_words);          // e0 <-- e1
+                VLI.Set(f0, f1, num_words);          // f0 <-- f1
                 mod_sqrt_secp224r1_rs(d1, e1, f1, d0, e0, f0); // RS (d1, e1, f1, d0, e0, f0)
-                if (VLI.IsZero(d1, num_words_secp224r1))
+                if (VLI.IsZero(d1, num_words))
                 {     // if d1 == 0
                     break;
                 }
             }
-            VLI.ModInv(f1, e0, p, num_words_secp224r1); // f1 <-- 1 / e0
+            VLI.ModInv(f1, e0, p, num_words); // f1 <-- 1 / e0
             ModMult(a, d0, f1);              // a  <-- d0 / e0
         }
 
@@ -91,7 +89,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         public static void ModMult(Span<ulong> result, ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right)
         {
             Span<ulong> product = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
-            int num_words = NUM_BITS / VLI.WORD_BITS;
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
             VLI.Mult(product, left, right, num_words);
             //VLI.MMod(result, product, p, num_words);
             MMod(result, product);
@@ -105,11 +103,10 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         /// <param name="Z1"></param>
         public static void DoubleJacobian(Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1)
         {
-            int num_words = NUM_BITS / VLI.WORD_BITS;
-
             // t1 = X, t2 = Y, t3 = Z
             Span<ulong> t4 = stackalloc ulong[VLI.ECC_MAX_WORDS];
             Span<ulong> t5 = stackalloc ulong[VLI.ECC_MAX_WORDS];
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
 
             if (VLI.IsZero(Z1, num_words))
             {
@@ -155,53 +152,52 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
 
         private static void MMod(Span<ulong> result, Span<ulong> product)
         {
-            int num_words_secp224r1 = NUM_BITS / VLI.WORD_BITS;
-
             Span<ulong> tmp = stackalloc ulong[VLI.ECC_MAX_WORDS];
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
             int carry = 0;
 
             // t
-            VLI.Set(result, product, num_words_secp224r1);
-            result[num_words_secp224r1 - 1] &= 0xffffffff;
+            VLI.Set(result, product, num_words);
+            result[num_words - 1] &= 0xffffffff;
 
             // s1
             tmp[0] = 0;
             tmp[1] = product[3] & 0xffffffff00000000;
             tmp[2] = product[4];
             tmp[3] = product[5] & 0xffffffff;
-            VLI.Add(result, result, tmp, num_words_secp224r1);
+            VLI.Add(result, result, tmp, num_words);
 
             // s2
             tmp[1] = product[5] & 0xffffffff00000000;
             tmp[2] = product[6];
             tmp[3] = 0;
-            VLI.Add(result, result, tmp, num_words_secp224r1);
+            VLI.Add(result, result, tmp, num_words);
 
             // d1
             tmp[0] = (product[3] >> 32) | (product[4] << 32);
             tmp[1] = (product[4] >> 32) | (product[5] << 32);
             tmp[2] = (product[5] >> 32) | (product[6] << 32);
             tmp[3] = product[6] >> 32;
-            carry -= (int)VLI.Sub(result, result, tmp, num_words_secp224r1);
+            carry -= (int)VLI.Sub(result, result, tmp, num_words);
 
             // d2
             tmp[0] = (product[5] >> 32) | (product[6] << 32);
             tmp[1] = product[6] >> 32;
             tmp[2] = tmp[3] = 0;
-            carry -= (int)VLI.Sub(result, result, tmp, num_words_secp224r1);
+            carry -= (int)VLI.Sub(result, result, tmp, num_words);
 
             if (carry < 0)
             {
                 do
                 {
-                    carry += (int)VLI.Add(result, result, p, num_words_secp224r1);
+                    carry += (int)VLI.Add(result, result, p, num_words);
                 } while (carry < 0);
             }
             else
             {
-                while (VLI.VarTimeCmp(p, result, num_words_secp224r1) != 1)
+                while (VLI.VarTimeCmp(p, result, num_words) != 1)
                 {
-                    VLI.Sub(result, result, p, num_words_secp224r1);
+                    VLI.Sub(result, result, p, num_words);
                 }
             }
         }
@@ -212,16 +208,15 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         /// </summary>
         private static void mod_sqrt_secp224r1_rs(Span<ulong> d1, Span<ulong> e1, Span<ulong> f1, ReadOnlySpan<ulong> d0, ReadOnlySpan<ulong> e0, ReadOnlySpan<ulong> f0) {
             Span<ulong> t = stackalloc ulong[VLI.ECC_MAX_WORDS];
-
-            int num_words_secp224r1 = NUM_BITS / VLI.WORD_BITS;
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
 
             ModSquare(t, d0);                               // t <-- d0 ^ 2
             ModMult(e1, d0, e0);                            // e1 <-- d0 * e0
-            VLI.ModAdd(d1, t, f0, p, num_words_secp224r1);  // d1 <-- t  + f0
-            VLI.ModAdd(e1, e1, e1, p, num_words_secp224r1); // e1 <-- e1 + e1
+            VLI.ModAdd(d1, t, f0, p, num_words);  // d1 <-- t  + f0
+            VLI.ModAdd(e1, e1, e1, p, num_words); // e1 <-- e1 + e1
             ModMult(f1, t, f0);                             // f1 <-- t  * f0
-            VLI.ModAdd(f1, f1, f1, p, num_words_secp224r1); // f1 <-- f1 + f1
-            VLI.ModAdd(f1, f1, f1, p, num_words_secp224r1); // f1 <-- f1 + f1
+            VLI.ModAdd(f1, f1, f1, p, num_words); // f1 <-- f1 + f1
+            VLI.ModAdd(f1, f1, f1, p, num_words); // f1 <-- f1 + f1
         }
 
         /// <summary>
@@ -229,11 +224,10 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         /// </summary>
         private static void mod_sqrt_secp224r1_rss(Span<ulong> d1, Span<ulong> e1, Span<ulong> f1, ReadOnlySpan<ulong> d0, ReadOnlySpan<ulong> e0, ReadOnlySpan<ulong> f0, int j)
         {
-            int num_words_secp224r1 = NUM_BITS / VLI.WORD_BITS;
-
-            VLI.Set(d1, d0, num_words_secp224r1); // d1 <-- d0
-            VLI.Set(e1, e0, num_words_secp224r1); // e1 <-- e0
-            VLI.Set(f1, f0, num_words_secp224r1); // f1 <-- f0
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
+            VLI.Set(d1, d0, num_words); // d1 <-- d0
+            VLI.Set(e1, e0, num_words); // e1 <-- e0
+            VLI.Set(f1, f0, num_words); // f1 <-- f0
             for (int i = 1; i <= j; ++i)
             {
                 mod_sqrt_secp224r1_rs(d1, e1, f1, d1, e1, f1); // RS (d1,e1,f1,d1,e1,f1)
@@ -247,23 +241,22 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         {
             Span<ulong> t1 = stackalloc ulong[VLI.ECC_MAX_WORDS];
             Span<ulong> t2 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-
-            int num_words_secp224r1 = NUM_BITS / VLI.WORD_BITS;
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
 
             ModMult(t1, e0, e1); // t1 <-- e0 * e1
             ModMult(t1, t1, c);  // t1 <-- t1 * c
             // t1 <-- p  - t1
-            VLI.ModSub(t1, p, t1, p, num_words_secp224r1);
+            VLI.ModSub(t1, p, t1, p, num_words);
             ModMult(t2, d0, d1);                            // t2 <-- d0 * d1
-            VLI.ModAdd(t2, t2, t1, p, num_words_secp224r1); // t2 <-- t2 + t1
+            VLI.ModAdd(t2, t2, t1, p, num_words); // t2 <-- t2 + t1
             ModMult(t1, d0, e1);                            // t1 <-- d0 * e1
             ModMult(e2, d1, e0);                            // e2 <-- d1 * e0
-            VLI.ModAdd(e2, e2, t1, p, num_words_secp224r1); // e2 <-- e2 + t1
+            VLI.ModAdd(e2, e2, t1, p, num_words); // e2 <-- e2 + t1
             ModSquare(f2, e2);                              // f2 <-- e2^2
             ModMult(f2, f2, c);                             // f2 <-- f2 * c
             // f2 <-- p  - f2
-            VLI.ModSub(f2, p, f2, p, num_words_secp224r1);
-            VLI.Set(d2, t2, num_words_secp224r1);           // d2 <-- t2
+            VLI.ModSub(f2, p, f2, p, num_words);
+            VLI.Set(d2, t2, num_words);           // d2 <-- t2
         }
 
         /// <summary>
@@ -274,18 +267,18 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
             Span<ulong> d0 = stackalloc ulong[VLI.ECC_MAX_WORDS];
             Span<ulong> e0 = stackalloc ulong[VLI.ECC_MAX_WORDS] { 1, 0, 0, 0 }; // e0 <-- 1
             Span<ulong> f0 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            int num_words_secp224r1 = NUM_BITS / VLI.WORD_BITS;
+            int num_words = VLI.BitsToWords(NUM_N_BITS);
 
-            VLI.Set(d0, r, num_words_secp224r1); // d0 <-- r
+            VLI.Set(d0, r, num_words); // d0 <-- r
             // f0 <-- p  - c
-            VLI.ModSub(f0, p, c, p, num_words_secp224r1);
+            VLI.ModSub(f0, p, c, p, num_words);
             for (int i = 0, pow2i = 1; i <= 6; i++)
             {
                 mod_sqrt_secp224r1_rss(d1, e1, f1, d0, e0, f0, pow2i); // RSS (d1,e1,f1,d0,e0,f0,2^i)
                 mod_sqrt_secp224r1_rm(d1, e1, f1, c, d1, e1, d0, e0);  // RM (d1,e1,f1,c,d1,e1,d0,e0)
-                VLI.Set(d0, d1, num_words_secp224r1);                  // d0 <-- d1
-                VLI.Set(e0, e1, num_words_secp224r1);                  // e0 <-- e1
-                VLI.Set(f0, f1, num_words_secp224r1);                  // f0 <-- f1
+                VLI.Set(d0, d1, num_words);                  // d0 <-- d1
+                VLI.Set(e0, e1, num_words);                  // e0 <-- e1
+                VLI.Set(f0, f1, num_words);                  // f0 <-- f1
                 pow2i *= 2;
             }
         }

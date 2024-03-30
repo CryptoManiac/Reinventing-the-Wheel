@@ -12,14 +12,11 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         public ulong randomId { get; }
 
         #region Curve's point coordinate size
-        public int NUM_BITS { get; }
         public int NUM_N_BITS { get; }
 
         #region Calculated lengths
         public int NUM_WORDS { get; }
-        public int NUM_N_WORDS { get; }
         public int NUM_BYTES { get; }
-        public int NUM_N_BYTES { get; }
         #endregion
         #endregion
 
