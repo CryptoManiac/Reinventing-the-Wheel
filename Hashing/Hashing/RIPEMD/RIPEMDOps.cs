@@ -91,16 +91,22 @@
         }
 
         /// <summary>
-        /// First part of compression function
+        /// Compression function
         /// </summary>
         /// <returns>(AA, BB, CC, DD, EE)</returns>
-        private static void Compress_I(ref InternalRIPEMDState state, in InternalRIPEMDBlock X)
+        public static void Compress(ref InternalRIPEMDState state, in InternalRIPEMDBlock X)
         {
             uint aa = state.X00;
             uint bb = state.X01;
             uint cc = state.X02;
             uint dd = state.X03;
             uint ee = state.X04;
+
+            uint aaa = state.X00;
+            uint bbb = state.X01;
+            uint ccc = state.X02;
+            uint ddd = state.X03;
+            uint eee = state.X04;
 
             // round 1
             FF(ref aa, bb, ref cc, dd, ee, X.X00, 11);
@@ -192,25 +198,6 @@
             JJ(ref cc, dd, ref ee, aa, bb, X.X15, 5);
             JJ(ref bb, cc, ref dd, ee, aa, X.X13, 6);
 
-            // Results
-            state.X00 = aa;
-            state.X01 = bb;
-            state.X02 = cc;
-            state.X03 = dd;
-            state.X04 = ee;
-        }
-
-        /// <summary>
-        /// Second part of compression function
-        /// </summary>
-        private static void Compress_II(ref InternalRIPEMDState state, in InternalRIPEMDBlock X)
-        {
-            uint aaa = state.X00;
-            uint bbb = state.X01;
-            uint ccc = state.X02;
-            uint ddd = state.X03;
-            uint eee = state.X04;
-
             // parallel round 1
             JJJ(ref aaa, bbb, ref ccc, ddd, eee, X.X05, 8);
             JJJ(ref eee, aaa, ref bbb, ccc, ddd, X.X14, 9);
@@ -301,35 +288,13 @@
             FFF(ref ccc, ddd, ref eee, aaa, bbb, X.X09, 11);
             FFF(ref bbb, ccc, ref ddd, eee, aaa, X.X11, 11);
 
-            // Results
-            state.X00 = aaa;
-            state.X01 = bbb;
-            state.X02 = ccc;
-            state.X03 = ddd;
-            state.X04 = eee;
-        }
-
-        /// <summary>
-        /// The compression function.
-        /// Transforms MDbuf using message bytes X[0] through X[15]
-        /// </summary>
-        public static void Compress(ref InternalRIPEMDState state, in InternalRIPEMDBlock X)
-        {
-            InternalRIPEMDState s1 = state;
-            InternalRIPEMDState s2 = state;
-
-            Compress_I(ref s1, X);
-            Compress_II(ref s2, X);
-
             // combine results
-            s2.X03 += s1.X02 + state.X01;
-
-            // final result for MDbuf[0]
-            state.X01 = state.X02 + s1.X03 + s2.X04;
-            state.X02 = state.X03 + s1.X04 + s2.X00;
-            state.X03 = state.X04 + s1.X00 + s2.X01;
-            state.X04 = state.X00 + s1.X01 + s2.X02;
-            state.X00 = s2.X03;
+            ddd += cc + state.X01;
+            state.X01 = state.X02 + dd + eee;
+            state.X02 = state.X03 + ee + aaa;
+            state.X03 = state.X04 + aa + bbb;
+            state.X04 = state.X00 + bb + ccc;
+            state.X00 = ddd;
         }
 
         /// <summary>
