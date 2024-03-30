@@ -102,7 +102,7 @@ Console.WriteLine("SECP224R1 public key: 04{0}", Convert.ToHexString(public_key_
 Console.WriteLine("SECP224R1 compressed public key: {0}", Convert.ToHexString(public_key_compressed));
 Console.WriteLine("Message to sign: {0}", message);
 
-Span<byte> signature = stackalloc byte[DERSignature.GetEncodeSize(curve)];
+Span<byte> signature = stackalloc byte[DERSignature.GetEncodedSize(curve)];
 
 Console.WriteLine("Generated SECP224R1 signatures:");
 

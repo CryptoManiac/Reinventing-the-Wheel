@@ -315,20 +315,113 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             return !(x == y);
         }
 
+        /// <summary>
+        /// Size of encoded private key in bytes
+        /// </summary>
+        public int PrivateKeySize => ECPrivateKey.GetEncodedSize(this);
+
+        /// <summary>
+        /// Size of encoded public key in bytes
+        /// </summary>
+        public int PublicKeySize => ECPublicKey.GetEncodedSize(this);
+
+        /// <summary>
+        /// Size of compressed public key in bytes
+        /// </summary>
+        public int CompressedPublicKeySize => ECPublicKey.GetCompressedSize(this);
+
+        /// <summary>
+        /// Sise of DER signature in bytes
+        /// </summary>
+        public int DERSignatureSize => DERSignature.GetEncodedSize(this);
+
+        /// <summary>
+        /// Size of compact signature in bytes
+        /// </summary>
+        public int CompactSigntureSize => CompactSignature.GetEncodedSize(this);
+
+        /// <summary>
+        /// Make an empty (invalid) private key for this curve
+        /// </summary>
+        /// <returns>A zero-initialized private key</returns>
         public IPublicKey MakePublicKey() => new ECPublicKey(this);
+
+        /// <summary>
+        /// Make an empty (invalid) private key for this curve
+        /// </summary>
+        /// <returns>A zero-initialized private key</returns>
         public IPrivateKey MakePrivateKey() => new ECPrivateKey(this);
+
+        /// <summary>
+        /// Make an empty (invalid) DER signature for this curve
+        /// </summary>
+        /// <returns>A zero-initialized DER signature</returns>
         public DERSignature MakeDERSignature() => new(this);
+
+        /// <summary>
+        /// Make an empty (invalid) compact signature for this curve
+        /// </summary>
+        /// <returns>A zero-initialized compact signature</returns>
         public CompactSignature MakeCompactSignature() => new(this);
 
+        /// <summary>
+        /// Parse public key bytes and construct new instance from them
+        /// </summary>
+        /// <param name="data">Public key bytes</param>
+        /// <returns>A new copy of public key structure</returns>
         public IPublicKey MakePublicKey(ReadOnlySpan<byte> data) => new ECPublicKey(this, data);
+
+        /// <summary>
+        /// Parse private key bytes and construct new instance from them
+        /// </summary>
+        /// <param name="data">Private key bytes</param>
+        /// <returns>A new copy of private key structure</returns>
         public IPrivateKey MakePrivateKey(ReadOnlySpan<byte> data) => new ECPrivateKey(this, data);
+
+        /// <summary>
+        /// Parse DER signature bytes and construct new instance from them
+        /// </summary>
+        /// <param name="data">DER signature bytes</param>
+        /// <returns>A new copy of DER signature structure</returns>
         public DERSignature MakeDERSignature(ReadOnlySpan<byte> data) => new(this, data);
+
+        /// <summary>
+        /// Parse DER signature bytes and construct new instance from them
+        /// </summary>
+        /// <param name="data">DER signature bytes</param>
+        /// <param name="nonCanonical">Allow negative R and S values</param>
+        /// <returns>A new copy of DER signature structure</returns>
         public DERSignature MakeDERSignature(ReadOnlySpan<byte> data, bool nonCanonical) => new(this, data, nonCanonical);
+
+        /// <summary>
+        /// Parse compact signature bytes and construct new instance from them
+        /// </summary>
+        /// <param name="data">Compact signature bytes</param>
+        /// <returns>A new copy of compact signature structure</returns>
         public CompactSignature MakeCompactSignature(ReadOnlySpan<byte> data) => new(this, data);
 
+        /// <summary>
+        /// Check whether the provided byte array contains a valid public key
+        /// </summary>
+        /// <param name="data">Public key bytes</param>
+        /// <returns>True if valid</returns>
         public bool IsValidPublicKey(ReadOnlySpan<byte> data) => ECPublicKey.IsValidPublicKey(this, data);
+
+        /// <summary>
+        /// Check whether the provided byte array contains a valid private key
+        /// </summary>
+        /// <param name="data">Private key bytes</param>
+        /// <returns>True if valid</returns>
         public bool IsValidPrivateKey(ReadOnlySpan<byte> data) => ECPrivateKey.IsValidPrivateKey(this, data);
 
+        /// <summary>
+        /// Deterministically generate the new private key from seed, using HMAC-based generator
+        /// </summary>
+        /// <typeparam name="HMAC_IMPL">HMAC implementation to use</typeparam>
+        /// <param name="result">Private key to be filled</param>
+        /// <param name="seed">Secret seed to generate from</param>
+        /// <param name="personalization">Personalization argument bytes (to generate more than one key from the same seed)</param>
+        /// <param name="sequence">Generation sequence number (to generate more than one key from the same seed + personalization pair)</param>
         public void GenerateSecret<HMAC_IMPL>(out IPrivateKey result, ReadOnlySpan<byte> seed, ReadOnlySpan<byte> personalization, int sequence) where HMAC_IMPL : unmanaged, IMac
         {
             // See 3..2 of the RFC 6979 to get what is going on here

@@ -22,6 +22,16 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         public readonly ICurve curve => _curve;
 
         /// <summary>
+        /// Encoded key size in bytes
+        /// </summary>
+        public readonly int EncodedSize => GetEncodedSize(_curve);
+
+        /// <summary>
+        /// Encoded key size in bytes
+        /// </summary>
+        public readonly int CompressedSize => GetCompressedSize(_curve);
+
+        /// <summary>
         /// Access to native point data
         /// </summary>
         private readonly unsafe Span<ulong> native_point
@@ -159,6 +169,26 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             ECPublicKey pk = new(curve);
             return pk.Parse(public_key) || pk.Decompress(public_key);
+        }
+
+        /// <summary>
+        /// Size of encoded public key for a given curve
+        /// </summary>
+        /// <param name="curve"></param>
+        /// <returns>Number of bytes</returns>
+        public static int GetEncodedSize(ICurve curve)
+        {
+            return 2 * curve.NUM_N_BYTES;
+        }
+
+        /// <summary>
+        /// Size of compressed public key for a given curve
+        /// </summary>
+        /// <param name="curve"></param>
+        /// <returns>Number of bytes</returns>
+        public static int GetCompressedSize(ICurve curve)
+        {
+            return 1 + curve.NUM_N_BYTES;
         }
 
         /// <summary>

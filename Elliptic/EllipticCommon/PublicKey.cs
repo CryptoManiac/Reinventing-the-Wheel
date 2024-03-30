@@ -15,6 +15,16 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         public bool IsValid { get; }
 
         /// <summary>
+        /// Encoded data size in bytes
+        /// </summary>
+        public int EncodedSize { get; }
+
+        /// <summary>
+        /// Compressed data size in bytes
+        /// </summary>
+        public int CompressedSize { get; }
+
+        /// <summary>
         /// Erase object state
         /// </summary>
         public void Reset();

@@ -42,6 +42,11 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         }
 
         /// <summary>
+        /// Encoded data size in bytes
+        /// </summary>
+        public readonly int EncodedSize => GetEncodedSize(curve);
+
+        /// <summary>
         /// The r and s are sliced from this hidden array.
         /// </summary>
         private unsafe fixed ulong signature_data[2 * VLI.ECC_MAX_WORDS];
@@ -129,7 +134,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// </summary>
         /// <param name="curve"></param>
         /// <returns></returns>
-        public static int GetEncodeSize(ICurve curve)
+        public static int GetEncodedSize(ICurve curve)
         {
             return 2 * curve.NUM_N_BYTES;
         }

@@ -101,18 +101,18 @@ bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOnlySpan<
 }
 
 Benchmark("Sign<HMAC_SHA512>", () => {
-    Span<byte> signature = stackalloc byte[70];
+    Span<byte> signature = stackalloc byte[curve.DERSignatureSize];
     SignData<HMAC_SHA512>(signature, secretKey, message, curve);
 }, 1000);
 
-byte[] public_key_uncompressed = new byte[64];
+byte[] public_key_uncompressed = new byte[curve.CompressedPublicKeySize];
 
 if (!publicKey.Serialize(public_key_uncompressed))
 {
     throw new SystemException("Serialization of the public key has failed");
 }
 
-byte[] signature = new byte[70];
+byte[] signature = new byte[curve.DERSignatureSize];
 SignData<HMAC_SHA512>(signature, secretKey, message, curve);
 Benchmark("Verify<HMAC_SHA512>", () => VerifySignature(signature, message, public_key_uncompressed, curve), 1000);
 

@@ -24,6 +24,31 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         #endregion
 
         /// <summary>
+        /// Size of encoded private key in bytes
+        /// </summary>
+        public int PrivateKeySize { get; }
+
+        /// <summary>
+        /// Size of encoded public key in bytes
+        /// </summary>
+        public int PublicKeySize { get; }
+
+        /// <summary>
+        /// Size of compressed public key in bytes
+        /// </summary>
+        public int CompressedPublicKeySize { get; }
+
+        /// <summary>
+        /// Sise of DER signature in bytes
+        /// </summary>
+        public int DERSignatureSize { get; }
+
+        /// <summary>
+        /// Size of compact signature in bytes
+        /// </summary>
+        public int CompactSigntureSize { get; }
+
+        /// <summary>
         /// Make an empty (invalid) public key for this curve
         /// </summary>
         /// <returns>A zero-initialized public key</returns>

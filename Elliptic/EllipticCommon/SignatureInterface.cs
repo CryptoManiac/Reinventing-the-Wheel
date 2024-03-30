@@ -18,6 +18,11 @@
         public Span<ulong> s { get; }
 
         /// <summary>
+        /// Encoded data size in bytes
+        /// </summary>
+        public int EncodedSize { get; }
+
+        /// <summary>
         /// Write signature data in current format
         /// </summary>
         /// <param name="encoded"></param>
