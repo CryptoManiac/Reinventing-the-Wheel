@@ -120,6 +120,17 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// Note: based on parse_der_lax routine from the bitcoin distribution
         /// </summary>
         /// <param name="encoded"></param>
+        /// <returns>True on success</returns>
+        public bool Parse(ReadOnlySpan<byte> encoded)
+        {
+            return Parse(encoded);
+        }
+
+        /// <summary>
+        /// Parse DER formatted input and construct signature from its contents
+        /// Note: based on parse_der_lax routine from the bitcoin distribution
+        /// </summary>
+        /// <param name="encoded"></param>
         /// <param name="lax">Don't fail on negative r or s, negate them if possible</param>
         /// <returns>True on success</returns>
         public bool Parse(ReadOnlySpan<byte> encoded, bool lax = false)
