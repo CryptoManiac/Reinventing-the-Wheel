@@ -211,20 +211,26 @@ if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 
 CompareSig("HMAC_SHA512", signature);
 
-foreach(var sHex in signaturesToCheck)
+Console.WriteLine("Canonical DER decoding and verification tests:");
+foreach (var sHex in signaturesToCheck)
 {
+    Console.Write(sHex);
     var testSig = Convert.FromHexString(sHex);
     if (!VerifySignature(testSig, message, public_key_uncompressed, curve))
     {
         throw new SystemException("Signature verification failure");
     }
+    Console.WriteLine(" OK");
 }
 
+Console.WriteLine("Non-canonical DER decoding and verification tests:");
 foreach (var sHex in nonCanonicalToCheck)
 {
+    Console.Write(sHex);
     var testSig = Convert.FromHexString(sHex);
     if (!VerifySignature(testSig, message, public_key_uncompressed, curve, true))
     {
         throw new SystemException("Signature verification failure");
     }
+    Console.WriteLine(" OK");
 }

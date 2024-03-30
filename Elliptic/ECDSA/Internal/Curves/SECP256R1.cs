@@ -1,5 +1,4 @@
-﻿using System;
-using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
+﻿using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
 
 namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
 {
