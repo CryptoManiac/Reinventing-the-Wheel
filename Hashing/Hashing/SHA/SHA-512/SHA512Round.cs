@@ -1,5 +1,5 @@
-﻿using System.Runtime.InteropServices;
-using Wheel.Miscellaneous.Support;
+﻿using System.Net;
+using System.Runtime.InteropServices;
 
 namespace Wheel.Hashing.SHA.SHA512.Internal
 {
@@ -51,7 +51,7 @@ namespace Wheel.Hashing.SHA.SHA512.Internal
         {
             for (int i = 0; i < InternalSHA512Block.TypeUlongSz; ++i)
             {
-                Common.REVERT(ref words[i]);
+                words[i] = (ulong)IPAddress.HostToNetworkOrder((long)words[i]);
             }
         }
 

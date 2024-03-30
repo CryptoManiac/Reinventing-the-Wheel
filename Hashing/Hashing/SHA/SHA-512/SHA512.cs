@@ -1,6 +1,7 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Net;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Wheel.Hashing.SHA.SHA512.Internal;
-using Wheel.Miscellaneous.Support;
 
 namespace Wheel.Hashing.SHA.SHA512
 {
@@ -182,11 +183,27 @@ namespace Wheel.Hashing.SHA.SHA512
             // length in bits and transform.
             bitLen += blockLen * 8;
             pendingBlock.lastQWord = bitLen;
-            Common.REVERT(ref pendingBlock.lastQWord);
+            REVERT(ref pendingBlock.lastQWord);
             Transform();
 
             // Reverse byte ordering to get final hashing result
             state.Revert();
+        }
+
+        /// <summary>
+        /// Revert 128-bit integer in place
+        /// </summary>
+        /// <param name="value"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private unsafe static void REVERT(ref UInt128 value)
+        {
+            fixed (void* ptr = &value)
+            {
+                long* lo = (long*)ptr;
+                long* hi = lo + 1;
+
+                (*lo, *hi) = (IPAddress.HostToNetworkOrder(*hi), IPAddress.HostToNetworkOrder(*lo));
+            }
         }
 
         public void Dispose()

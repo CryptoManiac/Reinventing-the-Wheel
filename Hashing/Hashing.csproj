@@ -14,12 +14,10 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Hashing\" />
-    <None Remove="Primitives\" />
     <None Remove="Hashing\HMAC\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Hashing\" />
-    <Folder Include="Primitives\" />
     <Folder Include="Hashing\HMAC\" />
   </ItemGroup>
 </Project>

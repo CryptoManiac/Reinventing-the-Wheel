@@ -1,6 +1,6 @@
-﻿using Wheel.Miscellaneous.Support;
-using Wheel.Hashing.SHA.SHA256.Internal;
+﻿using Wheel.Hashing.SHA.SHA256.Internal;
 using System.Runtime.InteropServices;
+using System.Net;
 
 namespace Wheel.Hashing.SHA.SHA256
 {
@@ -184,8 +184,7 @@ namespace Wheel.Hashing.SHA.SHA256
             // Append to the padding the total message's
             // length in bits and transform.
             bitLen += blockLen * 8;
-            pendingBlock.lastDWord = bitLen;
-            Common.REVERT(ref pendingBlock.lastDWord);
+            pendingBlock.lastDWord = (ulong)IPAddress.HostToNetworkOrder((long)bitLen);
             Transform();
 
             // Reverse byte ordering to get final hashing result

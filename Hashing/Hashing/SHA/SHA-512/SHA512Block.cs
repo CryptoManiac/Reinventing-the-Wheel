@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Wheel.Miscellaneous.Support;
 
 namespace Wheel.Hashing.SHA.SHA512.Internal
 {

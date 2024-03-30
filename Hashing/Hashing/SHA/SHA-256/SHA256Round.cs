@@ -1,7 +1,6 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Net;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Wheel.Miscellaneous.Support;
-
 namespace Wheel.Hashing.SHA.SHA256.Internal
 {
     /// <summary>
@@ -53,7 +52,7 @@ namespace Wheel.Hashing.SHA.SHA256.Internal
         {
             for (int i = 0; i < InternalSHA256Block.TypeUintSz; ++i)
             {
-                Common.REVERT(ref registers[i]);
+                registers[i] = (uint)IPAddress.HostToNetworkOrder((int)registers[i]);
             }
         }
 

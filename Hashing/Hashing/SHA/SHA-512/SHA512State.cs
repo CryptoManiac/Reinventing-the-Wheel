@@ -1,7 +1,6 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Net;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Wheel.Miscellaneous.Support;
-
 namespace Wheel.Hashing.SHA.SHA512.Internal
 {
     /// <summary>
@@ -116,14 +115,14 @@ namespace Wheel.Hashing.SHA.SHA512.Internal
         /// </summary>
         public void Revert()
         {
-            Common.REVERT(ref a);
-            Common.REVERT(ref b);
-            Common.REVERT(ref c);
-            Common.REVERT(ref d);
-            Common.REVERT(ref e);
-            Common.REVERT(ref f);
-            Common.REVERT(ref g);
-            Common.REVERT(ref h);
+            a = (ulong)IPAddress.HostToNetworkOrder((long)a);
+            b = (ulong)IPAddress.HostToNetworkOrder((long)b);
+            c = (ulong)IPAddress.HostToNetworkOrder((long)c);
+            d = (ulong)IPAddress.HostToNetworkOrder((long)d);
+            e = (ulong)IPAddress.HostToNetworkOrder((long)e);
+            f = (ulong)IPAddress.HostToNetworkOrder((long)f);
+            g = (ulong)IPAddress.HostToNetworkOrder((long)g);
+            h = (ulong)IPAddress.HostToNetworkOrder((long)h);
         }
 
         /// <summary>

@@ -1,5 +1,5 @@
-﻿using System.Runtime.InteropServices;
-using Wheel.Miscellaneous.Support;
+﻿using System.Net;
+using System.Runtime.InteropServices;
 
 namespace Wheel.Hashing.SHA3.Internal
 {
@@ -211,7 +211,7 @@ namespace Wheel.Hashing.SHA3.Internal
             {
                 for (int i = 0; i < SHA3_SPONGE_WORDS; ++i)
                 {
-                    Common.REVERT(ref registers[i]);
+                    registers[i] = (ulong)IPAddress.HostToNetworkOrder((long)registers[i]);
                 }
             }
 
