@@ -29,7 +29,7 @@
         /// </summary>
         /// <param name="encoded"></param>
         /// <returns>True on success</returns>
-        public bool Parse(ReadOnlySpan<byte> encoded);
+        public bool Parse(ReadOnlySpan<byte> encoded, bool nonCanonical=false);
     }
 }
 

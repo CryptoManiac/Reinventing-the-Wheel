@@ -104,7 +104,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// </summary>
         /// <param name="encoded"></param>
         /// <returns>True on success</returns>
-        public bool Parse(ReadOnlySpan<byte> encoded)
+        public bool Parse(ReadOnlySpan<byte> encoded, bool nonCanonical = false)
         {
             byte lenR = (byte)curve.NUM_BYTES;
             byte lenS = (byte)curve.NUM_BYTES;

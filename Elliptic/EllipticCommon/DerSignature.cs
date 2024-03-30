@@ -72,9 +72,9 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// Create instance and parse provided data
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        public DERSignature(ICurve curve, ReadOnlySpan<byte> bytes) : this(curve)
+        public DERSignature(ICurve curve, ReadOnlySpan<byte> bytes, bool nonCanonical=false) : this(curve)
         {
-            if (!Parse(bytes))
+            if (!Parse(bytes, nonCanonical))
             {
                 throw new InvalidDataException("Provided DER signature is not valid");
             }
@@ -120,8 +120,9 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// Note: based on parse_der_lax routine from the bitcoin distribution
         /// </summary>
         /// <param name="encoded"></param>
+        /// <param name="lax">Don't fail on negative r or s, negate them if possible</param>
         /// <returns>True on success</returns>
-        public bool Parse(ReadOnlySpan<byte> encoded)
+        public bool Parse(ReadOnlySpan<byte> encoded, bool lax = false)
         {
             int rpos, rlen, spos, slen;
             int pos = 0;
@@ -247,6 +248,20 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
                 return false;
             }
             spos = pos;
+
+            // Negate non-canonical r
+            if (lax && encoded[rpos] == 0x00)
+            {
+                rpos++;
+                rlen--;
+            }
+
+            // Negate non-canonical s
+            if (lax && encoded[spos] == 0x00)
+            {
+                spos++;
+                slen--;
+            }
 
             if (rlen > num_bytes || slen > num_bytes)
             {
