@@ -3,10 +3,30 @@
 namespace Wheel.Crypto.Elliptic.ECDSA
 {
     /// <summary>
-    /// SECP256K1 specific implementations
+    /// SECP256K1 specific implementations.
+    /// NOTE: These methods are declared static on purpose, it allows us to use their addresses in the curve constructor functions.
     /// </summary>
     public readonly partial struct ECCurve
     {
+        /// <summary>
+        /// Construct a new instance of the secp256k1 context.
+        /// <returns></returns>
+        public static unsafe ECCurve Get_SECP256K1()
+        {
+            return new ECCurve(
+                256,
+                stackalloc ulong[] { 0xFFFFFFFEFFFFFC2F, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF },
+                stackalloc ulong[] { 0xBFD25E8CD0364141, 0xBAAEDCE6AF48A03B, 0xFFFFFFFFFFFFFFFE, 0xFFFFFFFFFFFFFFFF },
+                stackalloc ulong[] { 0xdfe92f46681b20a0, 0x5d576e7357a4501d, 0xFFFFFFFFFFFFFFFE, 0xFFFFFFFFFFFFFFFF },
+                stackalloc ulong[] { 0x59F2815B16F81798, 0x029BFCDB2DCE28D9, 0x55A06295CE870B07, 0x79BE667EF9DCBBAC, 0x9C47D08FFB10D4B8, 0xFD17B448A6855419, 0x5DA4FBFC0E1108A8, 0x483ADA7726A3C465 },
+                stackalloc ulong[] { 0x0000000000000007, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 },
+                &MMod_SECP256K1,
+                &XSide_SECP256K1,
+                &ModSQRT_Generic,
+                &DoubleJacobian_SECP256K1
+            );
+        }
+
         /// <summary>
         /// Computes result = x^3 + b. result must not overlap x.
         /// </summary>
@@ -27,14 +47,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="Z1"></param>
         public static void DoubleJacobian_SECP256K1(in ECCurve curve, Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1)
         {
-            int num_words = curve.NUM_WORDS;
-
             // t1 = X, t2 = Y, t3 = Z
-            Span<ulong> t4 = stackalloc ulong[num_words];
-            Span<ulong> t5 = stackalloc ulong[num_words];
-            ReadOnlySpan<ulong> p = curve.P;
+            Span<ulong> t4 = stackalloc ulong[curve.NUM_WORDS];
+            Span<ulong> t5 = stackalloc ulong[curve.NUM_WORDS];
 
-            if (VLI.IsZero(Z1, num_words))
+            if (VLI.IsZero(Z1, curve.NUM_WORDS))
             {
                 return;
             }
@@ -45,27 +62,27 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             curve.ModSquare(t5, t5);   // t5 = y1^4 
             curve.ModMult(Z1, Y1, Z1); // t3 = y1*z1 = z3 
 
-            VLI.ModAdd(Y1, X1, X1, p, num_words); // t2 = 2*x1^2
-            VLI.ModAdd(Y1, Y1, X1, p, num_words); // t2 = 3*x1^2
+            VLI.ModAdd(Y1, X1, X1, curve.P, curve.NUM_WORDS); // t2 = 2*x1^2
+            VLI.ModAdd(Y1, Y1, X1, curve.P, curve.NUM_WORDS); // t2 = 3*x1^2
             if (VLI.TestBit(Y1, 0))
             {
-                ulong carry = VLI.Add(Y1, Y1, p, num_words);
-                VLI.RShift1(Y1, num_words);
-                Y1[num_words - 1] |= carry << VLI.WORD_BITS - 1;
+                ulong carry = VLI.Add(Y1, Y1, curve.P, curve.NUM_WORDS);
+                VLI.RShift1(Y1, curve.NUM_WORDS);
+                Y1[curve.NUM_WORDS - 1] |= carry << VLI.WORD_BITS - 1;
             }
             else
             {
-                VLI.RShift1(Y1, num_words);
+                VLI.RShift1(Y1, curve.NUM_WORDS);
             }
             // t2 = 3/2*(x1^2) = B
 
             curve.ModSquare(X1, Y1);                     // t1 = B^2
-            VLI.ModSub(X1, X1, t4, p, num_words); // t1 = B^2 - A
-            VLI.ModSub(X1, X1, t4, p, num_words); // t1 = B^2 - 2A = x3
+            VLI.ModSub(X1, X1, t4, curve.P, curve.NUM_WORDS); // t1 = B^2 - A
+            VLI.ModSub(X1, X1, t4, curve.P, curve.NUM_WORDS); // t1 = B^2 - 2A = x3
 
-            VLI.ModSub(t4, t4, X1, p, num_words); // t4 = A - x3
+            VLI.ModSub(t4, t4, X1, curve.P, curve.NUM_WORDS); // t4 = A - x3
             curve.ModMult(Y1, Y1, t4);                   // t2 = B * (A - x3)
-            VLI.ModSub(Y1, Y1, t5, p, num_words); // t2 = B * (A - x3) - y1^4 = y3
+            VLI.ModSub(Y1, Y1, t5, curve.P, curve.NUM_WORDS); // t2 = B * (A - x3) - y1^4 = y3
         }
 
         /// <summary>
@@ -73,29 +90,27 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// </summary>
         public static void MMod_SECP256K1(in ECCurve curve, Span<ulong> result, Span<ulong> product)
         {
-            int num_words = curve.NUM_WORDS;
-            ReadOnlySpan<ulong> p = curve.P;
-            Span<ulong> tmp = stackalloc ulong[2 * num_words];
+            Span<ulong> tmp = stackalloc ulong[2 * curve.NUM_WORDS];
             ulong carry;
 
-            VLI.Clear(tmp, num_words);
-            VLI.Clear(tmp.Slice(num_words), num_words);
+            VLI.Clear(tmp, curve.NUM_WORDS);
+            VLI.Clear(tmp.Slice(curve.NUM_WORDS), curve.NUM_WORDS);
 
-            OmegaMult(curve, tmp, product.Slice(num_words)); // (Rq, q) = q * c
+            OmegaMult(curve, tmp, product.Slice(curve.NUM_WORDS)); // (Rq, q) = q * c
 
-            carry = VLI.Add(result, product, tmp, num_words); // (C, r) = r + q
-            VLI.Clear(product, num_words);
-            OmegaMult(curve, product, tmp.Slice(num_words)); // Rq*c
-            carry += VLI.Add(result, result, product, num_words); // (C1, r) = r + Rq*c
+            carry = VLI.Add(result, product, tmp, curve.NUM_WORDS); // (C, r) = r + q
+            VLI.Clear(product, curve.NUM_WORDS);
+            OmegaMult(curve, product, tmp.Slice(curve.NUM_WORDS)); // Rq*c
+            carry += VLI.Add(result, result, product, curve.NUM_WORDS); // (C1, r) = r + Rq*c
 
             while (carry > 0)
             {
                 --carry;
-                VLI.Sub(result, result, p, num_words);
+                VLI.Sub(result, result, curve.P, curve.NUM_WORDS);
             }
-            if (VLI.VarTimeCmp(result, p, num_words) > 0)
+            if (VLI.VarTimeCmp(result, curve.P, curve.NUM_WORDS) > 0)
             {
-                VLI.Sub(result, result, p, num_words);
+                VLI.Sub(result, result, curve.P, curve.NUM_WORDS);
             }
         }
 
@@ -105,10 +120,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             ulong r1 = 0;
             ulong r2 = 0;
 
-            int num_words = curve.NUM_WORDS;
-
             // Multiply by (2^32 + 2^9 + 2^8 + 2^7 + 2^6 + 2^4 + 1).
-            for (int k = 0; k < num_words; ++k)
+            for (int k = 0; k < curve.NUM_WORDS; ++k)
             {
                 VLI.muladd(0x1000003D1, right[k], ref r0, ref r1, ref r2);
                 result[k] = r0;
@@ -116,7 +129,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 r1 = r2;
                 r2 = 0;
             }
-            result[num_words] = r0;
+            result[curve.NUM_WORDS] = r0;
         }
     }
 }

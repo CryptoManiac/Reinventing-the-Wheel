@@ -1,20 +1,20 @@
 ﻿using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
 
-namespace Wheel.Crypto.Elliptic.ECDSA.Internal
+namespace Wheel.Crypto.Elliptic.ECDSA
 {
     /// <summary>
     /// Elliptic Curve point operations
     /// </summary>
-    internal static class ECCPoint
+    public readonly partial struct ECCurve
     {
         /// <summary>
         /// Returns 1 if 'point' is the point at infinity, 0 otherwise.
         /// </summary>
         /// <param name="point"></param>
         /// <returns></returns>
-        public static bool IsZero(ECCurve curve, ReadOnlySpan<ulong> point)
+        internal bool IsZeroPoint(ReadOnlySpan<ulong> point)
         {
-            return VLI.IsZero(point, 2 * curve.NUM_WORDS);
+            return VLI.IsZero(point, 2 * NUM_WORDS);
         }
 
         /// <summary>
@@ -22,29 +22,28 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
         /// </summary>
         /// <param name="point"></param>
         /// <returns></returns>
-        public static bool IsValid(ECCurve curve, ReadOnlySpan<ulong> point)
+        internal bool IsValidPoint(ReadOnlySpan<ulong> point)
         {
-            int num_words = curve.NUM_WORDS;
-            Span<ulong> tmp1 = stackalloc ulong[num_words];
-            Span<ulong> tmp2 = stackalloc ulong[num_words];
+            Span<ulong> tmp1 = stackalloc ulong[NUM_WORDS];
+            Span<ulong> tmp2 = stackalloc ulong[NUM_WORDS];
 
             // The point at infinity is invalid.
-            if (IsZero(curve, point))
+            if (IsZeroPoint(point))
             {
                 return false;
             }
 
             // x and y must be smaller than p.
-            if (VLI.VarTimeCmp(curve.P, point, num_words) != 1 || VLI.VarTimeCmp(curve.P, point.Slice(num_words), num_words) != 1)
+            if (VLI.VarTimeCmp(P, point, NUM_WORDS) != 1 || VLI.VarTimeCmp(P, point.Slice(NUM_WORDS), NUM_WORDS) != 1)
             {
                 return false;
             }
 
-            curve.ModSquare(tmp1, point.Slice(num_words));
-            curve.XSide(tmp2, point); // tmp2 = x^3 + ax + b
+            ModSquare(tmp1, point.Slice(NUM_WORDS));
+            XSide(tmp2, point); // tmp2 = x^3 + ax + b
 
             // Make sure that y^2 == x^3 + ax + b
-            return VLI.Equal(tmp1, tmp2, num_words);
+            return VLI.Equal(tmp1, tmp2, NUM_WORDS);
         }
 
         /// <summary>
@@ -53,32 +52,31 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
         /// <param name="R"></param>
         /// <param name="input_P"></param>
         /// <param name="input_Q"></param>
-        public static void PointAdd(ECCurve curve, Span<ulong> R, Span<ulong> input_P, ReadOnlySpan<ulong> input_Q)
+        internal void PointAdd(Span<ulong> R, Span<ulong> input_P, ReadOnlySpan<ulong> input_Q)
         {
-            int num_words = curve.NUM_WORDS;
-            Span<ulong> P = stackalloc ulong[num_words * 2];
-            Span<ulong> Q = stackalloc ulong[num_words * 2];
-            Span<ulong> z = stackalloc ulong[num_words];
+            Span<ulong> P = stackalloc ulong[NUM_WORDS * 2];
+            Span<ulong> Q = stackalloc ulong[NUM_WORDS * 2];
+            Span<ulong> z = stackalloc ulong[NUM_WORDS];
 
-            VLI.Set(P, input_P, num_words);
-            VLI.Set(P.Slice(num_words), input_P.Slice(num_words), num_words);
-            VLI.Set(Q, input_Q, num_words);
-            VLI.Set(Q.Slice(num_words), input_Q.Slice(num_words), num_words);
+            VLI.Set(P, input_P, NUM_WORDS);
+            VLI.Set(P.Slice(NUM_WORDS), input_P.Slice(NUM_WORDS), NUM_WORDS);
+            VLI.Set(Q, input_Q, NUM_WORDS);
+            VLI.Set(Q.Slice(NUM_WORDS), input_Q.Slice(NUM_WORDS), NUM_WORDS);
 
-            ECCUtil.XYcZ_Add(curve, P, P.Slice(num_words), Q, Q.Slice(num_words));
+            XYcZ_Add(P, P.Slice(NUM_WORDS), Q, Q.Slice(NUM_WORDS));
 
             // Find final 1/Z value.
-            curve.ModMult(z, input_P, P.Slice(num_words));
-            VLI.ModInv(z, z, curve.P, num_words);
-            curve.ModMult(z, z, P);
-            curve.ModMult(z, z, input_P.Slice(num_words));
+            ModMult(z, input_P, P.Slice(NUM_WORDS));
+            VLI.ModInv(z, z, P, NUM_WORDS);
+            ModMult(z, z, P);
+            ModMult(z, z, input_P.Slice(NUM_WORDS));
 
             // End 1/Z calculation
 
-            ECCUtil.ApplyZ(curve, Q, Q.Slice(num_words), z);
+            ApplyZ(Q, Q.Slice(NUM_WORDS), z);
 
-            VLI.Set(R, Q, num_words);
-            VLI.Set(R.Slice(num_words), Q.Slice(num_words), num_words);
+            VLI.Set(R, Q, NUM_WORDS);
+            VLI.Set(R.Slice(NUM_WORDS), Q.Slice(NUM_WORDS), NUM_WORDS);
         }
 
         /// <summary>
@@ -87,14 +85,13 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
         /// <param name="result"></param>
         /// <param name="point"></param>
         /// <param name="scalar"></param>
-        public static void PointMul(ECCurve curve, Span<ulong> result, ReadOnlySpan<ulong> point, ReadOnlySpan<ulong> scalar)
+        internal void PointMul(Span<ulong> result, ReadOnlySpan<ulong> point, ReadOnlySpan<ulong> scalar)
         {
-            int num_words = curve.NUM_WORDS;
-            Span<ulong> tmp1 = stackalloc ulong[num_words];
-            Span<ulong> tmp2 = stackalloc ulong[num_words];
+            Span<ulong> tmp1 = stackalloc ulong[NUM_WORDS];
+            Span<ulong> tmp2 = stackalloc ulong[NUM_WORDS];
             VLI.Picker p2 = new(tmp1, tmp2);
-            ulong carry = ECCUtil.RegularizeK(curve, scalar, tmp1, tmp2);
-            PointMul(curve, result, point, p2[!Convert.ToBoolean(carry)], curve.NUM_N_BITS + 1);
+            ulong carry = RegularizeK(scalar, tmp1, tmp2);
+            PointMul(result, point, p2[!Convert.ToBoolean(carry)], NUM_N_BITS + 1);
         }
 
         /// <summary>
@@ -105,48 +102,46 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
         /// <param name="scalar"></param>
         /// <param name="initial_Z"></param>
         /// <param name="num_bits"></param>
-        public static void PointMul(ECCurve curve, Span<ulong> result, ReadOnlySpan<ulong> point, ReadOnlySpan<ulong> scalar, ReadOnlySpan<ulong> initial_Z, int num_bits)
+        internal void PointMul(Span<ulong> result, ReadOnlySpan<ulong> point, ReadOnlySpan<ulong> scalar, ReadOnlySpan<ulong> initial_Z, int num_bits)
         {
-            int num_words = curve.NUM_WORDS;
-
             // R0 and R1
-            VLI.Picker Rx = new(stackalloc ulong[num_words], stackalloc ulong[num_words]);
-            VLI.Picker Ry = new(stackalloc ulong[num_words], stackalloc ulong[num_words]);
-            Span<ulong> z = stackalloc ulong[num_words];
+            VLI.Picker Rx = new(stackalloc ulong[NUM_WORDS], stackalloc ulong[NUM_WORDS]);
+            VLI.Picker Ry = new(stackalloc ulong[NUM_WORDS], stackalloc ulong[NUM_WORDS]);
+            Span<ulong> z = stackalloc ulong[NUM_WORDS];
 
             ulong nb;
 
-            VLI.Set(Rx[1], point, num_words);
-            VLI.Set(Ry[1], point.Slice(num_words), num_words);
+            VLI.Set(Rx[1], point, NUM_WORDS);
+            VLI.Set(Ry[1], point.Slice(NUM_WORDS), NUM_WORDS);
 
-            ECCUtil.XYcZ_Initial_Double(curve, Rx[1], Ry[1], Rx[0], Ry[0], initial_Z);
+            XYcZ_Initial_Double(Rx[1], Ry[1], Rx[0], Ry[0], initial_Z);
 
             for (int i = num_bits - 2; i > 0; --i)
             {
                 nb = Convert.ToUInt64(!VLI.TestBit(scalar, i));
-                ECCUtil.XYcZ_addC(curve, Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
-                ECCUtil.XYcZ_Add(curve, Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);
+                XYcZ_addC(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
+                XYcZ_Add(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);
             }
 
             nb = Convert.ToUInt64(!VLI.TestBit(scalar, 0));
-            ECCUtil.XYcZ_addC(curve, Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
+            XYcZ_addC(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
 
             // Find final 1/Z value.
-            VLI.ModSub(z, Rx[1], Rx[0], curve.P, num_words); // X1 - X0
-            curve.ModMult(z, z, Ry[1 - nb]);               // Yb * (X1 - X0)
-            curve.ModMult(z, z, point);                    // xP * Yb * (X1 - X0)
+            VLI.ModSub(z, Rx[1], Rx[0], P, NUM_WORDS); // X1 - X0
+            ModMult(z, z, Ry[1 - nb]);               // Yb * (X1 - X0)
+            ModMult(z, z, point);                    // xP * Yb * (X1 - X0)
 
-            VLI.ModInv(z, z, curve.P, num_words);            // 1 / (xP * Yb * (X1 - X0))
+            VLI.ModInv(z, z, P, NUM_WORDS);            // 1 / (xP * Yb * (X1 - X0))
                                                              // yP / (xP * Yb * (X1 - X0))
-            curve.ModMult(z, z, point.Slice(num_words));
-            curve.ModMult(z, z, Rx[1 - nb]); // Xb * yP / (xP * Yb * (X1 - X0))
+            ModMult(z, z, point.Slice(NUM_WORDS));
+            ModMult(z, z, Rx[1 - nb]); // Xb * yP / (xP * Yb * (X1 - X0))
 
             // End 1/Z calculation
-            ECCUtil.XYcZ_Add(curve, Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);
-            ECCUtil.ApplyZ(curve, Rx[0], Ry[0], z);
+            XYcZ_Add(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);
+            ApplyZ(Rx[0], Ry[0], z);
 
-            VLI.Set(result, Rx[0], num_words);
-            VLI.Set(result.Slice(num_words), Ry[0], num_words);
+            VLI.Set(result, Rx[0], NUM_WORDS);
+            VLI.Set(result.Slice(NUM_WORDS), Ry[0], NUM_WORDS);
         }
 
         /// <summary>
@@ -157,49 +152,47 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
         /// <param name="scalar"></param>
         /// <param name="initial_Z"></param>
         /// <param name="num_bits"></param>
-        public static void PointMul(ECCurve curve, Span<ulong> result, ReadOnlySpan<ulong> point, ReadOnlySpan<ulong> scalar, int num_bits)
+        internal void PointMul(Span<ulong> result, ReadOnlySpan<ulong> point, ReadOnlySpan<ulong> scalar, int num_bits)
         {
-            int num_words = curve.NUM_WORDS;
-
             // R0 and R1
-            VLI.Picker Rx = new(stackalloc ulong[num_words], stackalloc ulong[num_words]);
-            VLI.Picker Ry = new(stackalloc ulong[num_words], stackalloc ulong[num_words]);
-            Span<ulong> z = stackalloc ulong[num_words];
+            VLI.Picker Rx = new(stackalloc ulong[NUM_WORDS], stackalloc ulong[NUM_WORDS]);
+            VLI.Picker Ry = new(stackalloc ulong[NUM_WORDS], stackalloc ulong[NUM_WORDS]);
+            Span<ulong> z = stackalloc ulong[NUM_WORDS];
 
             ulong nb;
 
-            VLI.Set(Rx[1], point, num_words);
-            VLI.Set(Ry[1], point.Slice(num_words), num_words);
+            VLI.Set(Rx[1], point, NUM_WORDS);
+            VLI.Set(Ry[1], point.Slice(NUM_WORDS), NUM_WORDS);
 
-            ECCUtil.XYcZ_Double(curve, Rx[1], Ry[1], Rx[0], Ry[0]);
+            XYcZ_Double(Rx[1], Ry[1], Rx[0], Ry[0]);
 
             for (int i = num_bits - 2; i > 0; --i)
             {
                 nb = Convert.ToUInt64(!VLI.TestBit(scalar, i));
-                ECCUtil.XYcZ_addC(curve, Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
-                ECCUtil.XYcZ_Add(curve, Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);
+                XYcZ_addC(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
+                XYcZ_Add(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);
             }
 
             nb = Convert.ToUInt64(!VLI.TestBit(scalar, 0));
-            ECCUtil.XYcZ_addC(curve, Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
+            XYcZ_addC(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
 
             // Find final 1/Z value.
-            VLI.ModSub(z, Rx[1], Rx[0], curve.P, num_words); // X1 - X0
-            curve.ModMult(z, z, Ry[1 - nb]);               // Yb * (X1 - X0)
-            curve.ModMult(z, z, point);                    // xP * Yb * (X1 - X0)
+            VLI.ModSub(z, Rx[1], Rx[0], P, NUM_WORDS); // X1 - X0
+            ModMult(z, z, Ry[1 - nb]);               // Yb * (X1 - X0)
+            ModMult(z, z, point);                    // xP * Yb * (X1 - X0)
 
-            VLI.ModInv(z, z, curve.P, num_words);            // 1 / (xP * Yb * (X1 - X0))
+            VLI.ModInv(z, z, P, NUM_WORDS);            // 1 / (xP * Yb * (X1 - X0))
                                                              // yP / (xP * Yb * (X1 - X0))
-            curve.ModMult(z, z, point.Slice(num_words));
-            curve.ModMult(z, z, Rx[1 - nb]); // Xb * yP / (xP * Yb * (X1 - X0))
+            ModMult(z, z, point.Slice(NUM_WORDS));
+            ModMult(z, z, Rx[1 - nb]); // Xb * yP / (xP * Yb * (X1 - X0))
 
-            /* End 1/Z calculation */
+            // End 1/Z calculation
 
-            ECCUtil.XYcZ_Add(curve, Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);
-            ECCUtil.ApplyZ(curve, Rx[0], Ry[0], z);
+            XYcZ_Add(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);
+            ApplyZ(Rx[0], Ry[0], z);
 
-            VLI.Set(result, Rx[0], num_words);
-            VLI.Set(result.Slice(num_words), Ry[0], num_words);
+            VLI.Set(result, Rx[0], NUM_WORDS);
+            VLI.Set(result.Slice(NUM_WORDS), Ry[0], NUM_WORDS);
         }
 
         /// <summary>
@@ -208,24 +201,22 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
         /// <param name="result">Will be filled in with the corresponding public key</param>
         /// <param name="private_key"> The private key to compute the public key for</param>
         /// <returns>True if the key was computed successfully, False if an error occurred.</returns>
-        public static bool ComputePublicPoint(ECCurve curve, Span<ulong> result, ReadOnlySpan<ulong> private_key)
+        internal bool ComputePublicPoint(Span<ulong> result, ReadOnlySpan<ulong> private_key)
         {
-            int num_words = curve.NUM_WORDS;
-
-            Span<ulong> tmp1 = stackalloc ulong[num_words];
-            Span<ulong> tmp2 = stackalloc ulong[num_words];
+            Span<ulong> tmp1 = stackalloc ulong[NUM_WORDS];
+            Span<ulong> tmp2 = stackalloc ulong[NUM_WORDS];
             VLI.Picker p2 = new(tmp1, tmp2);
 
             ulong carry;
 
             // Regularize the bitcount for the private key so that attackers cannot use a side channel
             //  attack to learn the number of leading zeros.
-            carry = ECCUtil.RegularizeK(curve, private_key, tmp1, tmp2);
+            carry = RegularizeK(private_key, tmp1, tmp2);
 
-            PointMul(curve, result, curve.G, p2[!Convert.ToBoolean(carry)], curve.NUM_N_BITS + 1);
+            PointMul(result, G, p2[!Convert.ToBoolean(carry)], NUM_N_BITS + 1);
 
             // Final validation of computed value
-            return !IsZero(curve, result);
+            return !IsZeroPoint(result);
         }
 
     }

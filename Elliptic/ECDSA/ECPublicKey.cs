@@ -1,5 +1,4 @@
-﻿using Wheel.Crypto.Elliptic.ECDSA.Internal;
-using Wheel.Crypto.Elliptic.EllipticCommon;
+﻿using Wheel.Crypto.Elliptic.EllipticCommon;
 using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
 
 namespace Wheel.Crypto.Elliptic.ECDSA
@@ -101,7 +100,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// </summary>
         public readonly bool IsValid
         {
-            get => ECCPoint.IsValid(_curve, native_point);
+            get => _curve.IsValidPoint(native_point);
         }
 
         /// <summary>
@@ -142,7 +141,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 return false;
             }
 
-            if (!ECCPoint.IsValid(_curve, native_in))
+            if (!_curve.IsValidPoint(native_in))
             {
                 return false;
             }
@@ -205,10 +204,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 return false;
             }
 
-            int num_words = _curve.NUM_WORDS;
-            Span<ulong> _public = stackalloc ulong[num_words * 2];
+            Span<ulong> _public = stackalloc ulong[_curve.NUM_WORDS * 2];
             VLI.BytesToNative(_public, serialized, _curve.NUM_BYTES);
-            VLI.BytesToNative(_public.Slice(num_words), serialized.Slice(_curve.NUM_BYTES), _curve.NUM_BYTES);
+            VLI.BytesToNative(_public.Slice(_curve.NUM_WORDS), serialized.Slice(_curve.NUM_BYTES), _curve.NUM_BYTES);
             return Wrap(_public);
         }
 
@@ -221,9 +219,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 return false;
             }
 
-            int num_words = _curve.NUM_WORDS;
-            Span<ulong> point = stackalloc ulong[2 * num_words];
-            Span<ulong> y = point.Slice(num_words);
+            Span<ulong> point = stackalloc ulong[2 * _curve.NUM_WORDS];
+            Span<ulong> y = point.Slice(_curve.NUM_WORDS);
 
             VLI.BytesToNative(point, compressed.Slice(1), _curve.NUM_BYTES);
             _curve.XSide(y, point);
@@ -231,7 +228,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             if ((y[0] & 0x01) != ((ulong)compressed[0] & 0x01))
             {
-                VLI.Sub(y, _curve.P, y, num_words);
+                VLI.Sub(y, _curve.P, y, _curve.NUM_WORDS);
             }
 
             return Wrap(point);
@@ -293,7 +290,6 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         public readonly bool KeyTweak(out IPublicKey result, ReadOnlySpan<byte> scalar)
         {
             result = new ECPublicKey(_curve);
-            int num_words = _curve.NUM_WORDS;
 
             // Make sure that public key is valid
             if (!IsValid)
@@ -301,20 +297,20 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 return false;
             }
 
-            Span<ulong> _result = stackalloc ulong[num_words * 2];
-            Span<ulong> _s_mul_G = stackalloc ulong[num_words * 2];
-            Span<ulong> _scalar = stackalloc ulong[num_words];
+            Span<ulong> _result = stackalloc ulong[_curve.NUM_WORDS * 2];
+            Span<ulong> _s_mul_G = stackalloc ulong[_curve.NUM_WORDS * 2];
+            Span<ulong> _scalar = stackalloc ulong[_curve.NUM_WORDS];
 
             VLI.BytesToNative(_scalar, scalar, _curve.NUM_BYTES);
 
             // Public key is computed by multiplication i.e. scalar*G is what we need
-            if (!ECCPoint.ComputePublicPoint(_curve, _s_mul_G, _scalar))
+            if (!_curve.ComputePublicPoint(_s_mul_G, _scalar))
             {
                 return false;
             }
 
             // R = A + scalar*G
-            ECCPoint.PointAdd(_curve, _result, native_point, _s_mul_G);
+            _curve.PointAdd(_result, native_point, _s_mul_G);
 
             // Try to wrap the resulting point data
             return result.Wrap(_result);
@@ -331,58 +327,55 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <returns></returns>
         private readonly bool VerifySignature(ReadOnlySpan<ulong> r, ReadOnlySpan<ulong> s, ReadOnlySpan<byte> message_hash)
         {
-            int num_bytes = _curve.NUM_BYTES;
-            int num_words = _curve.NUM_WORDS;
+            Span<ulong> u1 = stackalloc ulong[_curve.NUM_WORDS];
+            Span<ulong> u2 = stackalloc ulong[_curve.NUM_WORDS];
+            Span<ulong> z = stackalloc ulong[_curve.NUM_WORDS];
+            Span<ulong> sum = stackalloc ulong[_curve.NUM_WORDS * 2];
 
-            Span<ulong> u1 = stackalloc ulong[num_words];
-            Span<ulong> u2 = stackalloc ulong[num_words];
-            Span<ulong> z = stackalloc ulong[num_words];
-            Span<ulong> sum = stackalloc ulong[num_words * 2];
-
-            Span<ulong> rx = stackalloc ulong[num_words];
-            Span<ulong> ry = stackalloc ulong[num_words];
-            Span<ulong> tx = stackalloc ulong[num_words];
-            Span<ulong> ty = stackalloc ulong[num_words];
-            Span<ulong> tz = stackalloc ulong[num_words];
+            Span<ulong> rx = stackalloc ulong[_curve.NUM_WORDS];
+            Span<ulong> ry = stackalloc ulong[_curve.NUM_WORDS];
+            Span<ulong> tx = stackalloc ulong[_curve.NUM_WORDS];
+            Span<ulong> ty = stackalloc ulong[_curve.NUM_WORDS];
+            Span<ulong> tz = stackalloc ulong[_curve.NUM_WORDS];
 
 
             // r, s must not be 0
-            if (VLI.IsZero(r, num_words) || VLI.IsZero(s, num_words))
+            if (VLI.IsZero(r, _curve.NUM_WORDS) || VLI.IsZero(s, _curve.NUM_WORDS))
             {
                 return false;
             }
 
             // r, s must be < n.
-            if (VLI.VarTimeCmp(_curve.N, r, num_words) != 1 || VLI.VarTimeCmp(_curve.N, s, num_words) != 1)
+            if (VLI.VarTimeCmp(_curve.N, r, _curve.NUM_WORDS) != 1 || VLI.VarTimeCmp(_curve.N, s, _curve.NUM_WORDS) != 1)
             {
                 return false;
             }
 
             // Calculate u1 and u2.
-            VLI.ModInv(z, s, _curve.N, num_words); // z = 1/s
-            u1[num_words - 1] = 0;
-            ECCUtil.BitsToInt(_curve, u1, message_hash, message_hash.Length);
-            VLI.ModMult(u1, u1, z, _curve.N, num_words); // u1 = e/s
-            VLI.ModMult(u2, r, z, _curve.N, num_words); // u2 = r/s
+            VLI.ModInv(z, s, _curve.N, _curve.NUM_WORDS); // z = 1/s
+            u1[_curve.NUM_WORDS - 1] = 0;
+            _curve.BitsToInt(u1, message_hash, message_hash.Length);
+            VLI.ModMult(u1, u1, z, _curve.N, _curve.NUM_WORDS); // u1 = e/s
+            VLI.ModMult(u2, r, z, _curve.N, _curve.NUM_WORDS); // u2 = r/s
 
             // Calculate sum = G + Q.
-            VLI.Set(sum, native_point, num_words);
-            VLI.Set(sum.Slice(num_words), native_point.Slice(num_words), num_words);
-            VLI.Set(tx, _curve.G, num_words);
-            VLI.Set(ty, _curve.G.Slice(num_words), num_words);
-            VLI.ModSub(z, sum, tx, _curve.P, num_words); // z = x2 - x1
-            ECCUtil.XYcZ_Add(_curve, tx, ty, sum, sum.Slice(num_words));
-            VLI.ModInv(z, z, _curve.P, num_words); // z = 1/z
-            ECCUtil.ApplyZ(_curve, sum, sum.Slice(num_words), z);
+            VLI.Set(sum, native_point, _curve.NUM_WORDS);
+            VLI.Set(sum.Slice(_curve.NUM_WORDS), native_point.Slice(_curve.NUM_WORDS), _curve.NUM_WORDS);
+            VLI.Set(tx, _curve.G, _curve.NUM_WORDS);
+            VLI.Set(ty, _curve.G.Slice(_curve.NUM_WORDS), _curve.NUM_WORDS);
+            VLI.ModSub(z, sum, tx, _curve.P, _curve.NUM_WORDS); // z = x2 - x1
+            _curve.XYcZ_Add(tx, ty, sum, sum.Slice(_curve.NUM_WORDS));
+            VLI.ModInv(z, z, _curve.P, _curve.NUM_WORDS); // z = 1/z
+            _curve.ApplyZ(sum, sum.Slice(_curve.NUM_WORDS), z);
 
             /* Use Shamir's trick to calculate u1*G + u2*Q */
             VLI.QuadPicker points = new(null, _curve.G, native_point, sum);
-            int num_bits = int.Max(VLI.NumBits(u1, num_words), VLI.NumBits(u2, num_words));
+            int num_bits = int.Max(VLI.NumBits(u1, _curve.NUM_WORDS), VLI.NumBits(u2, _curve.NUM_WORDS));
 
             ReadOnlySpan<ulong> point = points[Convert.ToUInt64(VLI.TestBit(u1, num_bits - 1)) | (Convert.ToUInt64(VLI.TestBit(u2, num_bits - 1)) << 1)];
-            VLI.Set(rx, point, num_words);
-            VLI.Set(ry, point.Slice(num_words), num_words);
-            VLI.Clear(z, num_words);
+            VLI.Set(rx, point, _curve.NUM_WORDS);
+            VLI.Set(ry, point.Slice(_curve.NUM_WORDS), _curve.NUM_WORDS);
+            VLI.Clear(z, _curve.NUM_WORDS);
             z[0] = 1;
 
             for (int i = num_bits - 2; i >= 0; --i)
@@ -393,26 +386,26 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 point = points[index];
                 if (!point.IsEmpty)
                 {
-                    VLI.Set(tx, point, num_words);
-                    VLI.Set(ty, point.Slice(num_words), num_words);
-                    ECCUtil.ApplyZ(_curve, tx, ty, z);
-                    VLI.ModSub(tz, rx, tx, _curve.P, num_words); // Z = x2 - x1
-                    ECCUtil.XYcZ_Add(_curve, tx, ty, rx, ry);
+                    VLI.Set(tx, point, _curve.NUM_WORDS);
+                    VLI.Set(ty, point.Slice(_curve.NUM_WORDS), _curve.NUM_WORDS);
+                    _curve.ApplyZ(tx, ty, z);
+                    VLI.ModSub(tz, rx, tx, _curve.P, _curve.NUM_WORDS); // Z = x2 - x1
+                    _curve.XYcZ_Add(tx, ty, rx, ry);
                     _curve.ModMult(z, z, tz);
                 }
             }
 
-            VLI.ModInv(z, z, _curve.P, num_words); // Z = 1/Z
-            ECCUtil.ApplyZ(_curve, rx, ry, z);
+            VLI.ModInv(z, z, _curve.P, _curve.NUM_WORDS); // Z = 1/Z
+            _curve.ApplyZ(rx, ry, z);
 
             // v = x1 (mod n)
-            if (VLI.VarTimeCmp(_curve.N, rx, num_words) != 1)
+            if (VLI.VarTimeCmp(_curve.N, rx, _curve.NUM_WORDS) != 1)
             {
-                VLI.Sub(rx, rx, _curve.N, num_words);
+                VLI.Sub(rx, rx, _curve.N, _curve.NUM_WORDS);
             }
 
             // Accept only if v == r.
-            return VLI.Equal(rx, r, num_words);
+            return VLI.Equal(rx, r, _curve.NUM_WORDS);
         }
 
         /// <summary>

@@ -188,7 +188,6 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
             int len;
 
             int inputlen = encoded.Length;
-            int num_bytes = curve.NUM_BYTES;
 
             // Sequence tag byte
             if (pos == inputlen || encoded[pos] != 0x30)
@@ -318,20 +317,20 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
             }
 
             // Remove r prefix
-            if ((rlen - 1) == num_bytes && encoded[rpos] == 0x00)
+            if ((rlen - 1) == curve.NUM_BYTES && encoded[rpos] == 0x00)
             {
                 rpos++;
                 rlen--;
             }
 
             // Remove s prefix
-            if ((slen - 1) == num_bytes && encoded[spos] == 0x00)
+            if ((slen - 1) == curve.NUM_BYTES && encoded[spos] == 0x00)
             {
                 spos++;
                 slen--;
             }
 
-            if (rlen > num_bytes || slen > num_bytes)
+            if (rlen > curve.NUM_BYTES || slen > curve.NUM_BYTES)
             {
                 // Overflow
                 return false;
