@@ -27,7 +27,7 @@ The well tested implementations of the following hash functions are provided as 
 
 ### Elliptic cryptography
 
-* The reimplementation of uECC (limited by supported the secp256k1 and secp256r1 curves):
+* The reimplementation of uECC (limited by supported the secp384r1, secp256k1, secp256r1 and secp224r1 curves):
     * Key generation
     * Message signing
     * Signature verification
