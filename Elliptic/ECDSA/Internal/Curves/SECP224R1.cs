@@ -151,6 +151,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
             VLI.Set(Y1, t4, num_words);
         }
 
+        /// <summary>
+        /// Computes result = product % p
+        /// </summary>
         private static void MMod(Span<ulong> result, Span<ulong> product)
         {
             int num_words = VLI.BitsToWords(NUM_N_BITS);
