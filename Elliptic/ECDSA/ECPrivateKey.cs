@@ -308,9 +308,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="s">Will be filled in with the signature value</param>
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <param name="K">Random secret</param>
-        /// <param name="K_shadow">A "shadow" of the random secret</param>
-        /// <returns></returns>
-        private readonly bool SignWithK(Span<ulong> r, Span<ulong> s, ReadOnlySpan<byte> message_hash, ReadOnlySpan<ulong> K, ReadOnlySpan<ulong> K_shadow)
+        /// <returns>True on success</returns>
+        private readonly bool SignWithK(Span<ulong> r, Span<ulong> s, ReadOnlySpan<byte> message_hash, ReadOnlySpan<ulong> K)
         {
             Span<ulong> p = stackalloc ulong[VLI.ECC_MAX_WORDS * 2];
             Span<ulong> tmp = stackalloc ulong[VLI.ECC_MAX_WORDS];
@@ -342,7 +341,20 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             // Prevent side channel analysis of VLI_Arithmetic.ModInv() to determine
             //   bits of k / the private key by premultiplying by a random number
-            VLI.Set(tmp, K_shadow, num_n_words);
+            Span<ulong> rand = stackalloc ulong[VLI.ECC_MAX_WORDS];
+
+            // Generate the scrambling key
+            IPrivateKey randomKey;
+            while (!curve.GenerateRandomSecret(out randomKey));
+
+            // Unwrapping the native value must never fail here
+            if (!randomKey.UnWrap(rand))
+            {
+                // Sanity check: This must never ever happen in the real life
+                throw new SystemException("randomKey unwrap failure");
+            }
+
+            VLI.Set(tmp, rand, num_n_words);
             VLI.ModMult(k, k, tmp, _curve.n, num_n_words); // k' = rand * k
             VLI.ModInv(k, k, _curve.n, num_n_words);       // k = 1 / k'
             VLI.ModMult(k, k, tmp, _curve.n, num_n_words); // k = 1 / k
@@ -377,27 +389,69 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <summary>
         /// Generate an ECDSA signature for a given hash value, using a deterministic algorithm
         /// 
-        /// Usage: Compute a hash of the data you wish to sign and pass it to this function along with your private key and entropy bytes. The entropy bytes argument may be set to empty array if you don't need this feature.
+        /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
         /// </summary>
         /// <param name="r">Will be filled in with the signature value</param>
         /// <param name="s">Will be filled in with the signature value</param>
         /// <param name="message_hash">The hash of the message to sign</param>
-        /// <returns></returns>
+        /// <returns>True on success</returns>
         private readonly bool SignDeterministic<HMAC_IMPL>(Span<ulong> r, Span<ulong> s, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
         {
             // Secret K will be written here
             Span<ulong> K = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> K_shadow = stackalloc ulong[VLI.ECC_MAX_WORDS];
 
             // Will retry until succeed
             for (int i = 1; i != int.MaxValue; ++i)
             {
                 GenerateK<HMAC_IMPL>(ref K, message_hash, i);
-                GenerateK<HMAC_IMPL>(ref K_shadow, message_hash, -i);
+                if (SignWithK(r, s, message_hash, K))
+                {
+                    VLI.Clear(K, curve.NUM_WORDS);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Generate an ECDSA signature for a given hash value, using a non-deterministic algorithm
+        /// 
+        /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
+        /// </summary>
+        /// <param name="r">Will be filled in with the signature value</param>
+        /// <param name="s">Will be filled in with the signature value</param>
+        /// <param name="message_hash">The hash of the message to sign</param>
+        /// <returns>True on success</returns>
+        private readonly bool Sign<HMAC_IMPL>(Span<ulong> r, Span<ulong> s, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+        {
+            // Secret K will be written here
+            Span<ulong> K = stackalloc ulong[VLI.ECC_MAX_WORDS];
+
+            // Begin by generating a new random key with the platform's RNG
+            if (!curve.GenerateRandomSecret(out IPrivateKey randomKey))
+            {
+                return false;
+            }
+
+            // Will retry until succeed
+            for (int i = 1; i != int.MaxValue; ++i)
+            {
+                // Use the HMAC derivation of a secret child to ensure our
+                //  security in cases when the system RNG is compromised
+                randomKey.DeriveHMAC<HMAC_IMPL>(out randomKey, message_hash, i);
+
+                // Unwrapping the native value must never fail here
+                if (!randomKey.UnWrap(K))
+                {
+                    // Sanity check: This must never ever happen in the real life
+                    throw new SystemException("randomKey unwrap failure");
+                }
 
                 // Try to sign
-                if (SignWithK(r, s, message_hash, K, K_shadow))
+                if (SignWithK(r, s, message_hash, K))
                 {
+                    VLI.Clear(K, curve.NUM_WORDS);
                     return true;
                 }
             }
@@ -408,12 +462,12 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <summary>
         /// Generate an ECDSA signature for a given hash value, using a deterministic algorithm
         /// 
-        /// Usage: Compute a hash of the data you wish to sign and pass it to this function along with your private key and entropy bytes. The entropy bytes argument may be set to empty array if you don't need this feature.
+        /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
         /// </summary>
         /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <returns></returns>
-        public readonly bool Sign<HMAC_IMPL>(out DERSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+        public readonly bool SignDeterministic<HMAC_IMPL>(out DERSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
         {
             signature = _curve.MakeDERSignature();
             return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
@@ -422,7 +476,35 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <summary>
         /// Generate an ECDSA signature for a given hash value, using a deterministic algorithm
         /// 
-        /// Usage: Compute a hash of the data you wish to sign and pass it to this function along with your private key and entropy bytes. The entropy bytes argument may be set to empty array if you don't need this feature.
+        /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
+        /// </summary>
+        /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
+        /// <param name="message_hash">The hash of the message to sign</param>
+        /// <returns></returns>
+        public readonly bool SignDeterministic<HMAC_IMPL>(out CompactSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+        {
+            signature = _curve.MakeCompactSignature();
+            return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
+        }
+
+        /// <summary>
+        /// Generate an ECDSA signature for a given hash value, using a non-deterministic algorithm
+        /// 
+        /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
+        /// </summary>
+        /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
+        /// <param name="message_hash">The hash of the message to sign</param>
+        /// <returns></returns>
+        public readonly bool Sign<HMAC_IMPL>(out DERSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+        {
+            signature = _curve.MakeDERSignature();
+            return Sign<HMAC_IMPL>(signature.r, signature.s, message_hash);
+        }
+
+        /// <summary>
+        /// Generate an ECDSA signature for a given hash value, using a non-deterministic algorithm
+        /// 
+        /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
         /// </summary>
         /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
         /// <param name="message_hash">The hash of the message to sign</param>
@@ -430,7 +512,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         public readonly bool Sign<HMAC_IMPL>(out CompactSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
         {
             signature = _curve.MakeCompactSignature();
-            return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
+            return Sign<HMAC_IMPL>(signature.r, signature.s, message_hash);
         }
 
         /// <summary>
@@ -451,7 +533,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 throw new InvalidOperationException("Trying to derive from the invalid private key");
             }
 
-            _curve.GenerateSecret<HMAC_IMPL>(out result, seed, entropy, sequence);
+            _curve.GenerateDeterministicSecret<HMAC_IMPL>(out result, seed, entropy, sequence);
             seed.Clear();
         }
 

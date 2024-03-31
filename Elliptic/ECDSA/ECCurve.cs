@@ -21,6 +21,14 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 RNG.gen.GetBytes(byteView);
             }
         }
+
+        public static void Fill(Span<byte> rnd)
+        {
+            lock (LockGuard)
+            {
+                RNG.gen.GetBytes(rnd);
+            }
+        }
     }
     #endregion
 
@@ -192,7 +200,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
         private unsafe ECCurve(int num_n_bits, ulong[] p, ulong[] n, ulong[] half_n, ulong[] G, ulong[] b, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> XSide, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> ModSquare, delegate* managed<Span<ulong>, void> ModSQRT, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, ReadOnlySpan<ulong>, void> ModMult, delegate* managed<Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian)
         {
-            Span<ulong> random = stackalloc ulong[1 + VLI.BitsToWords(NUM_N_BITS)];
+            Span<ulong> random = stackalloc ulong[1 + NUM_WORDS];
             RNG.Fill(random);
 
             randomId = random[0];
@@ -408,6 +416,27 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         public bool IsValidPrivateKey(ReadOnlySpan<byte> data) => ECPrivateKey.IsValidPrivateKey(this, data);
 
         /// <summary>
+        /// Generation of a random secret key on top of the .NET RandomNumberGenerator API. The security of this key will depend
+        /// on the quality of the local RNG implementation. I suggest that you should treat these keys as unsecure by default,
+        /// use this API with caution and never use the generated keys directly, without hashing. It will be a good idea to use
+        /// the DeriveHMAC method to derive the children keys from them.
+        /// </summary>
+        /// <param name="result">Private key to be filled</param>
+        /// <returns>True on success</returns>
+        public bool GenerateRandomSecret(out IPrivateKey result)
+        {
+            // NOTE: There is some dark magic involved. The reason is that for shorter curve
+            // lengths there is no guarantee that NUM_BYTES / sizeof(ulong) == NUM_WORDS holds true.
+            Span<byte> random_key_bytes = stackalloc byte[NUM_BYTES];
+            Span<ulong> random_key_words = stackalloc ulong[NUM_WORDS];
+            RNG.Fill(random_key_bytes);
+            // Convert to native and wrap, returning the result of attempt
+            VLI.BytesToNative(random_key_words, random_key_bytes, NUM_BYTES);
+            result = new ECPrivateKey(this);
+            return result.Wrap(random_key_words);
+        }
+
+        /// <summary>
         /// Deterministically generate the new private key from seed, using HMAC-based generator
         /// </summary>
         /// <typeparam name="HMAC_IMPL">HMAC implementation to use</typeparam>
@@ -415,7 +444,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="seed">Secret seed to generate from</param>
         /// <param name="personalization">Personalization argument bytes (to generate more than one key from the same seed)</param>
         /// <param name="sequence">Generation sequence number (to generate more than one key from the same seed + personalization pair)</param>
-        public void GenerateSecret<HMAC_IMPL>(out IPrivateKey result, ReadOnlySpan<byte> seed, ReadOnlySpan<byte> personalization, int sequence) where HMAC_IMPL : unmanaged, IMac
+        public void GenerateDeterministicSecret<HMAC_IMPL>(out IPrivateKey result, ReadOnlySpan<byte> seed, ReadOnlySpan<byte> personalization, int sequence) where HMAC_IMPL : unmanaged, IMac
         {
             // See 3..2 of the RFC 6979 to get what is going on here
             // We're not following it to the letter, but our algorithm is very similar

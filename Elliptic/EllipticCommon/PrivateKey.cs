@@ -77,10 +77,32 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <returns></returns>
-        public bool Sign<HMAC_IMPL>(out DERSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac;
+        public bool SignDeterministic<HMAC_IMPL>(out DERSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac;
 
         /// <summary>
         /// Generate a signature for a given hash value, using a deterministic algorithm
+        /// 
+        /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
+        /// </summary>
+        /// <typeparam name="HMAC_IMPL">HMAC implementation to use</typeparam>
+        /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
+        /// <param name="message_hash">The hash of the message to sign</param>
+        /// <returns>True if successful (failure has an unrealisticallly low probability)</returns>
+        public bool SignDeterministic<HMAC_IMPL>(out CompactSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac;
+
+        /// <summary>
+        /// Generate a signature for a given hash value, using a non-deterministic algorithm
+        /// 
+        /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
+        /// </summary>
+        /// <typeparam name="HMAC_IMPL">HMAC implementation to use</typeparam>
+        /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
+        /// <param name="message_hash">The hash of the message to sign</param>
+        /// <returns></returns>
+        public bool Sign<HMAC_IMPL>(out DERSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac;
+
+        /// <summary>
+        /// Generate a signature for a given hash value, using a non-deterministic algorithm
         /// 
         /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
         /// </summary>
