@@ -1,7 +1,6 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using ECDSA.Internal.Curves;
-using Wheel.Crypto.Elliptic.ECDSA.Internal.Curves;
 using Wheel.Crypto.Elliptic.EllipticCommon;
 using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
 using Wheel.Hashing.HMAC;
@@ -56,7 +55,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
     /// </summary>
 #pragma warning disable CS0661
 #pragma warning disable CS0660
-    public readonly struct ECCurve : ICurve
+    public readonly partial struct ECCurve : ICurve
 #pragma warning restore CS0660
 #pragma warning restore CS0661
     {
@@ -71,11 +70,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         public readonly ulong randomId { get; }
 
         #region Curve's point coordinate size
-        #region Calculated lengths
-        public readonly int NUM_WORDS => VLI.BitsToWords(NUM_N_BITS);
-        public readonly int NUM_BYTES => VLI.BitsToBytes(NUM_N_BITS);
-        #endregion
-
+        public readonly int NUM_WORDS { get; }
+        public readonly int NUM_BYTES { get; }
         public readonly int NUM_N_BITS { get; }
         #endregion
 
@@ -85,28 +81,38 @@ namespace Wheel.Crypto.Elliptic.ECDSA
          *  and those types that are dependent on it would have been treated as the managed types and we don't want that.
          */
 
-        private readonly unsafe delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> XSide_Impl;
-        private readonly unsafe delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> ModSquare_Impl;
-        private readonly unsafe delegate* managed<Span<ulong>, void> ModSQRT_Impl;
-        private readonly unsafe delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, ReadOnlySpan<ulong>, void> ModMult_Impl;
-        private readonly unsafe delegate* managed<Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian_Impl;
+        private readonly unsafe delegate* managed<in ECCurve, Span<ulong>, Span<ulong>, void> MMod_Impl;
+        private readonly unsafe delegate* managed<in ECCurve, Span<ulong>, void> ModSQRT_Impl;
+        private readonly unsafe delegate* managed<in ECCurve, Span<ulong>, ReadOnlySpan<ulong>, void> XSide_Impl;
+        private readonly unsafe delegate* managed<in ECCurve, Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian_Impl;
         #endregion
 
         #region Implementation wrappers
         /// <summary>
         /// Computes result = left^2 % p
         /// </summary>
-        /// <param name="result"></param>
-        /// <param name="left"></param>
-        public unsafe void ModSquare(Span<ulong> result, ReadOnlySpan<ulong> left) => ModSquare_Impl(result, left);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe void ModSquare(Span<ulong> result, ReadOnlySpan<ulong> left)
+        {
+            int num_words = NUM_WORDS;
+            Span<ulong> product = stackalloc ulong[2 * num_words];
+            VLI.Square(product, left, num_words);
+            //VLI.MMod(result, product, p, num_words);
+            MMod_Impl(this, result, product);
+        }
 
         /// <summary>
         /// Computes result = (left * right) % p
         /// </summary>
-        /// <param name="result"></param>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        public unsafe void ModMult(Span<ulong> result, Span<ulong> left, ReadOnlySpan<ulong> right) => ModMult_Impl(result, left, right);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe void ModMult(Span<ulong> result, ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right)
+        {
+            int num_words = NUM_WORDS;
+            Span<ulong> product = stackalloc ulong[2 * num_words];
+            VLI.Mult(product, left, right, num_words);
+            //VLI.MMod(result, product, p, num_words);
+            MMod_Impl(this, result, product);
+        }
 
         /// <summary>
         /// Double in place
@@ -115,55 +121,24 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="X1"></param>
         /// <param name="Y1"></param>
         /// <param name="Z1"></param>
-        public unsafe void DoubleJacobian(Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1)
-        {
-            if (null != DoubleJacobian_Impl)
-            {
-                // Curve-specific implementation
-                DoubleJacobian_Impl(X1, Y1, Z1);
-            }
-            else
-            {
-                // Generic implementation
-                CurveCommon.DoubleJacobian(this, X1, Y1, Z1);
-            }
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe void DoubleJacobian(Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1) => DoubleJacobian_Impl(this, X1, Y1, Z1);
 
         /// <summary>
         /// Compute a = sqrt(a) (mod curve_p)
         /// </summary>
         /// <param name="result"></param>
         /// <param name="left"></param>
-        public unsafe void ModSQRT(Span<ulong> a)
-        {
-            if (null != ModSQRT_Impl)
-            {
-                // Curve-specific implementation
-                ModSQRT_Impl(a);
-            }
-            else
-            {
-                // Generic implementation
-                CurveCommon.ModSQRT(this, a);
-            }
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe void ModSQRT(Span<ulong> a) => ModSQRT_Impl(this, a);
 
         /// <summary>
         /// Computes result = x^3 + b. Result must not overlap x.
         /// </summary>
         /// <param name="result"></param>
         /// <param name="x"></param>
-        public unsafe void XSide(Span<ulong> result, ReadOnlySpan<ulong> x)
-        {
-            if (null != XSide_Impl)
-            {
-                XSide_Impl(result, x);
-            }
-            else
-            {
-                CurveCommon.XSide(this, result, x);
-            }
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe void XSide(Span<ulong> result, ReadOnlySpan<ulong> x) => XSide_Impl(this, result, x);
         #endregion
 
         #region Curve constant getters
@@ -233,7 +208,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         }
         #endregion
 
-        private unsafe ECCurve(int num_n_bits, ulong[] p, ulong[] n, ulong[] half_n, ulong[] G, ulong[] b, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> XSide, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, void> ModSquare, delegate* managed<Span<ulong>, void> ModSQRT, delegate* managed<Span<ulong>, ReadOnlySpan<ulong>, ReadOnlySpan<ulong>, void> ModMult, delegate* managed<Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian)
+        private unsafe ECCurve(int num_n_bits, ReadOnlySpan<ulong> p, ReadOnlySpan<ulong> n, ReadOnlySpan<ulong> half_n, ReadOnlySpan<ulong> G, ReadOnlySpan<ulong> b, delegate* managed<in ECCurve, Span<ulong>, Span<ulong>, void> MMod, delegate* managed<in ECCurve, Span<ulong>, ReadOnlySpan<ulong>, void> XSide, delegate* managed<in ECCurve, Span<ulong>, void> ModSQRT, delegate* managed<in ECCurve, Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian)
         {
             Span<ulong> random = stackalloc ulong[1 + NUM_WORDS];
             RNG.Fill(random);
@@ -242,6 +217,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             #region Set curve constants
             NUM_N_BITS = num_n_bits;
+            NUM_WORDS = VLI.BitsToWords(num_n_bits);
+            NUM_BYTES = VLI.BitsToBytes(num_n_bits);
 
             fixed (ulong* ptr = &curveBuffers.scrambleKey[0])
             {
@@ -274,51 +251,10 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
             #endregion
 
+            MMod_Impl = MMod;
             XSide_Impl = XSide;
-            ModSquare_Impl = ModSquare;
             ModSQRT_Impl = ModSQRT;
-            ModMult_Impl = ModMult;
             DoubleJacobian_Impl = DoubleJacobian;
-        }
-
-        /// <summary>
-        /// Construct a new instance of the secp256k1 context.
-        /// <returns></returns>
-        public static unsafe ECCurve Get_SECP256K1()
-        {
-            return new ECCurve(
-                SECP256K1.NUM_N_BITS,
-                SECP256K1.p,
-                SECP256K1.n,
-                SECP256K1.half_n,
-                SECP256K1.G,
-                SECP256K1.b,
-                &SECP256K1.XSide,
-                &SECP256K1.ModSquare,
-                null,
-                &SECP256K1.ModMult,
-                &SECP256K1.DoubleJacobian
-            );
-        }
-
-        /// <summary>
-        /// Construct a new instance of the secp256r1 context.
-        /// <returns></returns>
-        public static unsafe ECCurve Get_SECP256R1()
-        {
-            return new ECCurve(
-                SECP256R1.NUM_N_BITS,
-                SECP256R1.p,
-                SECP256R1.n,
-                SECP256R1.half_n,
-                SECP256R1.G,
-                SECP256R1.b,
-                null,
-                &SECP256R1.ModSquare,
-                null,
-                &SECP256R1.ModMult,
-                null
-            );
         }
 
         /// <summary>
@@ -327,17 +263,16 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         public static unsafe ECCurve Get_SECP192R1()
         {
             return new ECCurve(
-                SECP192R1.NUM_N_BITS,
-                SECP192R1.p,
-                SECP192R1.n,
-                SECP192R1.half_n,
-                SECP192R1.G,
-                SECP192R1.b,
-                null,
-                &SECP192R1.ModSquare,
-                null,
-                &SECP192R1.ModMult,
-                null
+                192,
+                stackalloc ulong[] { 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFE, 0xFFFFFFFFFFFFFFFF },
+                stackalloc ulong[] { 0x146BC9B1B4D22831, 0xFFFFFFFF99DEF836, 0xFFFFFFFFFFFFFFFF },
+                stackalloc ulong[] { 0x0a35e4d8da691418, 0xffffffffccef7c1b, 0x7fffffffffffffff },
+                stackalloc ulong[] { 0xF4FF0AFD82FF1012, 0x7CBF20EB43A18800, 0x188DA80EB03090F6, 0x73F977A11E794811, 0x631011ED6B24CDD5, 0x07192B95FFC8DA78 },
+                stackalloc ulong[] { 0xFEB8DEECC146B9B1, 0x0FA7E9AB72243049, 0x64210519E59C80E7 },
+                &MMod_SECP192R1,
+                &XSide_Generic,
+                &ModSQRT_Generic,
+                &DoubleJacobian_Generic
             );
         }
 
@@ -347,17 +282,35 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         public static unsafe ECCurve Get_SECP224R1()
         {
             return new ECCurve(
-                SECP224R1.NUM_N_BITS,
-                SECP224R1.p,
-                SECP224R1.n,
-                SECP224R1.half_n,
-                SECP224R1.G,
-                SECP224R1.b,
-                null,
-                &SECP224R1.ModSquare,
-                &SECP224R1.ModSQRT,
-                &SECP224R1.ModMult,
-                null
+                224,
+                stackalloc ulong[] { 0x0000000000000001, 0xFFFFFFFF00000000, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFF },
+                stackalloc ulong[] { 0x13DD29455C5C2A3D, 0xFFFF16A2E0B8F03E, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFF },
+                stackalloc ulong[] { 0x09ee94a2ae2e151e, 0xffff8b51705c781f, 0xffffffffffffffff, 0x7fffffff },
+                stackalloc ulong[] { 0x343280D6115C1D21, 0x4A03C1D356C21122, 0x6BB4BF7F321390B9, 0xB70E0CBD, 0x44D5819985007E34, 0xCD4375A05A074764, 0xB5F723FB4C22DFE6, 0xBD376388 },
+                stackalloc ulong[] { 0x270B39432355FFB4, 0x5044B0B7D7BFD8BA, 0x0C04B3ABF5413256, 0xB4050A85 },
+                &MMod_SECP224R1,
+                &XSide_Generic,
+                &ModSQRT_SECP224R1,
+                &DoubleJacobian_Generic
+            );
+        }
+
+        /// <summary>
+        /// Construct a new instance of the secp256r1 context.
+        /// <returns></returns>
+        public static unsafe ECCurve Get_SECP256R1()
+        {
+            return new ECCurve(
+                256,
+                stackalloc ulong[] { 0xFFFFFFFFFFFFFFFF, 0x00000000FFFFFFFF, 0x0000000000000000, 0xFFFFFFFF00000001 },
+                stackalloc ulong[] { 0xF3B9CAC2FC632551, 0xBCE6FAADA7179E84, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFF00000000 },
+                stackalloc ulong[] { 0x79dce5617e3192a8, 0xde737d56d38bcf42, 0x7fffffff80000000, 0x7fffffff80000000 },
+                stackalloc ulong[] { 0xF4A13945D898C296, 0x77037D812DEB33A0, 0xF8BCE6E563A440F2, 0x6B17D1F2E12C4247, 0xCBB6406837BF51F5, 0x2BCE33576B315ECE, 0x8EE7EB4A7C0F9E16, 0x4FE342E2FE1A7F9B },
+                stackalloc ulong[] { 0x3BCE3C3E27D2604B, 0x651D06B0CC53B0F6, 0xB3EBBD55769886BC, 0x5AC635D8AA3A93E7 },
+                &MMod_SECP256R1,
+                &XSide_Generic,
+                &ModSQRT_Generic,
+                &DoubleJacobian_Generic
             );
         }
 
@@ -367,17 +320,19 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         public static unsafe ECCurve Get_SECP384R1()
         {
             return new ECCurve(
-                SECP384R1.NUM_N_BITS,
-                SECP384R1.p,
-                SECP384R1.n,
-                SECP384R1.half_n,
-                SECP384R1.G,
-                SECP384R1.b,
-                null,
-                &SECP384R1.ModSquare,
-                null,
-                &SECP384R1.ModMult,
-                null
+                384,
+                stackalloc ulong[] { 0x00000000FFFFFFFF, 0xFFFFFFFF00000000, 0xFFFFFFFFFFFFFFFE, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF },
+                stackalloc ulong[] { 0xECEC196ACCC52973, 0x581A0DB248B0A77A, 0xC7634D81F4372DDF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF },
+                stackalloc ulong[] { 0x76760cb5666294b9, 0xac0d06d9245853bd, 0xe3b1a6c0fa1b96ef, 0xffffffffffffffff, 0xffffffffffffffff, 0x7fffffffffffffff },
+                stackalloc ulong[] {
+                    0x3A545E3872760AB7, 0x5502F25DBF55296C, 0x59F741E082542A38, 0x6E1D3B628BA79B98, 0x8EB1C71EF320AD74, 0xAA87CA22BE8B0537,
+                    0x7A431D7C90EA0E5F, 0x0A60B1CE1D7E819D, 0xE9DA3113B5F0B8C0, 0xF8F41DBD289A147C, 0x5D9E98BF9292DC29, 0x3617DE4A96262C6F
+                },
+                stackalloc ulong[] { 0x2A85C8EDD3EC2AEF, 0xC656398D8A2ED19D, 0x0314088F5013875A, 0x181D9C6EFE814112, 0x988E056BE3F82D19, 0xB3312FA7E23EE7E4 },
+                &MMod_SECP384R1,
+                &XSide_Generic,
+                &ModSQRT_Generic,
+                &DoubleJacobian_Generic
             );
         }
 
@@ -387,17 +342,56 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         public static unsafe ECCurve Get_SECP521R1()
         {
             return new ECCurve(
-                SECP521R1.NUM_N_BITS,
-                SECP521R1.p,
-                SECP521R1.n,
-                SECP521R1.half_n,
-                SECP521R1.G,
-                SECP521R1.b,
-                null,
-                &SECP521R1.ModSquare,
-                null,
-                &SECP521R1.ModMult,
-                null
+                521,
+                stackalloc ulong[] {
+                    0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF,
+                    0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF,
+                    0x000001FF },
+                stackalloc ulong[] {
+                    0xBB6FB71E91386409, 0x3BB5C9B8899C47AE, 0x7FCC0148F709A5D0, 0x51868783BF2F966B,
+                    0xFFFFFFFFFFFFFFFA, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF,
+                    0x000001FF },
+                stackalloc ulong[] {
+                    0x5db7db8f489c3204, 0x1ddae4dc44ce23d7, 0xbfe600a47b84d2e8, 0x28c343c1df97cb35,
+                    0xfffffffffffffffd, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
+                    0x00000ff
+                },
+                stackalloc ulong[] {
+                    0xF97E7E31C2E5BD66, 0x3348B3C1856A429B, 0xFE1DC127A2FFA8DE, 0xA14B5E77EFE75928,
+                    0xF828AF606B4D3DBA, 0x9C648139053FB521, 0x9E3ECB662395B442, 0x858E06B70404E9CD,
+                    0x000000C6,
+                    0x88BE94769FD16650, 0x353C7086A272C240, 0xC550B9013FAD0761, 0x97EE72995EF42640,
+                    0x17AFBD17273E662C, 0x98F54449579B4468, 0x5C8A5FB42C7D1BD9, 0x39296A789A3BC004,
+                    0x00000118
+                },
+                stackalloc ulong[] {
+                    0xEF451FD46B503F00, 0x3573DF883D2C34F1, 0x1652C0BD3BB1BF07, 0x56193951EC7E937B,
+                    0xB8B489918EF109E1, 0xA2DA725B99B315F3, 0x929A21A0B68540EE, 0x953EB9618E1C9A1F,
+                    0x00000051
+                },
+                &MMod_SECP521R1,
+                &XSide_Generic,
+                &ModSQRT_Generic,
+                &DoubleJacobian_Generic
+            );
+        }
+
+        /// <summary>
+        /// Construct a new instance of the secp256k1 context.
+        /// <returns></returns>
+        public static unsafe ECCurve Get_SECP256K1()
+        {
+            return new ECCurve(
+                256,
+                stackalloc ulong[] { 0xFFFFFFFEFFFFFC2F, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF },
+                stackalloc ulong[] { 0xBFD25E8CD0364141, 0xBAAEDCE6AF48A03B, 0xFFFFFFFFFFFFFFFE, 0xFFFFFFFFFFFFFFFF },
+                stackalloc ulong[] { 0xdfe92f46681b20a0, 0x5d576e7357a4501d, 0xFFFFFFFFFFFFFFFE, 0xFFFFFFFFFFFFFFFF },
+                stackalloc ulong[] { 0x59F2815B16F81798, 0x029BFCDB2DCE28D9, 0x55A06295CE870B07, 0x79BE667EF9DCBBAC, 0x9C47D08FFB10D4B8, 0xFD17B448A6855419, 0x5DA4FBFC0E1108A8, 0x483ADA7726A3C465 },
+                stackalloc ulong[] { 0x0000000000000007, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000 },
+                &MMod_SECP256K1,
+                &XSide_SECP256K1,
+                &ModSQRT_Generic,
+                &DoubleJacobian_SECP256K1
             );
         }
 

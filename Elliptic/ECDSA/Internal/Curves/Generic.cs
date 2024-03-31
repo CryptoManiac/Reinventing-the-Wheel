@@ -1,21 +1,19 @@
-﻿using System;
-using Wheel.Crypto.Elliptic.ECDSA;
-using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
+﻿using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
 
-namespace ECDSA.Internal.Curves
+namespace Wheel.Crypto.Elliptic.ECDSA
 {
     /// <summary>
     /// Generic curve arithmetic (shared among some implementations)
     /// </summary>
-	public static class CurveCommon
-	{
+    public readonly partial struct ECCurve
+    {
         /// <summary>
         /// Double in place
         /// </summary>
         /// <param name="X1"></param>
         /// <param name="Y1"></param>
         /// <param name="Z1"></param>
-        public static void DoubleJacobian(in ECCurve curve, Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1)
+        public static void DoubleJacobian_Generic(in ECCurve curve, Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1)
         {
             int num_words = curve.NUM_WORDS;
 
@@ -69,7 +67,7 @@ namespace ECDSA.Internal.Curves
         /// Compute a = sqrt(a) (mod curve_p)
         /// </summary>
         /// <param name="a"></param>
-        public static void ModSQRT(in ECCurve curve, Span<ulong> a)
+        public static void ModSQRT_Generic(in ECCurve curve, Span<ulong> a)
         {
             int num_words = curve.NUM_WORDS;
             Span<ulong> p1 = stackalloc ulong[num_words];
@@ -96,7 +94,7 @@ namespace ECDSA.Internal.Curves
         /// </summary>
         /// <param name="result"></param>
         /// <param name="x"></param>
-        public static void XSide(in ECCurve curve, Span<ulong> result, ReadOnlySpan<ulong> x)
+        public static void XSide_Generic(in ECCurve curve, Span<ulong> result, ReadOnlySpan<ulong> x)
         {
             int num_words = curve.NUM_WORDS;
             Span<ulong> _3 = stackalloc ulong[num_words];
