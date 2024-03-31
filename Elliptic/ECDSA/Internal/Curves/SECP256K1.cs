@@ -130,6 +130,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
             VLI.ModSub(Y1, Y1, t5, p, num_words); // t2 = B * (A - x3) - y1^4 = y3
         }
 
+        /// <summary>
+        /// Computes result = product % p
+        /// </summary>
         private static void MMod(Span<ulong> result, Span<ulong> product)
         {
             int num_words = VLI.BitsToWords(NUM_N_BITS);
@@ -162,12 +165,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
             ulong r0 = 0;
             ulong r1 = 0;
             ulong r2 = 0;
-            int k;
 
             int num_words = VLI.BitsToWords(NUM_N_BITS);
 
-            /* Multiply by (2^32 + 2^9 + 2^8 + 2^7 + 2^6 + 2^4 + 1). */
-            for (k = 0; k < num_words; ++k)
+            // Multiply by (2^32 + 2^9 + 2^8 + 2^7 + 2^6 + 2^4 + 1).
+            for (int k = 0; k < num_words; ++k)
             {
                 VLI.muladd(0x1000003D1, right[k], ref r0, ref r1, ref r2);
                 result[k] = r0;
