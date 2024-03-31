@@ -27,11 +27,12 @@ The well tested implementations of the following hash functions are provided as 
 
 ### Elliptic cryptography
 
-* The reimplementation of uECC (limited by supported the secp384r1, secp256k1, secp256r1 and secp224r1 curves):
-    * Key generation
-    * Message signing
+* The reimplementation of uECC
+    * Supports secp521r1, secp384r1, secp256k1, secp256r1 and secp224r1 curves
+    * Deterministic and random key generation
+    * Deterministic and non-deterministic message signing
     * Signature verification
-    * ECDH
+    * ECDH shared secret derivation
     * Private and public key tweak by scalar
 
 ### Symmetric cryptography
