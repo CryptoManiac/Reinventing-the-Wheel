@@ -306,6 +306,26 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             );
         }
 
+        /// <summary>
+        /// Construct a new instance of the secp384r1 context.
+        /// <returns></returns>
+        public static unsafe ECCurve Get_SECP384R1()
+        {
+            return new ECCurve(
+                SECP384R1.NUM_N_BITS,
+                SECP384R1.p,
+                SECP384R1.n,
+                SECP384R1.half_n,
+                SECP384R1.G,
+                SECP384R1.b,
+                &SECP384R1.XSide,
+                &SECP384R1.ModSquare,
+                &SECP384R1.ModSQRT,
+                &SECP384R1.ModMult,
+                &SECP384R1.DoubleJacobian
+            );
+        }
+
         public static bool operator ==(ECCurve x, ECCurve y)
         {
             return x.randomId == y.randomId;
