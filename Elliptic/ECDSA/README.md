@@ -12,7 +12,7 @@
     * Private and public key tweak by scalar
 
 * Supported curves:
-    * secp521r1, secp384r1, secp256k1, secp256r1 and secp224r1.
+    * secp521r1, secp384r1, secp256k1, secp256r1, secp224r1 and secp192r1.
 
 * Features:
     * Based on the value and ref value types, all objects can be allocated on stack without any heap heap allocations.
