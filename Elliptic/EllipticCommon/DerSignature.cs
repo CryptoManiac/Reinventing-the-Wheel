@@ -85,38 +85,45 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
             }
         }
 
-        /// <summary>
-        /// Write signature data in DER format
-        /// </summary>
-        /// <param name="encoded"></param>
-        /// <returns>Number of bytes written/to write</returns>
         public readonly int Encode(Span<byte> encoded)
         {
-            byte lenR = (byte)curve.NUM_BYTES;
-            byte lenS = (byte)curve.NUM_BYTES;
+            int offset = 0;
+            int reqSz = GetEncodedSize(curve);
 
-            int reqSz = 6 + lenS + lenR;
             if (encoded.Length >= reqSz)
             {
                 // Fill the DER encoded signature skeleton:
 
                 // Sequence tag
                 encoded[0] = 0x30;
+
+                byte lenR = (byte)curve.NUM_BYTES;
+                byte lenS = (byte)curve.NUM_BYTES;
+                int seqSz = 4 + lenR + lenS;
+
+                if (seqSz > 127)
+                {
+                    // Special case for two byte value
+                    encoded[1] = 1 | 0x80;
+                    offset = 1;
+                }
+
                 // Total data length
-                encoded[1] = (byte)(4 + lenS + lenR);
+                encoded[1 + offset] = (byte)(seqSz & 0xff);
                 // Integer tag for R
-                encoded[2] = 0x02;
+                encoded[2 + offset] = 0x02;
                 // R length prefix
-                encoded[3] = lenR;
+                encoded[3 + offset] = lenR;
                 // Integer tag for S
-                encoded[4 + lenR] = 0x02;
+                encoded[4 + offset + lenR] = 0x02;
                 // S length prefix
-                encoded[5 + lenR] = lenS;
+                encoded[5 + offset + lenR] = lenS;
 
                 // Encode the R and S values
-                VLI.NativeToBytes(encoded.Slice(4, lenR), lenR, r);
-                VLI.NativeToBytes(encoded.Slice(6 + lenR, lenS), lenS, s);
+                VLI.NativeToBytes(encoded.Slice(4 + offset, lenR), lenR, r);
+                VLI.NativeToBytes(encoded.Slice(6 + offset + lenR, lenS), lenS, s);
             }
+
             return reqSz;
         }
 
@@ -138,7 +145,10 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// <returns></returns>
         public static int GetEncodedSize(ICurve curve)
         {
-            return 6 + 2 * curve.NUM_BYTES;
+            int seqSz = 4 + 2 * curve.NUM_BYTES;
+            int reqSz = seqSz + 2;
+            if (seqSz > 127) ++reqSz;
+            return reqSz;
         }
 
         /// <summary>
@@ -171,6 +181,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
                 return false;
             }
             len = lenbyte = encoded[pos++];
+
             if ((lenbyte & 0x80) != 0)
             {
                 lenbyte -= 0x80;
@@ -178,6 +189,9 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
                 {
                     return false;
                 }
+                // Save length for
+                //  the format check
+                len = encoded[pos];
                 pos += lenbyte;
             }
 
