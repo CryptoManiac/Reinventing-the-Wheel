@@ -287,6 +287,26 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         }
 
         /// <summary>
+        /// Construct a new instance of the secp192r1 context.
+        /// <returns></returns>
+        public static unsafe ECCurve Get_SECP192R1()
+        {
+            return new ECCurve(
+                SECP192R1.NUM_N_BITS,
+                SECP192R1.p,
+                SECP192R1.n,
+                SECP192R1.half_n,
+                SECP192R1.G,
+                SECP192R1.b,
+                &SECP192R1.XSide,
+                &SECP192R1.ModSquare,
+                &SECP192R1.ModSQRT,
+                &SECP192R1.ModMult,
+                &SECP192R1.DoubleJacobian
+            );
+        }
+
+        /// <summary>
         /// Construct a new instance of the secp224r1 context.
         /// <returns></returns>
         public static unsafe ECCurve Get_SECP224R1()
