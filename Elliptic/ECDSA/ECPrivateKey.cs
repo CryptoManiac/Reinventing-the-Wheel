@@ -311,7 +311,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <param name="K">Random secret</param>
         /// <returns>True on success</returns>
-        private readonly bool SignWithK(Span<ulong> r, Span<ulong> s, ReadOnlySpan<byte> message_hash, ReadOnlySpan<ulong> K)
+        private readonly bool SignWithK<HMAC_IMPL>(Span<ulong> r, Span<ulong> s, ReadOnlySpan<byte> message_hash, ReadOnlySpan<ulong> K) where HMAC_IMPL : unmanaged, IMac
         {
             int num_words = _curve.NUM_WORDS;
             int num_bytes = _curve.NUM_BYTES;
@@ -340,13 +340,16 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 return false;
             }
 
-            // Prevent side channel analysis of VLI_Arithmetic.ModInv() to determine
+            // Prevent side channel analysis of VLI.ModInv() to determine
             //   bits of k / the private key by premultiplying by a random number
             Span<ulong> rand = stackalloc ulong[num_words];
 
             // Generate the scrambling key
             IPrivateKey randomKey;
             while (!curve.GenerateRandomSecret(out randomKey));
+
+            // Derive child key with message hash as an additional entropy source
+            randomKey.DeriveHMAC<HMAC_IMPL>(out randomKey, message_hash, 0);
 
             // Unwrapping the native value must never fail here
             if (!randomKey.UnWrap(rand))
@@ -407,7 +410,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             for (int i = 1; i != int.MaxValue; ++i)
             {
                 GenerateK<HMAC_IMPL>(ref K, message_hash, i);
-                if (SignWithK(r, s, message_hash, K))
+                if (SignWithK<HMAC_IMPL>(r, s, message_hash, K))
                 {
                     VLI.Clear(K, num_words);
                     return true;
@@ -454,7 +457,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 }
 
                 // Try to sign
-                if (SignWithK(r, s, message_hash, K))
+                if (SignWithK<HMAC_IMPL>(r, s, message_hash, K))
                 {
                     VLI.Clear(K, num_words);
                     return true;
