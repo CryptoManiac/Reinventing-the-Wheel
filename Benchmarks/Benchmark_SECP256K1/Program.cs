@@ -105,7 +105,7 @@ Benchmark("Sign<HMAC_SHA512>", () => {
     SignData<HMAC_SHA512>(signature, secretKey, message, curve);
 }, 1000);
 
-byte[] public_key_uncompressed = new byte[curve.CompressedPublicKeySize];
+byte[] public_key_uncompressed = new byte[curve.UncompressedPublicKeySize];
 
 if (!publicKey.Serialize(public_key_uncompressed))
 {
