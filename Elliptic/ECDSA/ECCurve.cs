@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using ECDSA.Internal.Curves;
 using Wheel.Crypto.Elliptic.ECDSA.Internal.Curves;
 using Wheel.Crypto.Elliptic.EllipticCommon;
 using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
@@ -93,25 +94,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
         #region Implementation wrappers
         /// <summary>
-        /// Computes result = x^3 + b. Result must not overlap x.
-        /// </summary>
-        /// <param name="result"></param>
-        /// <param name="x"></param>
-        public unsafe void XSide(Span<ulong> result, ReadOnlySpan<ulong> x) => XSide_Impl(result, x);
-
-        /// <summary>
         /// Computes result = left^2 % p
         /// </summary>
         /// <param name="result"></param>
         /// <param name="left"></param>
         public unsafe void ModSquare(Span<ulong> result, ReadOnlySpan<ulong> left) => ModSquare_Impl(result, left);
-
-        /// <summary>
-        /// Compute a = sqrt(a) (mod curve_p)
-        /// </summary>
-        /// <param name="result"></param>
-        /// <param name="left"></param>
-        public unsafe void ModSQRT(Span<ulong> a) => ModSQRT_Impl(a);
 
         /// <summary>
         /// Computes result = (left * right) % p
@@ -128,7 +115,55 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="X1"></param>
         /// <param name="Y1"></param>
         /// <param name="Z1"></param>
-        public unsafe void DoubleJacobian(Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1) => DoubleJacobian_Impl(X1, Y1, Z1);
+        public unsafe void DoubleJacobian(Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1)
+        {
+            if (null != DoubleJacobian_Impl)
+            {
+                // Curve-specific implementation
+                DoubleJacobian_Impl(X1, Y1, Z1);
+            }
+            else
+            {
+                // Generic implementation
+                CurveCommon.DoubleJacobian(this, X1, Y1, Z1);
+            }
+        }
+
+        /// <summary>
+        /// Compute a = sqrt(a) (mod curve_p)
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="left"></param>
+        public unsafe void ModSQRT(Span<ulong> a)
+        {
+            if (null != ModSQRT_Impl)
+            {
+                // Curve-specific implementation
+                ModSQRT_Impl(a);
+            }
+            else
+            {
+                // Generic implementation
+                CurveCommon.ModSQRT(this, a);
+            }
+        }
+
+        /// <summary>
+        /// Computes result = x^3 + b. Result must not overlap x.
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="x"></param>
+        public unsafe void XSide(Span<ulong> result, ReadOnlySpan<ulong> x)
+        {
+            if (null != XSide_Impl)
+            {
+                XSide_Impl(result, x);
+            }
+            else
+            {
+                CurveCommon.XSide(this, result, x);
+            }
+        }
         #endregion
 
         #region Curve constant getters
@@ -260,7 +295,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 SECP256K1.b,
                 &SECP256K1.XSide,
                 &SECP256K1.ModSquare,
-                &SECP256K1.ModSQRT,
+                null,
                 &SECP256K1.ModMult,
                 &SECP256K1.DoubleJacobian
             );
@@ -278,11 +313,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 SECP256R1.half_n,
                 SECP256R1.G,
                 SECP256R1.b,
-                &SECP256R1.XSide,
+                null,
                 &SECP256R1.ModSquare,
-                &SECP256R1.ModSQRT,
+                null,
                 &SECP256R1.ModMult,
-                &SECP256R1.DoubleJacobian
+                null
             );
         }
 
@@ -298,11 +333,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 SECP192R1.half_n,
                 SECP192R1.G,
                 SECP192R1.b,
-                &SECP192R1.XSide,
+                null,
                 &SECP192R1.ModSquare,
-                &SECP192R1.ModSQRT,
+                null,
                 &SECP192R1.ModMult,
-                &SECP192R1.DoubleJacobian
+                null
             );
         }
 
@@ -318,11 +353,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 SECP224R1.half_n,
                 SECP224R1.G,
                 SECP224R1.b,
-                &SECP224R1.XSide,
+                null,
                 &SECP224R1.ModSquare,
                 &SECP224R1.ModSQRT,
                 &SECP224R1.ModMult,
-                &SECP224R1.DoubleJacobian
+                null
             );
         }
 
@@ -338,11 +373,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 SECP384R1.half_n,
                 SECP384R1.G,
                 SECP384R1.b,
-                &SECP384R1.XSide,
+                null,
                 &SECP384R1.ModSquare,
-                &SECP384R1.ModSQRT,
+                null,
                 &SECP384R1.ModMult,
-                &SECP384R1.DoubleJacobian
+                null
             );
         }
 
@@ -358,11 +393,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 SECP521R1.half_n,
                 SECP521R1.G,
                 SECP521R1.b,
-                &SECP521R1.XSide,
+                null,
                 &SECP521R1.ModSquare,
-                &SECP521R1.ModSQRT,
+                null,
                 &SECP521R1.ModMult,
-                &SECP521R1.DoubleJacobian
+                null
             );
         }
 
