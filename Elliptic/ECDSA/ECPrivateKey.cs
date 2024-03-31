@@ -112,9 +112,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 {
                     return false;
                 }
-                VLI.XorWith(secret_x, _curve.scrambleKey, _curve.NUM_WORDS); // Unscramble
-                bool result = VLI.ConstTimeCmp(_curve.n, secret_x, _curve.NUM_WORDS) == 1;
-                VLI.XorWith(secret_x, _curve.scrambleKey, _curve.NUM_WORDS); // Scramble
+                VLI.XorWith(secret_x, _curve.ScrambleKey, _curve.NUM_WORDS); // Unscramble
+                bool result = VLI.ConstTimeCmp(_curve.N, secret_x, _curve.NUM_WORDS) == 1;
+                VLI.XorWith(secret_x, _curve.ScrambleKey, _curve.NUM_WORDS); // Scramble
                 return result;
             }
         }
@@ -139,9 +139,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 return false;
             }
 
-            VLI.XorWith(secret_x, _curve.scrambleKey, _curve.NUM_WORDS); // Unscramble
+            VLI.XorWith(secret_x, _curve.ScrambleKey, _curve.NUM_WORDS); // Unscramble
             secret_x.CopyTo(native_out);
-            VLI.XorWith(secret_x, _curve.scrambleKey, _curve.NUM_WORDS); // Scramble
+            VLI.XorWith(secret_x, _curve.ScrambleKey, _curve.NUM_WORDS); // Scramble
             return true;
         }
 
@@ -158,13 +158,13 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
 
             // Make sure the private key is in the range [1, n-1].
-            if (VLI.IsZero(native_in, _curve.NUM_WORDS) || VLI.ConstTimeCmp(_curve.n, native_in, _curve.NUM_WORDS) != 1)
+            if (VLI.IsZero(native_in, _curve.NUM_WORDS) || VLI.ConstTimeCmp(_curve.N, native_in, _curve.NUM_WORDS) != 1)
             {
                 return false;
             }
 
             VLI.Set(secret_x, native_in, _curve.NUM_WORDS);
-            VLI.XorWith(secret_x, _curve.scrambleKey, _curve.NUM_WORDS); // Scramble
+            VLI.XorWith(secret_x, _curve.ScrambleKey, _curve.NUM_WORDS); // Scramble
             return true;
         }
 
@@ -208,9 +208,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 return false;
             }
 
-            VLI.XorWith(secret_x, _curve.scrambleKey, _curve.NUM_WORDS); // Unscramble
+            VLI.XorWith(secret_x, _curve.ScrambleKey, _curve.NUM_WORDS); // Unscramble
             VLI.NativeToBytes(secret_scalar, _curve.NUM_BYTES, secret_x);
-            VLI.XorWith(secret_x, _curve.scrambleKey, _curve.NUM_WORDS); // Scramble
+            VLI.XorWith(secret_x, _curve.ScrambleKey, _curve.NUM_WORDS); // Scramble
 
             return true;
         }
@@ -248,9 +248,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             int num_words = curve.NUM_WORDS;
             Span<ulong> _public = stackalloc ulong[num_words * 2];
 
-            VLI.XorWith(secret_x, _curve.scrambleKey, num_words); // Unscramble
+            VLI.XorWith(secret_x, _curve.ScrambleKey, num_words); // Unscramble
             bool computed = ECCPoint.ComputePublicPoint(_curve, _public, secret_x);
-            VLI.XorWith(secret_x, _curve.scrambleKey, num_words); // Scramble
+            VLI.XorWith(secret_x, _curve.ScrambleKey, num_words); // Scramble
 
             // Compute public key.
             if (!computed)
@@ -286,18 +286,18 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 return false;
             }
 
-            if (VLI.ConstTimeCmp(_curve.n, _scalar, num_words) != 1)
+            if (VLI.ConstTimeCmp(_curve.N, _scalar, num_words) != 1)
             {
                 return false;
             }
 
-            VLI.XorWith(secret_x, _curve.scrambleKey, num_words); // Unscramble
+            VLI.XorWith(secret_x, _curve.ScrambleKey, num_words); // Unscramble
 
             // Apply scalar addition
             //   r = (a + scalar) % n
-            VLI.ModAdd(_result, secret_x, _scalar, _curve.n, num_words);
+            VLI.ModAdd(_result, secret_x, _scalar, _curve.N, num_words);
 
-            VLI.XorWith(secret_x, _curve.scrambleKey, num_words); // Scramble
+            VLI.XorWith(secret_x, _curve.ScrambleKey, num_words); // Scramble
 
             // Try to wrap the resulting key data
             return result.Wrap(_result);
@@ -328,7 +328,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             VLI.Set(k, K, num_words);
 
             // Make sure 0 < k < curve_n 
-            if (VLI.IsZero(k, num_words) || VLI.ConstTimeCmp(_curve.n, k, num_words) != 1)
+            if (VLI.IsZero(k, num_words) || VLI.ConstTimeCmp(_curve.N, k, num_words) != 1)
             {
                 throw new InvalidDataException("The secret k value does not meet the requirements");
             }
@@ -359,32 +359,32 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
 
             VLI.Set(tmp, rand, num_words);
-            VLI.ModMult(k, k, tmp, _curve.n, num_words); // k' = rand * k
-            VLI.ModInv(k, k, _curve.n, num_words);       // k = 1 / k'
-            VLI.ModMult(k, k, tmp, _curve.n, num_words); // k = 1 / k
+            VLI.ModMult(k, k, tmp, _curve.N, num_words); // k' = rand * k
+            VLI.ModInv(k, k, _curve.N, num_words);       // k = 1 / k'
+            VLI.ModMult(k, k, tmp, _curve.N, num_words); // k = 1 / k
 
             VLI.Set(r, p, num_words); // store r
 
-            VLI.XorWith(secret_x, _curve.scrambleKey, num_words); // Unscramble
+            VLI.XorWith(secret_x, _curve.ScrambleKey, num_words); // Unscramble
             VLI.Set(tmp, secret_x, _curve.NUM_WORDS); // tmp = private key
-            VLI.XorWith(secret_x, _curve.scrambleKey, num_words); // Scramble
+            VLI.XorWith(secret_x, _curve.ScrambleKey, num_words); // Scramble
 
             s[num_words - 1] = 0;
             VLI.Set(s, p, num_words);
-            VLI.ModMult(s, tmp, s, _curve.n, num_words); // s = r*d
+            VLI.ModMult(s, tmp, s, _curve.N, num_words); // s = r*d
 
             ECCUtil.BitsToInt(_curve, tmp, message_hash, message_hash.Length);
-            VLI.ModAdd(s, tmp, s, _curve.n, num_words); // s = e + r*d 
-            VLI.ModMult(s, s, k, _curve.n, num_words);  // s = (e + r*d) / k 
+            VLI.ModAdd(s, tmp, s, _curve.N, num_words); // s = e + r*d 
+            VLI.ModMult(s, s, k, _curve.N, num_words);  // s = (e + r*d) / k 
             if (VLI.NumBits(s, num_words) > num_bytes * 8)
             {
                 return false;
             }
 
-            if (VLI.ConstTimeCmp(s, _curve.half_n, num_words) == 1)
+            if (VLI.ConstTimeCmp(s, _curve.Half_N, num_words) == 1)
             {
                 // Apply Low-S rule to signature
-                VLI.Sub(s, _curve.n, s, num_words); // s = n - s 
+                VLI.Sub(s, _curve.N, s, num_words); // s = n - s 
             }
 
             return true;
@@ -607,9 +607,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             Span<ulong> secret_scalar_x = stackalloc ulong[num_words];
             Span<ulong> temp_scalar_k = stackalloc ulong[num_words];
 
-            VLI.XorWith(secret_x, _curve.scrambleKey, num_words); // Unscramble
+            VLI.XorWith(secret_x, _curve.ScrambleKey, num_words); // Unscramble
             VLI.Set(secret_scalar_x, secret_x, num_words);
-            VLI.XorWith(secret_x, _curve.scrambleKey, num_words); // Scramble
+            VLI.XorWith(secret_x, _curve.ScrambleKey, num_words); // Scramble
 
             VLI.Picker p2 = new(secret_scalar_x, temp_scalar_k);
             ulong carry;

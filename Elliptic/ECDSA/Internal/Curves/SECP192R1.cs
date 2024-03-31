@@ -13,7 +13,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         public static void MMod_SECP192R1(in ECCurve curve, Span<ulong> result, Span<ulong> product)
         {
             int num_words = curve.NUM_WORDS;
-            ReadOnlySpan<ulong> p = curve.p;
+            ReadOnlySpan<ulong> p = curve.P;
             Span<ulong> tmp = stackalloc ulong[num_words];
             int carry = 0;
 

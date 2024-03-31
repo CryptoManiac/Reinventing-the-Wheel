@@ -13,7 +13,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         public static void MMod_SECP384R1(in ECCurve curve, Span<ulong> result, Span<ulong> product)
         {
             int num_words = curve.NUM_WORDS;
-            ReadOnlySpan<ulong> p = curve.p;
+            ReadOnlySpan<ulong> p = curve.P;
             Span<ulong> tmp = stackalloc ulong[2 * num_words];
 
             while (!VLI.IsZero(product.Slice(num_words), num_words)) // While c1 != 0

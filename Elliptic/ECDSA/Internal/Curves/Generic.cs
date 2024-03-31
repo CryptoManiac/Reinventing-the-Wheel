@@ -32,16 +32,16 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             curve.ModMult(Y1, Y1, Z1); // t2 = y1*z1 = z3
             curve.ModSquare(Z1, Z1);   // t3 = z1^2
 
-            VLI.ModAdd(X1, X1, Z1, curve.p, num_words); // t1 = x1 + z1^2
-            VLI.ModAdd(Z1, Z1, Z1, curve.p, num_words); // t3 = 2*z1^2
-            VLI.ModSub(Z1, X1, Z1, curve.p, num_words); // t3 = x1 - z1^2
+            VLI.ModAdd(X1, X1, Z1, curve.P, num_words); // t1 = x1 + z1^2
+            VLI.ModAdd(Z1, Z1, Z1, curve.P, num_words); // t3 = 2*z1^2
+            VLI.ModSub(Z1, X1, Z1, curve.P, num_words); // t3 = x1 - z1^2
             curve.ModMult(X1, X1, Z1);                // t1 = x1^2 - z1^4
 
-            VLI.ModAdd(Z1, X1, X1, curve.p, num_words); // t3 = 2*(x1^2 - z1^4)
-            VLI.ModAdd(X1, X1, Z1, curve.p, num_words); // t1 = 3*(x1^2 - z1^4)
+            VLI.ModAdd(Z1, X1, X1, curve.P, num_words); // t3 = 2*(x1^2 - z1^4)
+            VLI.ModAdd(X1, X1, Z1, curve.P, num_words); // t1 = 3*(x1^2 - z1^4)
             if (VLI.TestBit(X1, 0))
             {
-                ulong l_carry = VLI.Add(X1, X1, curve.p, num_words);
+                ulong l_carry = VLI.Add(X1, X1, curve.P, num_words);
                 VLI.RShift1(X1, num_words);
                 X1[num_words - 1] |= l_carry << (VLI.WORD_BITS - 1);
             }
@@ -52,11 +52,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             // t1 = 3/2*(x1^2 - z1^4) = B
 
             curve.ModSquare(Z1, X1);                  // t3 = B^2
-            VLI.ModSub(Z1, Z1, t5, curve.p, num_words); // t3 = B^2 - A
-            VLI.ModSub(Z1, Z1, t5, curve.p, num_words); // t3 = B^2 - 2A = x3
-            VLI.ModSub(t5, t5, Z1, curve.p, num_words); // t5 = A - x3
+            VLI.ModSub(Z1, Z1, t5, curve.P, num_words); // t3 = B^2 - A
+            VLI.ModSub(Z1, Z1, t5, curve.P, num_words); // t3 = B^2 - 2A = x3
+            VLI.ModSub(t5, t5, Z1, curve.P, num_words); // t5 = A - x3
             curve.ModMult(X1, X1, t5);         // t1 = B * (A - x3)
-            VLI.ModSub(t4, X1, t4, curve.p, num_words); // t4 = B * (A - x3) - y1^4 = y3
+            VLI.ModSub(t4, X1, t4, curve.P, num_words); // t4 = B * (A - x3) - y1^4 = y3
 
             VLI.Set(X1, Z1, num_words);
             VLI.Set(Z1, Y1, num_words);
@@ -77,7 +77,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             // When curve_secp256k1.p == 3 (mod 4), we can compute
             //   sqrt(a) = a^((curve_secp256k1.p + 1) / 4) (mod curve_secp256k1.p).
 
-            VLI.Add(p1, curve.p, p1, num_words); // p1 = curve_p + 1
+            VLI.Add(p1, curve.P, p1, num_words); // p1 = curve_p + 1
             for (int i = VLI.NumBits(p1, num_words) - 1; i > 1; --i)
             {
                 curve.ModSquare(l_result, l_result);
@@ -101,9 +101,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             _3[0] = 3; // -a = 3
 
             curve.ModSquare(result, x);                             // r = x^2
-            VLI.ModSub(result, result, _3, curve.p, num_words);       // r = x^2 - 3
+            VLI.ModSub(result, result, _3, curve.P, num_words);       // r = x^2 - 3
             curve.ModMult(result, result, x);                     // r = x^3 - 3x
-            VLI.ModAdd(result, result, curve.b, curve.p, num_words); // r = x^3 - 3x + b
+            VLI.ModAdd(result, result, curve.B, curve.P, num_words); // r = x^3 - 3x + b
         }
     }
 }

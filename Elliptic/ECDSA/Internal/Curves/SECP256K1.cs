@@ -16,7 +16,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         {
             curve.ModSquare(result, x);                                // r = x^2
             curve.ModMult(result, result, x);                          // r = x^3
-            VLI.ModAdd(result, result, curve.b, curve.p, curve.NUM_WORDS); // r = x^3 + b
+            VLI.ModAdd(result, result, curve.B, curve.P, curve.NUM_WORDS); // r = x^3 + b
         }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             // t1 = X, t2 = Y, t3 = Z
             Span<ulong> t4 = stackalloc ulong[num_words];
             Span<ulong> t5 = stackalloc ulong[num_words];
-            ReadOnlySpan<ulong> p = curve.p;
+            ReadOnlySpan<ulong> p = curve.P;
 
             if (VLI.IsZero(Z1, num_words))
             {
@@ -74,7 +74,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         public static void MMod_SECP256K1(in ECCurve curve, Span<ulong> result, Span<ulong> product)
         {
             int num_words = curve.NUM_WORDS;
-            ReadOnlySpan<ulong> p = curve.p;
+            ReadOnlySpan<ulong> p = curve.P;
             Span<ulong> tmp = stackalloc ulong[2 * num_words];
             ulong carry;
 

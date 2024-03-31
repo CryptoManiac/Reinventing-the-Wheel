@@ -35,7 +35,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                     break;
                 }
             }
-            VLI.ModInv(f1, e0, curve.p, num_words); // f1 <-- 1 / e0
+            VLI.ModInv(f1, e0, curve.P, num_words); // f1 <-- 1 / e0
             curve.ModMult(a, d0, f1);              // a  <-- d0 / e0
         }
 
@@ -45,7 +45,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         public static void MMod_SECP224R1(in ECCurve curve, Span<ulong> result, Span<ulong> product)
         {
             int num_words = curve.NUM_WORDS;
-            ReadOnlySpan<ulong> p = curve.p;
+            ReadOnlySpan<ulong> p = curve.P;
             Span<ulong> tmp = stackalloc ulong[num_words];
             int carry = 0;
 
@@ -101,7 +101,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         private static void mod_sqrt_secp224r1_rs(in ECCurve curve, Span<ulong> d1, Span<ulong> e1, Span<ulong> f1, ReadOnlySpan<ulong> d0, ReadOnlySpan<ulong> e0, ReadOnlySpan<ulong> f0) {
             int num_words = curve.NUM_WORDS;
             Span<ulong> t = stackalloc ulong[num_words];
-            ReadOnlySpan<ulong> p = curve.p;
+            ReadOnlySpan<ulong> p = curve.P;
 
             curve.ModSquare(t, d0);                               // t <-- d0 ^ 2
             curve.ModMult(e1, d0, e0);                            // e1 <-- d0 * e0
@@ -135,7 +135,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             int num_words = curve.NUM_WORDS;
             Span<ulong> t1 = stackalloc ulong[num_words];
             Span<ulong> t2 = stackalloc ulong[num_words];
-            ReadOnlySpan<ulong> p = curve.p;
+            ReadOnlySpan<ulong> p = curve.P;
 
             curve.ModMult(t1, e0, e1); // t1 <-- e0 * e1
             curve.ModMult(t1, t1, c);  // t1 <-- t1 * c
@@ -159,7 +159,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         private static void mod_sqrt_secp224r1_rp(in ECCurve curve, Span<ulong> d1, Span<ulong> e1, Span<ulong> f1, ReadOnlySpan<ulong> c, ReadOnlySpan<ulong> r)
         {
             int num_words = curve.NUM_WORDS;
-            ReadOnlySpan<ulong> p = curve.p;
+            ReadOnlySpan<ulong> p = curve.P;
             Span<ulong> d0 = stackalloc ulong[num_words];
             Span<ulong> e0 = stackalloc ulong[num_words];
             e0[0] = 1; // e0 <-- 1

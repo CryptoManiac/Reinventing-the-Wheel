@@ -231,7 +231,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             if ((y[0] & 0x01) != ((ulong)compressed[0] & 0x01))
             {
-                VLI.Sub(y, _curve.p, y, num_words);
+                VLI.Sub(y, _curve.P, y, num_words);
             }
 
             return Wrap(point);
@@ -353,26 +353,26 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
 
             // r, s must be < n.
-            if (VLI.VarTimeCmp(_curve.n, r, num_words) != 1 || VLI.VarTimeCmp(_curve.n, s, num_words) != 1)
+            if (VLI.VarTimeCmp(_curve.N, r, num_words) != 1 || VLI.VarTimeCmp(_curve.N, s, num_words) != 1)
             {
                 return false;
             }
 
             // Calculate u1 and u2.
-            VLI.ModInv(z, s, _curve.n, num_words); // z = 1/s
+            VLI.ModInv(z, s, _curve.N, num_words); // z = 1/s
             u1[num_words - 1] = 0;
             ECCUtil.BitsToInt(_curve, u1, message_hash, message_hash.Length);
-            VLI.ModMult(u1, u1, z, _curve.n, num_words); // u1 = e/s
-            VLI.ModMult(u2, r, z, _curve.n, num_words); // u2 = r/s
+            VLI.ModMult(u1, u1, z, _curve.N, num_words); // u1 = e/s
+            VLI.ModMult(u2, r, z, _curve.N, num_words); // u2 = r/s
 
             // Calculate sum = G + Q.
             VLI.Set(sum, native_point, num_words);
             VLI.Set(sum.Slice(num_words), native_point.Slice(num_words), num_words);
             VLI.Set(tx, _curve.G, num_words);
             VLI.Set(ty, _curve.G.Slice(num_words), num_words);
-            VLI.ModSub(z, sum, tx, _curve.p, num_words); // z = x2 - x1
+            VLI.ModSub(z, sum, tx, _curve.P, num_words); // z = x2 - x1
             ECCUtil.XYcZ_Add(_curve, tx, ty, sum, sum.Slice(num_words));
-            VLI.ModInv(z, z, _curve.p, num_words); // z = 1/z
+            VLI.ModInv(z, z, _curve.P, num_words); // z = 1/z
             ECCUtil.ApplyZ(_curve, sum, sum.Slice(num_words), z);
 
             /* Use Shamir's trick to calculate u1*G + u2*Q */
@@ -396,19 +396,19 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                     VLI.Set(tx, point, num_words);
                     VLI.Set(ty, point.Slice(num_words), num_words);
                     ECCUtil.ApplyZ(_curve, tx, ty, z);
-                    VLI.ModSub(tz, rx, tx, _curve.p, num_words); // Z = x2 - x1
+                    VLI.ModSub(tz, rx, tx, _curve.P, num_words); // Z = x2 - x1
                     ECCUtil.XYcZ_Add(_curve, tx, ty, rx, ry);
                     _curve.ModMult(z, z, tz);
                 }
             }
 
-            VLI.ModInv(z, z, _curve.p, num_words); // Z = 1/Z
+            VLI.ModInv(z, z, _curve.P, num_words); // Z = 1/Z
             ECCUtil.ApplyZ(_curve, rx, ry, z);
 
             // v = x1 (mod n)
-            if (VLI.VarTimeCmp(_curve.n, rx, num_words) != 1)
+            if (VLI.VarTimeCmp(_curve.N, rx, num_words) != 1)
             {
-                VLI.Sub(rx, rx, _curve.n, num_words);
+                VLI.Sub(rx, rx, _curve.N, num_words);
             }
 
             // Accept only if v == r.

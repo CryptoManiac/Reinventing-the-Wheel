@@ -142,7 +142,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         #endregion
 
         #region Curve constant getters
-        public unsafe readonly ReadOnlySpan<ulong> scrambleKey
+        public unsafe readonly ReadOnlySpan<ulong> ScrambleKey
         {
             get
             {
@@ -153,7 +153,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
         }
 
-        public unsafe readonly ReadOnlySpan<ulong> p
+        public unsafe readonly ReadOnlySpan<ulong> P
         {
             get
             {
@@ -164,7 +164,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
         }
 
-        public unsafe readonly ReadOnlySpan<ulong> n
+        public unsafe readonly ReadOnlySpan<ulong> N
         {
             get
             {
@@ -174,7 +174,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 }
             }
         }
-        public unsafe readonly ReadOnlySpan<ulong> half_n
+        public unsafe readonly ReadOnlySpan<ulong> Half_N
         {
             get
             {
@@ -196,7 +196,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
         }
 
-        public unsafe readonly ReadOnlySpan<ulong> b
+        public unsafe readonly ReadOnlySpan<ulong> B
         {
             get
             {

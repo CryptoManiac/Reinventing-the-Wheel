@@ -35,7 +35,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
             }
 
             // x and y must be smaller than p.
-            if (VLI.VarTimeCmp(curve.p, point, num_words) != 1 || VLI.VarTimeCmp(curve.p, point.Slice(num_words), num_words) != 1)
+            if (VLI.VarTimeCmp(curve.P, point, num_words) != 1 || VLI.VarTimeCmp(curve.P, point.Slice(num_words), num_words) != 1)
             {
                 return false;
             }
@@ -69,7 +69,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
 
             // Find final 1/Z value.
             curve.ModMult(z, input_P, P.Slice(num_words));
-            VLI.ModInv(z, z, curve.p, num_words);
+            VLI.ModInv(z, z, curve.P, num_words);
             curve.ModMult(z, z, P);
             curve.ModMult(z, z, input_P.Slice(num_words));
 
@@ -132,11 +132,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
             ECCUtil.XYcZ_addC(curve, Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
 
             // Find final 1/Z value.
-            VLI.ModSub(z, Rx[1], Rx[0], curve.p, num_words); // X1 - X0
+            VLI.ModSub(z, Rx[1], Rx[0], curve.P, num_words); // X1 - X0
             curve.ModMult(z, z, Ry[1 - nb]);               // Yb * (X1 - X0)
             curve.ModMult(z, z, point);                    // xP * Yb * (X1 - X0)
 
-            VLI.ModInv(z, z, curve.p, num_words);            // 1 / (xP * Yb * (X1 - X0))
+            VLI.ModInv(z, z, curve.P, num_words);            // 1 / (xP * Yb * (X1 - X0))
                                                              // yP / (xP * Yb * (X1 - X0))
             curve.ModMult(z, z, point.Slice(num_words));
             curve.ModMult(z, z, Rx[1 - nb]); // Xb * yP / (xP * Yb * (X1 - X0))
@@ -184,11 +184,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
             ECCUtil.XYcZ_addC(curve, Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
 
             // Find final 1/Z value.
-            VLI.ModSub(z, Rx[1], Rx[0], curve.p, num_words); // X1 - X0
+            VLI.ModSub(z, Rx[1], Rx[0], curve.P, num_words); // X1 - X0
             curve.ModMult(z, z, Ry[1 - nb]);               // Yb * (X1 - X0)
             curve.ModMult(z, z, point);                    // xP * Yb * (X1 - X0)
 
-            VLI.ModInv(z, z, curve.p, num_words);            // 1 / (xP * Yb * (X1 - X0))
+            VLI.ModInv(z, z, curve.P, num_words);            // 1 / (xP * Yb * (X1 - X0))
                                                              // yP / (xP * Yb * (X1 - X0))
             curve.ModMult(z, z, point.Slice(num_words));
             curve.ModMult(z, z, Rx[1 - nb]); // Xb * yP / (xP * Yb * (X1 - X0))
