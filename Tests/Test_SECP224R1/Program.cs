@@ -28,10 +28,6 @@ List<string> signaturesToCheck = new()
 {
 };
 
-List<string> nonCanonicalToCheck = new()
-{
-};
-
 static void SignData<HMAC_IMPL>(Span<byte> signature, IPrivateKey sk, string message, ECCurve curve) where HMAC_IMPL : unmanaged, IMac
 {
     // Empty for tests
@@ -65,11 +61,11 @@ static void SignDataNonDeterministic<HMAC_IMPL>(Span<byte> signature, IPrivateKe
     }
 }
 
-static bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOnlySpan<byte> public_key, ECCurve curve, bool nonCanonical=false)
+static bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOnlySpan<byte> public_key, ECCurve curve)
 {
     Span<byte> message_hash = stackalloc byte[32];
     SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
-    return curve.MakePublicKey(public_key).VerifySignature(new DERSignature(curve, signature, nonCanonical), message_hash);
+    return curve.MakePublicKey(public_key).VerifySignature(new DERSignature(curve, signature), message_hash);
 }
 
 void CompareSig(string algorithm, Span<byte> signature)
@@ -149,24 +145,12 @@ if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 
 CompareSig("HMAC_SHA512", signature);
 
-Console.WriteLine("Canonical DER decoding and verification tests:");
+Console.WriteLine("DER decoding and verification tests:");
 foreach (var sHex in signaturesToCheck)
 {
     Console.Write(sHex);
     var testSig = Convert.FromHexString(sHex);
     if (!VerifySignature(testSig, message, public_key_uncompressed, curve))
-    {
-        throw new SystemException("Signature verification failure");
-    }
-    Console.WriteLine(" OK");
-}
-
-Console.WriteLine("Non-canonical DER decoding and verification tests:");
-foreach (var sHex in nonCanonicalToCheck)
-{
-    Console.Write(sHex);
-    var testSig = Convert.FromHexString(sHex);
-    if (!VerifySignature(testSig, message, public_key_uncompressed, curve, true))
     {
         throw new SystemException("Signature verification failure");
     }

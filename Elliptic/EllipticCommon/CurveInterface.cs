@@ -91,14 +91,6 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         public DERSignature MakeDERSignature(ReadOnlySpan<byte> data);
 
         /// <summary>
-        /// Parse DER signature bytes and construct new instance from them
-        /// </summary>
-        /// <param name="data">DER signature bytes</param>
-        /// <param name="nonCanonical">Allow negative R and S values</param>
-        /// <returns>A new copy of DER signature structure</returns>
-        public DERSignature MakeDERSignature(ReadOnlySpan<byte> data, bool nonCanonical);
-
-        /// <summary>
         /// Parse compact signature bytes and construct new instance from them
         /// </summary>
         /// <param name="data">Compact signature bytes</param>
