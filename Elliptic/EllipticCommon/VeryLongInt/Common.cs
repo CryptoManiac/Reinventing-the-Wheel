@@ -8,7 +8,7 @@
         public const int WORD_BITS_MASK = 0x03F;
         public const int WORD_SIZE = sizeof(ulong);
         public const int WORD_BITS = WORD_SIZE * 8;
-        public const int ECC_MAX_WORDS = 48 / WORD_SIZE; // For SECP384R1
+        public const int ECC_MAX_WORDS = 72 / WORD_SIZE; // For SECP521R1
         public const int WORD_BITS_SHIFT = 6;
 
         /// <summary>
