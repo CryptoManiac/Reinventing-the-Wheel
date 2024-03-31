@@ -103,7 +103,7 @@
         /// <returns></returns>
         public static int ConstTimeCmp(ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right, int num_words)
         {
-            Span<ulong> tmp = stackalloc ulong[ECC_MAX_WORDS];
+            Span<ulong> tmp = stackalloc ulong[num_words];
             bool neg = Convert.ToBoolean(Sub(tmp, left, right, num_words));
             bool equal = IsZero(tmp, num_words);
             return (Convert.ToInt32(!equal) - 2 * Convert.ToInt32(neg));

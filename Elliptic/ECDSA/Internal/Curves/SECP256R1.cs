@@ -8,7 +8,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
 	internal static class SECP256R1
 	{
         // Curve constants
-        public static int NUM_N_BITS = VLI.ECC_MAX_WORDS * VLI.WORD_BITS;
+        public static int NUM_N_BITS = 256;
         public static ulong[] p = new ulong[] { 0xFFFFFFFFFFFFFFFF, 0x00000000FFFFFFFF, 0x0000000000000000, 0xFFFFFFFF00000001 };
         public static ulong[] n = new ulong[] { 0xF3B9CAC2FC632551, 0xBCE6FAADA7179E84, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFF00000000 };
         public static ulong[] half_n = new ulong[] { 0x79dce5617e3192a8, 0xde737d56d38bcf42, 0x7fffffff80000000, 0x7fffffff80000000 };
@@ -22,8 +22,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         /// <param name="x"></param>
         public static void XSide(Span<ulong> result, ReadOnlySpan<ulong> x)
         {
-            Span<ulong> _3 = stackalloc ulong[VLI.ECC_MAX_WORDS] { 3, 0, 0, 0 }; // -a = 3
             int num_words = VLI.BitsToWords(NUM_N_BITS);
+            Span<ulong> _3 = stackalloc ulong[num_words];
+            _3[0] = 3; ; // -a = 3
 
             ModSquare(result, x);                             // r = x^2
             VLI.ModSub(result, result, _3, p, num_words);       // r = x^2 - 3
@@ -38,8 +39,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         /// <param name="left"></param>
         public static void ModSquare(Span<ulong> result, ReadOnlySpan<ulong> left)
         {
-            Span<ulong> product = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
             int num_words = VLI.BitsToWords(NUM_N_BITS);
+            Span<ulong> product = stackalloc ulong[2 * num_words];
             VLI.Square(product, left, num_words);
             //VLI.MMod(result, product, p, num_words);
             MMod(result, product); 
@@ -51,11 +52,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         /// <param name="a"></param>
         public static void ModSQRT(Span<ulong> a)
         {
-            Span<ulong> p1 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> l_result = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            p1[0] = l_result[0] = 1;
-
             int num_words = VLI.BitsToWords(NUM_N_BITS);
+
+            Span<ulong> p1 = stackalloc ulong[num_words];
+            Span<ulong> l_result = stackalloc ulong[num_words];
+            p1[0] = l_result[0] = 1;
 
             // When curve_secp256k1.p == 3 (mod 4), we can compute
             //   sqrt(a) = a^((curve_secp256k1.p + 1) / 4) (mod curve_secp256k1.p).
@@ -80,8 +81,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         /// <param name="right"></param>
         public static void ModMult(Span<ulong> result, ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right)
         {
-            Span<ulong> product = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
             int num_words = VLI.BitsToWords(NUM_N_BITS);
+            Span<ulong> product = stackalloc ulong[2 * num_words];
             VLI.Mult(product, left, right, num_words);
             //VLI.MMod(result, product, p, num_words);
             MMod(result, product);
@@ -95,10 +96,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         /// <param name="Z1"></param>
         public static void DoubleJacobian(Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1)
         {
-            // t1 = X, t2 = Y, t3 = Z
-            Span<ulong> t4 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> t5 = stackalloc ulong[VLI.ECC_MAX_WORDS];
             int num_words = VLI.BitsToWords(NUM_N_BITS);
+
+            // t1 = X, t2 = Y, t3 = Z
+            Span<ulong> t4 = stackalloc ulong[num_words];
+            Span<ulong> t5 = stackalloc ulong[num_words];
 
             if (VLI.IsZero(Z1, num_words))
             {
@@ -144,9 +146,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
 
         private static void MMod(Span<ulong> result, Span<ulong> product)
         {
-            Span<ulong> tmp = stackalloc ulong[VLI.ECC_MAX_WORDS];
             int num_words = VLI.BitsToWords(NUM_N_BITS);
-            int carry;
+            Span<ulong> tmp = stackalloc ulong[num_words];
 
             // t
             VLI.Set(result, product, num_words);
@@ -156,7 +157,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
             tmp[1] = product[5] & 0xffffffff00000000;
             tmp[2] = product[6];
             tmp[3] = product[7];
-            carry = (int)VLI.Add(tmp, tmp, tmp, num_words);
+            int carry = (int)VLI.Add(tmp, tmp, tmp, num_words);
             carry += (int)VLI.Add(result, result, tmp, num_words);
 
             // s2

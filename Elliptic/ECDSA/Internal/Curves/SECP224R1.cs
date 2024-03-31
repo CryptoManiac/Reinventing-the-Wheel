@@ -24,8 +24,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         /// <param name="x"></param>
         public static void XSide(Span<ulong> result, ReadOnlySpan<ulong> x)
         {
-            Span<ulong> _3 = stackalloc ulong[VLI.ECC_MAX_WORDS] { 3, 0, 0, 0 }; // -a = 3
             int num_words = VLI.BitsToWords(NUM_N_BITS);
+            Span<ulong> _3 = stackalloc ulong[num_words];
+            _3[0] = 3; // -a = 3
 
             ModSquare(result, x);                             // r = x^2
             VLI.ModSub(result, result, _3, p, num_words);       // r = x^2 - 3
@@ -40,8 +41,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         /// <param name="left"></param>
         public static void ModSquare(Span<ulong> result, ReadOnlySpan<ulong> left)
         {
-            Span<ulong> product = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
             int num_words = VLI.BitsToWords(NUM_N_BITS);
+            Span<ulong> product = stackalloc ulong[2 * num_words];
             VLI.Square(product, left, num_words);
             //VLI.MMod(result, product, p, num_words);
             MMod(result, product);
@@ -53,14 +54,13 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         /// <param name="a"></param>
         public static void ModSQRT(Span<ulong> a)
         {
-            Span<ulong> e1 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> f1 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> d0 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> e0 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> f0 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> d1 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-
             int num_words = VLI.BitsToWords(NUM_N_BITS);
+            Span<ulong> e1 = stackalloc ulong[num_words];
+            Span<ulong> f1 = stackalloc ulong[num_words];
+            Span<ulong> d0 = stackalloc ulong[num_words];
+            Span<ulong> e0 = stackalloc ulong[num_words];
+            Span<ulong> f0 = stackalloc ulong[num_words];
+            Span<ulong> d1 = stackalloc ulong[num_words];
 
             // s = a; using constant instead of random value
             mod_sqrt_secp224r1_rp(d0, e0, f0, a, a);           // RP (d0, e0, f0, c, s)
@@ -88,8 +88,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         /// <param name="right"></param>
         public static void ModMult(Span<ulong> result, ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right)
         {
-            Span<ulong> product = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
             int num_words = VLI.BitsToWords(NUM_N_BITS);
+            Span<ulong> product = stackalloc ulong[2 * num_words];
             VLI.Mult(product, left, right, num_words);
             //VLI.MMod(result, product, p, num_words);
             MMod(result, product);
@@ -103,10 +103,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         /// <param name="Z1"></param>
         public static void DoubleJacobian(Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1)
         {
-            // t1 = X, t2 = Y, t3 = Z
-            Span<ulong> t4 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> t5 = stackalloc ulong[VLI.ECC_MAX_WORDS];
             int num_words = VLI.BitsToWords(NUM_N_BITS);
+
+            // t1 = X, t2 = Y, t3 = Z
+            Span<ulong> t4 = stackalloc ulong[num_words];
+            Span<ulong> t5 = stackalloc ulong[num_words];
 
             if (VLI.IsZero(Z1, num_words))
             {
@@ -152,8 +153,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
 
         private static void MMod(Span<ulong> result, Span<ulong> product)
         {
-            Span<ulong> tmp = stackalloc ulong[VLI.ECC_MAX_WORDS];
             int num_words = VLI.BitsToWords(NUM_N_BITS);
+            Span<ulong> tmp = stackalloc ulong[num_words];
             int carry = 0;
 
             // t
@@ -207,8 +208,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         /// Routine 3.2.4 RS;  from http://www.nsa.gov/ia/_files/nist-routines.pdf
         /// </summary>
         private static void mod_sqrt_secp224r1_rs(Span<ulong> d1, Span<ulong> e1, Span<ulong> f1, ReadOnlySpan<ulong> d0, ReadOnlySpan<ulong> e0, ReadOnlySpan<ulong> f0) {
-            Span<ulong> t = stackalloc ulong[VLI.ECC_MAX_WORDS];
             int num_words = VLI.BitsToWords(NUM_N_BITS);
+            Span<ulong> t = stackalloc ulong[num_words];
 
             ModSquare(t, d0);                               // t <-- d0 ^ 2
             ModMult(e1, d0, e0);                            // e1 <-- d0 * e0
@@ -239,9 +240,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         /// </summary>
         private static void mod_sqrt_secp224r1_rm(Span<ulong> d2, Span<ulong> e2, Span<ulong> f2, ReadOnlySpan<ulong> c, ReadOnlySpan<ulong> d0, ReadOnlySpan<ulong> e0, ReadOnlySpan<ulong> d1, ReadOnlySpan<ulong> e1)
         {
-            Span<ulong> t1 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> t2 = stackalloc ulong[VLI.ECC_MAX_WORDS];
             int num_words = VLI.BitsToWords(NUM_N_BITS);
+            Span<ulong> t1 = stackalloc ulong[num_words];
+            Span<ulong> t2 = stackalloc ulong[num_words];
 
             ModMult(t1, e0, e1); // t1 <-- e0 * e1
             ModMult(t1, t1, c);  // t1 <-- t1 * c
@@ -264,10 +265,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
         /// </summary>
         private static void mod_sqrt_secp224r1_rp(Span<ulong> d1, Span<ulong> e1, Span<ulong> f1, ReadOnlySpan<ulong> c, ReadOnlySpan<ulong> r)
         {
-            Span<ulong> d0 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> e0 = stackalloc ulong[VLI.ECC_MAX_WORDS] { 1, 0, 0, 0 }; // e0 <-- 1
-            Span<ulong> f0 = stackalloc ulong[VLI.ECC_MAX_WORDS];
             int num_words = VLI.BitsToWords(NUM_N_BITS);
+            Span<ulong> d0 = stackalloc ulong[num_words];
+            Span<ulong> e0 = stackalloc ulong[num_words];
+            e0[0] = 1; // e0 <-- 1
+            Span<ulong> f0 = stackalloc ulong[num_words];
 
             VLI.Set(d0, r, num_words); // d0 <-- r
             // f0 <-- p  - c

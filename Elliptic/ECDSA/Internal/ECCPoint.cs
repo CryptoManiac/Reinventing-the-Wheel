@@ -24,9 +24,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
         /// <returns></returns>
         public static bool IsValid(ECCurve curve, ReadOnlySpan<ulong> point)
         {
-            Span<ulong> tmp1 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> tmp2 = stackalloc ulong[VLI.ECC_MAX_WORDS];
             int num_words = curve.NUM_WORDS;
+            Span<ulong> tmp1 = stackalloc ulong[num_words];
+            Span<ulong> tmp2 = stackalloc ulong[num_words];
 
             // The point at infinity is invalid.
             if (IsZero(curve, point))
@@ -55,11 +55,10 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
         /// <param name="input_Q"></param>
         public static void PointAdd(ECCurve curve, Span<ulong> R, Span<ulong> input_P, ReadOnlySpan<ulong> input_Q)
         {
-            Span<ulong> P = stackalloc ulong[VLI.ECC_MAX_WORDS * 2];
-            Span<ulong> Q = stackalloc ulong[VLI.ECC_MAX_WORDS * 2];
-            Span<ulong> z = stackalloc ulong[VLI.ECC_MAX_WORDS];
-
             int num_words = curve.NUM_WORDS;
+            Span<ulong> P = stackalloc ulong[num_words * 2];
+            Span<ulong> Q = stackalloc ulong[num_words * 2];
+            Span<ulong> z = stackalloc ulong[num_words];
 
             VLI.Set(P, input_P, num_words);
             VLI.Set(P.Slice(num_words), input_P.Slice(num_words), num_words);
@@ -90,8 +89,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
         /// <param name="scalar"></param>
         public static void PointMul(ECCurve curve, Span<ulong> result, ReadOnlySpan<ulong> point, ReadOnlySpan<ulong> scalar)
         {
-            Span<ulong> tmp1 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> tmp2 = stackalloc ulong[VLI.ECC_MAX_WORDS];
+            int num_words = curve.NUM_WORDS;
+            Span<ulong> tmp1 = stackalloc ulong[num_words];
+            Span<ulong> tmp2 = stackalloc ulong[num_words];
             VLI.Picker p2 = new(tmp1, tmp2);
             ulong carry = ECCUtil.RegularizeK(curve, scalar, tmp1, tmp2);
             PointMul(curve, result, point, p2[!Convert.ToBoolean(carry)], curve.NUM_N_BITS + 1);
@@ -107,13 +107,13 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
         /// <param name="num_bits"></param>
         public static void PointMul(ECCurve curve, Span<ulong> result, ReadOnlySpan<ulong> point, ReadOnlySpan<ulong> scalar, ReadOnlySpan<ulong> initial_Z, int num_bits)
         {
-            // R0 and R1
-            VLI.Picker Rx = new(stackalloc ulong[VLI.ECC_MAX_WORDS], stackalloc ulong[VLI.ECC_MAX_WORDS]);
-            VLI.Picker Ry = new(stackalloc ulong[VLI.ECC_MAX_WORDS], stackalloc ulong[VLI.ECC_MAX_WORDS]);
-            Span<ulong> z = stackalloc ulong[VLI.ECC_MAX_WORDS];
-
             int num_words = curve.NUM_WORDS;
-            int i;
+
+            // R0 and R1
+            VLI.Picker Rx = new(stackalloc ulong[num_words], stackalloc ulong[num_words]);
+            VLI.Picker Ry = new(stackalloc ulong[num_words], stackalloc ulong[num_words]);
+            Span<ulong> z = stackalloc ulong[num_words];
+
             ulong nb;
 
             VLI.Set(Rx[1], point, num_words);
@@ -121,7 +121,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
 
             ECCUtil.XYcZ_Initial_Double(curve, Rx[1], Ry[1], Rx[0], Ry[0], initial_Z);
 
-            for (i = num_bits - 2; i > 0; --i)
+            for (int i = num_bits - 2; i > 0; --i)
             {
                 nb = Convert.ToUInt64(!VLI.TestBit(scalar, i));
                 ECCUtil.XYcZ_addC(curve, Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
@@ -159,14 +159,13 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
         /// <param name="num_bits"></param>
         public static void PointMul(ECCurve curve, Span<ulong> result, ReadOnlySpan<ulong> point, ReadOnlySpan<ulong> scalar, int num_bits)
         {
-            // R0 and R1
-            VLI.Picker Rx = new(stackalloc ulong[VLI.ECC_MAX_WORDS], stackalloc ulong[VLI.ECC_MAX_WORDS]);
-            VLI.Picker Ry = new(stackalloc ulong[VLI.ECC_MAX_WORDS], stackalloc ulong[VLI.ECC_MAX_WORDS]);
-            Span<ulong> z = stackalloc ulong[VLI.ECC_MAX_WORDS];
-
             int num_words = curve.NUM_WORDS;
 
-            int i;
+            // R0 and R1
+            VLI.Picker Rx = new(stackalloc ulong[num_words], stackalloc ulong[num_words]);
+            VLI.Picker Ry = new(stackalloc ulong[num_words], stackalloc ulong[num_words]);
+            Span<ulong> z = stackalloc ulong[num_words];
+
             ulong nb;
 
             VLI.Set(Rx[1], point, num_words);
@@ -174,7 +173,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
 
             ECCUtil.XYcZ_Double(curve, Rx[1], Ry[1], Rx[0], Ry[0]);
 
-            for (i = num_bits - 2; i > 0; --i)
+            for (int i = num_bits - 2; i > 0; --i)
             {
                 nb = Convert.ToUInt64(!VLI.TestBit(scalar, i));
                 ECCUtil.XYcZ_addC(curve, Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
@@ -211,8 +210,10 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
         /// <returns>True if the key was computed successfully, False if an error occurred.</returns>
         public static bool ComputePublicPoint(ECCurve curve, Span<ulong> result, ReadOnlySpan<ulong> private_key)
         {
-            Span<ulong> tmp1 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> tmp2 = stackalloc ulong[VLI.ECC_MAX_WORDS];
+            int num_words = curve.NUM_WORDS;
+
+            Span<ulong> tmp1 = stackalloc ulong[num_words];
+            Span<ulong> tmp2 = stackalloc ulong[num_words];
             VLI.Picker p2 = new(tmp1, tmp2);
 
             ulong carry;

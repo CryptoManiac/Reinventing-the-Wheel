@@ -205,9 +205,10 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 return false;
             }
 
-            Span<ulong> _public = stackalloc ulong[VLI.ECC_MAX_WORDS * 2];
+            int num_words = _curve.NUM_WORDS;
+            Span<ulong> _public = stackalloc ulong[num_words * 2];
             VLI.BytesToNative(_public, serialized, _curve.NUM_BYTES);
-            VLI.BytesToNative(_public.Slice(_curve.NUM_WORDS), serialized.Slice(_curve.NUM_BYTES), _curve.NUM_BYTES);
+            VLI.BytesToNative(_public.Slice(num_words), serialized.Slice(_curve.NUM_BYTES), _curve.NUM_BYTES);
             return Wrap(_public);
         }
 
@@ -220,8 +221,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 return false;
             }
 
-            Span<ulong> point = stackalloc ulong[2 * VLI.ECC_MAX_WORDS];
-            Span<ulong> y = point.Slice(_curve.NUM_WORDS);
+            int num_words = _curve.NUM_WORDS;
+            Span<ulong> point = stackalloc ulong[2 * num_words];
+            Span<ulong> y = point.Slice(num_words);
 
             VLI.BytesToNative(point, compressed.Slice(1), _curve.NUM_BYTES);
             _curve.XSide(y, point);
@@ -229,7 +231,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             if ((y[0] & 0x01) != ((ulong)compressed[0] & 0x01))
             {
-                VLI.Sub(y, _curve.p, y, _curve.NUM_WORDS);
+                VLI.Sub(y, _curve.p, y, num_words);
             }
 
             return Wrap(point);
@@ -291,6 +293,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         public readonly bool KeyTweak(out IPublicKey result, ReadOnlySpan<byte> scalar)
         {
             result = new ECPublicKey(_curve);
+            int num_words = _curve.NUM_WORDS;
 
             // Make sure that public key is valid
             if (!IsValid)
@@ -298,9 +301,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 return false;
             }
 
-            Span<ulong> _result = stackalloc ulong[VLI.ECC_MAX_WORDS * 2];
-            Span<ulong> _s_mul_G = stackalloc ulong[VLI.ECC_MAX_WORDS * 2];
-            Span<ulong> _scalar = stackalloc ulong[VLI.ECC_MAX_WORDS];
+            Span<ulong> _result = stackalloc ulong[num_words * 2];
+            Span<ulong> _s_mul_G = stackalloc ulong[num_words * 2];
+            Span<ulong> _scalar = stackalloc ulong[num_words];
 
             VLI.BytesToNative(_scalar, scalar, _curve.NUM_BYTES);
 
@@ -328,20 +331,20 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <returns></returns>
         private readonly bool VerifySignature(ReadOnlySpan<ulong> r, ReadOnlySpan<ulong> s, ReadOnlySpan<byte> message_hash)
         {
-            Span<ulong> u1 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> u2 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> z = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> sum = stackalloc ulong[VLI.ECC_MAX_WORDS * 2];
-
-            Span<ulong> rx = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> ry = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> tx = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> ty = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> tz = stackalloc ulong[VLI.ECC_MAX_WORDS];
-
             int num_bytes = _curve.NUM_BYTES;
             int num_words = _curve.NUM_WORDS;
-            int num_n_words = _curve.NUM_WORDS;
+
+            Span<ulong> u1 = stackalloc ulong[num_words];
+            Span<ulong> u2 = stackalloc ulong[num_words];
+            Span<ulong> z = stackalloc ulong[num_words];
+            Span<ulong> sum = stackalloc ulong[num_words * 2];
+
+            Span<ulong> rx = stackalloc ulong[num_words];
+            Span<ulong> ry = stackalloc ulong[num_words];
+            Span<ulong> tx = stackalloc ulong[num_words];
+            Span<ulong> ty = stackalloc ulong[num_words];
+            Span<ulong> tz = stackalloc ulong[num_words];
+
 
             // r, s must not be 0
             if (VLI.IsZero(r, num_words) || VLI.IsZero(s, num_words))
@@ -350,17 +353,17 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
 
             // r, s must be < n.
-            if (VLI.VarTimeCmp(_curve.n, r, num_n_words) != 1 || VLI.VarTimeCmp(_curve.n, s, num_n_words) != 1)
+            if (VLI.VarTimeCmp(_curve.n, r, num_words) != 1 || VLI.VarTimeCmp(_curve.n, s, num_words) != 1)
             {
                 return false;
             }
 
             // Calculate u1 and u2.
-            VLI.ModInv(z, s, _curve.n, num_n_words); // z = 1/s
-            u1[num_n_words - 1] = 0;
+            VLI.ModInv(z, s, _curve.n, num_words); // z = 1/s
+            u1[num_words - 1] = 0;
             ECCUtil.BitsToInt(_curve, u1, message_hash, message_hash.Length);
-            VLI.ModMult(u1, u1, z, _curve.n, num_n_words); // u1 = e/s
-            VLI.ModMult(u2, r, z, _curve.n, num_n_words); // u2 = r/s
+            VLI.ModMult(u1, u1, z, _curve.n, num_words); // u1 = e/s
+            VLI.ModMult(u2, r, z, _curve.n, num_words); // u2 = r/s
 
             // Calculate sum = G + Q.
             VLI.Set(sum, native_point, num_words);
@@ -374,7 +377,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             /* Use Shamir's trick to calculate u1*G + u2*Q */
             VLI.QuadPicker points = new(null, _curve.G, native_point, sum);
-            int num_bits = int.Max(VLI.NumBits(u1, num_n_words), VLI.NumBits(u2, num_n_words));
+            int num_bits = int.Max(VLI.NumBits(u1, num_words), VLI.NumBits(u2, num_words));
 
             ReadOnlySpan<ulong> point = points[Convert.ToUInt64(VLI.TestBit(u1, num_bits - 1)) | (Convert.ToUInt64(VLI.TestBit(u2, num_bits - 1)) << 1)];
             VLI.Set(rx, point, num_words);
@@ -403,9 +406,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             ECCUtil.ApplyZ(_curve, rx, ry, z);
 
             // v = x1 (mod n)
-            if (VLI.VarTimeCmp(_curve.n, rx, num_n_words) != 1)
+            if (VLI.VarTimeCmp(_curve.n, rx, num_words) != 1)
             {
-                VLI.Sub(rx, rx, _curve.n, num_n_words);
+                VLI.Sub(rx, rx, _curve.n, num_words);
             }
 
             // Accept only if v == r.

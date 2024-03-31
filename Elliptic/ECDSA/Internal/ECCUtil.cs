@@ -29,7 +29,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
         /// <param name="Z"></param>
         public static void ApplyZ(ECCurve curve, Span<ulong> X1, Span<ulong> Y1, ReadOnlySpan<ulong> Z)
         {
-            Span<ulong> t1 = stackalloc ulong[VLI.ECC_MAX_WORDS];
+            Span<ulong> t1 = stackalloc ulong[curve.NUM_WORDS];
             curve.ModSquare(t1, Z);    // z^2
             curve.ModMult(X1, X1, t1); // x1 * z^2
             curve.ModMult(t1, t1, Z);  // z^3
@@ -39,9 +39,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
         // P = (x1, y1) => 2P, (x2, y2) => P'
         public static void XYcZ_Initial_Double(ECCurve curve, Span<ulong> X1, Span<ulong> Y1, Span<ulong> X2, Span<ulong> Y2, ReadOnlySpan<ulong> initial_Z)
         {
-            Span<ulong> z = stackalloc ulong[VLI.ECC_MAX_WORDS];
-
             int num_words = curve.NUM_WORDS;
+            Span<ulong> z = stackalloc ulong[num_words];
 
             // Setting Z as it is provided
             VLI.Set(z, initial_Z, num_words);
@@ -57,9 +56,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
         // P = (x1, y1) => 2P, (x2, y2) => P'
         public static void XYcZ_Double(ECCurve curve, Span<ulong> X1, Span<ulong> Y1, Span<ulong> X2, Span<ulong> Y2)
         {
-            Span<ulong> z = stackalloc ulong[VLI.ECC_MAX_WORDS];
-
             int num_words = curve.NUM_WORDS;
+
+            Span<ulong> z = stackalloc ulong[num_words];
 
             // Version without initial_Z
             VLI.Clear(z, num_words);
@@ -78,10 +77,10 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
         //   or P => P', Q => P + Q
         public static void XYcZ_Add(ECCurve curve, Span<ulong> X1, Span<ulong> Y1, Span<ulong> X2, Span<ulong> Y2)
         {
-            // t1 = X1, t2 = Y1, t3 = X2, t4 = Y2
-            Span<ulong> t5 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-
             int num_words = curve.NUM_WORDS;
+
+            // t1 = X1, t2 = Y1, t3 = X2, t4 = Y2
+            Span<ulong> t5 = stackalloc ulong[num_words];
 
             VLI.ModSub(t5, X2, X1, curve.p, num_words); // t5 = x2 - x1
             curve.ModSquare(t5, t5);                  // t5 = (x2 - x1)^2 = A
@@ -105,12 +104,12 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
         //   or P => P - Q, Q => P + Q
         public static void XYcZ_addC(ECCurve curve, Span<ulong> X1, Span<ulong> Y1, Span<ulong> X2, Span<ulong> Y2)
         {
-            // t1 = X1, t2 = Y1, t3 = X2, t4 = Y2
-            Span<ulong> t5 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> t6 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-            Span<ulong> t7 = stackalloc ulong[VLI.ECC_MAX_WORDS];
-
             int num_words = curve.NUM_WORDS;
+
+            // t1 = X1, t2 = Y1, t3 = X2, t4 = Y2
+            Span<ulong> t5 = stackalloc ulong[num_words];
+            Span<ulong> t6 = stackalloc ulong[num_words];
+            Span<ulong> t7 = stackalloc ulong[num_words];
 
             VLI.ModSub(t5, X2, X1, curve.p, num_words); // t5 = x2 - x1
             curve.ModSquare(t5, t5);                  // t5 = (x2 - x1)^2 = A
