@@ -150,35 +150,38 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal.Curves
             VLI.Set(Y1, t4, num_words);
         }
 
-        private static void MMod(Span<ulong> p_result, Span<ulong> p_product)
+        /// <summary>
+        /// Computes result = product % p
+        /// </summary>
+        private static void MMod(Span<ulong> result, Span<ulong> product)
         {
             int num_words = VLI.BitsToWords(NUM_N_BITS);
-            Span<ulong> l_tmp = stackalloc ulong[2 * num_words];
+            Span<ulong> tmp = stackalloc ulong[2 * num_words];
 
-            while (!VLI.IsZero(p_product.Slice(num_words), num_words)) // While c1 != 0
+            while (!VLI.IsZero(product.Slice(num_words), num_words)) // While c1 != 0
             {
-                ulong l_carry = 0;
-                VLI.Clear(l_tmp, 2 * num_words);
-                omega_mult(l_tmp, p_product.Slice(num_words));    // tmp = w * c1 */
-                VLI.Clear(p_product.Slice(num_words), num_words); // p = c0
+                ulong carry = 0;
+                VLI.Clear(tmp, 2 * num_words);
+                omega_mult(tmp, product.Slice(num_words));    // tmp = w * c1 */
+                VLI.Clear(product.Slice(num_words), num_words); // p = c0
 
                 // (c1, c0) = c0 + w * c1
                 for (int i = 0; i < num_words + 3; ++i)
                 {
-                    ulong l_sum = p_product[i] + l_tmp[i] + l_carry;
-                    if (l_sum != p_product[i])
+                    ulong sum = product[i] + tmp[i] + carry;
+                    if (sum != product[i])
                     {
-                        l_carry = Convert.ToUInt64(l_sum < p_product[i]);
+                        carry = Convert.ToUInt64(sum < product[i]);
                     }
-                    p_product[i] = l_sum;
+                    product[i] = sum;
                 }
             }
 
-            while (VLI.VarTimeCmp(p_product, p, num_words) > 0)
+            while (VLI.VarTimeCmp(product, p, num_words) > 0)
             {
-                VLI.Sub(p_product, p_product, p, num_words);
+                VLI.Sub(product, product, p, num_words);
             }
-            VLI.Set(p_result, p_product, num_words);
+            VLI.Set(result, product, num_words);
         }
 
         private static void omega_mult(Span<ulong> result, Span<ulong> right)
