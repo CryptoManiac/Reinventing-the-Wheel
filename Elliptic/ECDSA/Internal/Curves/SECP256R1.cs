@@ -30,7 +30,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <summary>
         /// Computes result = product % p
         /// </summary>
-        public static void MMod_SECP256R1(in ECCurve curve, Span<ulong> result, Span<ulong> product)
+        private static void MMod_SECP256R1(in ECCurve curve, Span<ulong> result, Span<ulong> product)
         {
             Span<ulong> tmp = stackalloc ulong[curve.NUM_WORDS];
 

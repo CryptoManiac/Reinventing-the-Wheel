@@ -31,7 +31,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// Compute a = sqrt(a) (mod curve_p)
         /// </summary>
         /// <param name="a"></param>
-        public static void ModSQRT_SECP224R1(in ECCurve curve, Span<ulong> a)
+        private static void ModSQRT_SECP224R1(in ECCurve curve, Span<ulong> a)
         {
             Span<ulong> e1 = stackalloc ulong[curve.NUM_WORDS];
             Span<ulong> f1 = stackalloc ulong[curve.NUM_WORDS];
@@ -61,7 +61,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <summary>
         /// Computes result = product % p
         /// </summary>
-        public static void MMod_SECP224R1(in ECCurve curve, Span<ulong> result, Span<ulong> product)
+        private static void MMod_SECP224R1(in ECCurve curve, Span<ulong> result, Span<ulong> product)
         {
             Span<ulong> tmp = stackalloc ulong[curve.NUM_WORDS];
             int carry = 0;
