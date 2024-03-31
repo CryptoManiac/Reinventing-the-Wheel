@@ -372,7 +372,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         public int CompressedPublicKeySize => ECPublicKey.GetCompressedSize(this);
 
         /// <summary>
-        /// Sise of DER signature in bytes
+        /// Maximum size of DER signature in bytes
         /// </summary>
         public int DERSignatureSize => DERSignature.GetEncodedSize(this);
 

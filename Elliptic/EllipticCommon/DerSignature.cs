@@ -42,7 +42,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         }
 
         /// <summary>
-        /// Encoded data size in bytes
+        /// Maximum encoded data size in bytes
         /// </summary>
         public readonly int EncodedSize => GetEncodedSize(curve);
 
@@ -87,55 +87,89 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
 
         public readonly int Encode(Span<byte> encoded)
         {
-            int offset = 0;
-            int reqSz = GetEncodedSize(curve);
+            encoded.Clear();
+
+            // Encode R and S values
+            Span<byte> r_data = stackalloc byte[curve.NUM_BYTES];
+            Span<byte> s_data = stackalloc byte[curve.NUM_BYTES];
+            VLI.NativeToBytes(r_data, curve.NUM_BYTES, r);
+            VLI.NativeToBytes(s_data, curve.NUM_BYTES, s);
+
+            // Check whether we have 0x7f byte or not to add prefix
+            int lenR = r_data.Length + (r_data[0] > 0x7F ? 1 : 0);
+            int lenS = s_data.Length + (s_data[0] > 0x7F ? 1 : 0);
+
+            // Length of R and S and their prefixes
+            int seqSz = 4 + lenR + lenS;
+
+            // Actually required size
+            int reqSz = 2 + seqSz + (seqSz > 0x7F ? 1 : 0);
 
             if (encoded.Length >= reqSz)
             {
-                // Fill the DER encoded signature skeleton:
+                int pos = 0;
 
                 // Sequence tag
-                encoded[0] = 0x30;
+                encoded[pos++] = 0x30;
 
-                byte lenR = (byte)curve.NUM_BYTES;
-                byte lenS = (byte)curve.NUM_BYTES;
-                int seqSz = 4 + lenR + lenS;
-
-                if (seqSz > 127)
+                // Sequence length prefix
+                if (seqSz > 0x7F)
                 {
                     // Special case for two byte value
-                    encoded[1] = 1 | 0x80;
-                    offset = 1;
+                    encoded[pos++] = 1 | 0x80;
                 }
 
-                // Total data length
-                encoded[1 + offset] = (byte)(seqSz & 0xff);
-                // Integer tag for R
-                encoded[2 + offset] = 0x02;
-                // R length prefix
-                encoded[3 + offset] = lenR;
-                // Integer tag for S
-                encoded[4 + offset + lenR] = 0x02;
-                // S length prefix
-                encoded[5 + offset + lenR] = lenS;
+                // Sequence length
+                encoded[pos++] = (byte)(seqSz & 0xff);
 
-                // Encode the R and S values
-                VLI.NativeToBytes(encoded.Slice(4 + offset, lenR), lenR, r);
-                VLI.NativeToBytes(encoded.Slice(6 + offset + lenR, lenS), lenS, s);
+                // Integer tag for R
+                encoded[pos++] = 0x02;
+
+                // R length
+                encoded[pos++] = (byte) lenR;
+
+                // Negative R prefix
+                if (lenR != r_data.Length)
+                {
+                    encoded[pos++] = 0x00;
+                }
+
+                r_data.CopyTo(encoded.Slice(pos, r_data.Length));
+
+                int rPos = pos;
+                pos += r_data.Length;
+
+                // Integer tag for S
+                encoded[pos++] = 0x02;
+
+                // S length
+                encoded[pos++] = (byte) lenS;
+
+                // Negative S prefix
+                if (lenS != s_data.Length)
+                {
+                    encoded[pos++] = 0x00;
+                }
+
+                s_data.CopyTo(encoded.Slice(pos, s_data.Length));
             }
 
+            // Number of bytes written
             return reqSz;
         }
 
         /// <summary>
-        /// Size of encoded signature for a given curve
+        /// Maximum size of encoded signature for a given curve
         /// </summary>
         /// <param name="curve"></param>
         /// <returns></returns>
         public static int GetEncodedSize(ICurve curve)
         {
-            int seqSz = 4 + 2 * curve.NUM_BYTES;
-            int reqSz = seqSz + 2;
+            // Integer tags, integer lengths and prefixes
+            int seqSz = 4 + 2 * curve.NUM_BYTES + 2;
+
+            // Content type tag + content length + sequence length
+            int reqSz = 2 + seqSz;
             if (seqSz > 127) ++reqSz;
             return reqSz;
         }

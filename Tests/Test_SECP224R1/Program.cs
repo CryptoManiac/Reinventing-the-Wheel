@@ -17,9 +17,9 @@ int secret_key_number = 0;
 
 SortedDictionary<string, string> vectors = new()
 {
-    {  "HMAC_SHA224", "303C021CEFBE1C9CF08272025950D625242F010EE970CFF4059205BF69EC8A36021C7F2B49F031DFC0D42B46CA7C2C5AA30135A6A724A055CCF40B58B869"},
+    {  "HMAC_SHA224", "303D021D00EFBE1C9CF08272025950D625242F010EE970CFF4059205BF69EC8A36021C7F2B49F031DFC0D42B46CA7C2C5AA30135A6A724A055CCF40B58B869"},
     {  "HMAC_SHA256", "303C021C3F3FDFCFD7867728782817789CCBDD62856ABA4FED330F14B9E6F429021C3F57AC1E563E796E6F06BCA55C40E2C10C320041D01B3A37F0DEF2BA"},
-    {  "HMAC_SHA512", "303C021CD51603A5B959F3F9A872918451C329C7654E6A9AE97CFF0270591E28021C0E06CE48E08D59BF47071E4404786828ADA1F318419EA994A0BAD208"},
+    {  "HMAC_SHA512", "303D021D00D51603A5B959F3F9A872918451C329C7654E6A9AE97CFF0270591E28021C0E06CE48E08D59BF47071E4404786828ADA1F318419EA994A0BAD208"},
 };
 
 // TODO: Add test cases
@@ -28,7 +28,7 @@ List<string> signaturesToCheck = new()
 {
 };
 
-static void SignData<HMAC_IMPL>(Span<byte> signature, IPrivateKey sk, string message, ECCurve curve) where HMAC_IMPL : unmanaged, IMac
+static int SignData<HMAC_IMPL>(Span<byte> signature, IPrivateKey sk, string message, ECCurve curve) where HMAC_IMPL : unmanaged, IMac
 {
     // Empty for tests
     Span<byte> message_hash = stackalloc byte[32];
@@ -39,13 +39,16 @@ static void SignData<HMAC_IMPL>(Span<byte> signature, IPrivateKey sk, string mes
         throw new SystemException("Signing failed");
     }
 
-    if (signature.Length < derSig.Encode(signature))
+    int encodedSz = derSig.Encode(signature);
+    if (encodedSz > signature.Length)
     {
         throw new Exception("Signature buffer is too short");
     }
+
+    return encodedSz;
 }
 
-static void SignDataNonDeterministic<HMAC_IMPL>(Span<byte> signature, IPrivateKey sk, string message, ICurve curve) where HMAC_IMPL : unmanaged, IMac
+static int SignDataNonDeterministic<HMAC_IMPL>(Span<byte> signature, IPrivateKey sk, string message, ICurve curve) where HMAC_IMPL : unmanaged, IMac
 {
     // Empty for tests
     Span<byte> message_hash = stackalloc byte[32];
@@ -55,10 +58,13 @@ static void SignDataNonDeterministic<HMAC_IMPL>(Span<byte> signature, IPrivateKe
     DERSignature derSig;
     while (!sk.Sign<HMAC_IMPL>(out derSig, message_hash)) ;
 
-    if (signature.Length < derSig.Encode(signature))
+    int encodedSz = derSig.Encode(signature);
+    if (encodedSz > signature.Length)
     {
         throw new Exception("Signature buffer is too short");
     }
+
+    return encodedSz;
 }
 
 static bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOnlySpan<byte> public_key, ECCurve curve)
@@ -118,32 +124,31 @@ Span<byte> signature = stackalloc byte[curve.DERSignatureSize];
 
 Console.WriteLine("Deterministic SECP224R1 signatures:");
 
-SignData<HMAC_SHA224>(signature, secretKey, message, curve);
+int sha224SigSz = SignData<HMAC_SHA224>(signature, secretKey, message, curve);
 
 if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 {
     throw new SystemException("Signature verification failure");
 }
 
-CompareSig("HMAC_SHA224", signature);
+CompareSig("HMAC_SHA224", signature.Slice(0, sha224SigSz));
 
-SignData<HMAC_SHA256>(signature, secretKey, message, curve);
+int sha256SigSz = SignData<HMAC_SHA256>(signature, secretKey, message, curve);
 if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 {
     throw new SystemException("Signature verification failure");
 }
 
-CompareSig("HMAC_SHA256", signature);
+CompareSig("HMAC_SHA256", signature.Slice(0, sha256SigSz));
 
-
-SignData<HMAC_SHA512>(signature, secretKey, message, curve);
+int sha512SigSz = SignData<HMAC_SHA512>(signature, secretKey, message, curve);
 
 if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 {
     throw new SystemException("Signature verification failure");
 }
 
-CompareSig("HMAC_SHA512", signature);
+CompareSig("HMAC_SHA512", signature.Slice(0, sha512SigSz));
 
 Console.WriteLine("DER decoding and verification tests:");
 foreach (var sHex in signaturesToCheck)
@@ -159,8 +164,8 @@ foreach (var sHex in signaturesToCheck)
 
 Console.WriteLine("Non-deterministic signing tests:");
 
-SignDataNonDeterministic<HMAC_SHA224>(signature, secretKey, message, curve);
-Console.Write("HMAC_SHA224: {0}", Convert.ToHexString(signature));
+sha224SigSz = SignDataNonDeterministic<HMAC_SHA224>(signature, secretKey, message, curve);
+Console.Write("HMAC_SHA224: {0}", Convert.ToHexString(signature.Slice(0, sha224SigSz)));
 
 if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 {
@@ -168,8 +173,8 @@ if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 }
 Console.WriteLine(" OK");
 
-SignDataNonDeterministic<HMAC_SHA256>(signature, secretKey, message, curve);
-Console.Write("HMAC_SHA256: {0}", Convert.ToHexString(signature));
+sha256SigSz = SignDataNonDeterministic<HMAC_SHA256>(signature, secretKey, message, curve);
+Console.Write("HMAC_SHA256: {0}", Convert.ToHexString(signature.Slice(0, sha256SigSz)));
 
 if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 {
@@ -177,8 +182,8 @@ if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 }
 Console.WriteLine(" OK");
 
-SignDataNonDeterministic<HMAC_SHA512>(signature, secretKey, message, curve);
-Console.Write("HMAC_SHA512: {0}", Convert.ToHexString(signature));
+sha512SigSz = SignDataNonDeterministic<HMAC_SHA512>(signature, secretKey, message, curve);
+Console.Write("HMAC_SHA512: {0}", Convert.ToHexString(signature.Slice(0, sha512SigSz)));
 
 if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 {

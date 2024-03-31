@@ -36,7 +36,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         public int CompressedPublicKeySize { get; }
 
         /// <summary>
-        /// Sise of DER signature in bytes
+        /// Maximum size of DER signature in bytes
         /// </summary>
         public int DERSignatureSize { get; }
 
