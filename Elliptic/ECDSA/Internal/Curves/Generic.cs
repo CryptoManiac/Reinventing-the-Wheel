@@ -14,7 +14,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="X1"></param>
         /// <param name="Y1"></param>
         /// <param name="Z1"></param>
-        public static void DoubleJacobian_Generic(in ECCurve curve, Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1)
+        private static void DoubleJacobian_Generic(in ECCurve curve, Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1)
         {
             // t1 = X, t2 = Y, t3 = Z
             Span<ulong> t4 = stackalloc ulong[curve.NUM_WORDS];
@@ -66,7 +66,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// Compute a = sqrt(a) (mod curve_p)
         /// </summary>
         /// <param name="a"></param>
-        public static void ModSQRT_Generic(in ECCurve curve, Span<ulong> a)
+        private static void ModSQRT_Generic(in ECCurve curve, Span<ulong> a)
         {
             Span<ulong> p1 = stackalloc ulong[curve.NUM_WORDS];
             Span<ulong> result = stackalloc ulong[curve.NUM_WORDS];
@@ -92,7 +92,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// </summary>
         /// <param name="result"></param>
         /// <param name="x"></param>
-        public static void XSide_Generic(in ECCurve curve, Span<ulong> result, ReadOnlySpan<ulong> x)
+        private static void XSide_Generic(in ECCurve curve, Span<ulong> result, ReadOnlySpan<ulong> x)
         {
             Span<ulong> _3 = stackalloc ulong[curve.NUM_WORDS];
             _3[0] = 3; // -a = 3
