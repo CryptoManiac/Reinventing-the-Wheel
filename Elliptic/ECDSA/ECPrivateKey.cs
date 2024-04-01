@@ -338,7 +338,13 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             // Generate the scrambling key
             IPrivateKey randomKey;
-            while (!curve.GenerateRandomSecret(out randomKey));
+            for (int i = 0; !curve.GenerateRandomSecret(out randomKey) && i < 64; ++i);
+
+            if (!randomKey.IsValid)
+            {
+                // Sanity check: This must never ever happen in the real life
+                throw new SystemException("System RNG failure: done 64 attempts and still failed to produce a reasonable random value");
+            }
 
             // Derive child key with message hash as an additional entropy source
             randomKey.DeriveHMAC<HMAC_IMPL>(out randomKey, message_hash, 0);
