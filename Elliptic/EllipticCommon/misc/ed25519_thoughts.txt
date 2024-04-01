@@ -1,0 +1,96 @@
+ED25519
+
+/*
+    h = f + g
+    Can overlap h with f or g.
+
+    Preconditions:
+       |f| bounded by 1.1*2^25,1.1*2^24,1.1*2^25,1.1*2^24,etc.
+       |g| bounded by 1.1*2^25,1.1*2^24,1.1*2^25,1.1*2^24,etc.
+
+    Postconditions:
+       |h| bounded by 1.1*2^26,1.1*2^25,1.1*2^26,1.1*2^25,etc.
+*/
+
+void fe_add(fe h, const fe f, const fe g)
+
+VLI equivalent?
+
+VLI.Add(result, f, g)
+
+/*
+    Replace (f,g) with (g,g) if b == 1;
+    replace (f,g) with (f,g) if b == 0.
+
+    Preconditions: b in {0,1}.
+*/
+
+void fe_cmov(fe f, const fe g, unsigned int b)
+
+VLI equivalent?
+
+static void CMov(f, readonly g, uint b) {
+     B = stackalloc[]
+     X = stackalloc[]
+     VLI.Fill(b_vli, Convert.ToBoolean(b) ? 0xff : 0);
+     VLI.Xor(X, f, g)
+     VLI.And(X, B)
+     VLI.Xor(f, X)
+}
+
+/*
+    Replace (f,g) with (g,f) if b == 1;
+    replace (f,g) with (f,g) if b == 0.
+
+    Preconditions: b in {0,1}.
+*/
+
+void fe_cswap(fe f,fe g,unsigned int b)
+
+VLI equivalent?
+
+static void(f, g, uint b) {
+     B = stackalloc[]
+     X = stackalloc[]
+     VLI.Fill(b_vli, Convert.ToBoolean(b) ? 0xff : 0);
+     VLI.Xor(X, f, g)
+     VLI.And(X, B)
+     VLI.Xor(f, X)
+     VLI.Xor(g, X)
+}
+
+/*
+Input:
+  s[0]+256*s[1]+...+256^63*s[63] = s
+
+Output:
+  s[0]+256*s[1]+...+256^31*s[31] = s mod l
+  where l = 2^252 + 27742317777372353535851937790883648493.
+  Overwrites s in place.
+*/
+
+void sc_reduce(unsigned char *s)
+
+VLI equivalent?
+
+VLI.MMod(result, s, l)
+
+/*
+Input:
+  a[0]+256*a[1]+...+256^31*a[31] = a
+  b[0]+256*b[1]+...+256^31*b[31] = b
+  c[0]+256*c[1]+...+256^31*c[31] = c
+
+Output:
+  s[0]+256*s[1]+...+256^31*s[31] = (ab+c) mod l
+  where l = 2^252 + 27742317777372353535851937790883648493.
+*/
+
+void sc_muladd(unsigned char *s, const unsigned char *a, const unsigned char *b, const unsigned char *c)
+
+VLI Equivalent?
+
+VLI.Mult(ab, a, b)
+VLI.ModAdd(result, ab, c, l)
+
+...
