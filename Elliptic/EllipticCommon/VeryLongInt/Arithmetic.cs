@@ -227,8 +227,8 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
             ulong l_borrow = Sub(result, left, right, num_words);
             if (0 != l_borrow)
             {
-                /* In this case, result == -diff == (max int) - diff. Since -x % d == d - x,
-                   we can get the correct result from result + mod (with overflow). */
+                // In this case, result == -diff == (max int) - diff. Since -x % d == d - x,
+                //   we can get the correct result from result + mod (with overflow).
                 Add(result, result, mod, num_words);
             }
         }
@@ -248,7 +248,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
             Picker v = new(tmp, product);
             ulong index;
 
-            /* Shift mod so its highest set bit is at the maximum position. */
+            // Shift mod so its highest set bit is at the maximum position.
             int shift = (num_words * 2 * WORD_BITS) - NumBits(mod, num_words);
             int word_shift = shift / WORD_BITS;
             int bit_shift = shift % WORD_BITS;
@@ -280,7 +280,10 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
                     }
                     v[1 - index][i] = diff;
                 }
-                index = Convert.ToUInt64(!Convert.ToBoolean(index ^ borrow)); /* Swap the index if there was no borrow */
+
+                // Swap the index if there was no borrow
+                index = Convert.ToUInt64(!Convert.ToBoolean(index ^ borrow));
+
                 RShift1(mod_multiple, num_words);
                 mod_multiple[num_words - 1] |= mod_multiple[num_words] << (WORD_BITS - 1);
                 RShift1(mod_multiple.Slice(num_words), num_words);

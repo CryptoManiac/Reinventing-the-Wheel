@@ -149,7 +149,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 carry = temp << (VLI.WORD_BITS - shift);
             }
 
-            /* Reduce mod curve_n */
+            // Reduce mod curve_n
             if (VLI.VarTimeCmp(N, native, NUM_WORDS) != 1)
             {
                 VLI.Sub(native, native, N, NUM_WORDS);

@@ -368,7 +368,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             VLI.ModInv(z, z, _curve.P, _curve.NUM_WORDS); // z = 1/z
             _curve.ApplyZ(sum, sum.Slice(_curve.NUM_WORDS), z);
 
-            /* Use Shamir's trick to calculate u1*G + u2*Q */
+            // Use Shamir's trick to calculate u1*G + u2*Q
             VLI.QuadPicker points = new(null, _curve.G, native_point, sum);
             int num_bits = int.Max(VLI.NumBits(u1, _curve.NUM_WORDS), VLI.NumBits(u2, _curve.NUM_WORDS));
 

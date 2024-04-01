@@ -76,10 +76,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         #endregion
 
         #region Implementation pointers
-        /*
-         * NOTE: Pointers are used instead of delegates here on purpose. We cound use delegates but then the entire struct 
-         *  and those types that are dependent on it would have been treated as the managed types and we don't want that.
-         */
+
+        //
+        // NOTE: Pointers are used instead of delegates here on purpose. We cound use delegates but then the entire struct 
+        //  and those types that are dependent on it would have been treated as the managed types and we don't want that.
+        //
 
         private readonly unsafe delegate* managed<in ECCurve, Span<ulong>, Span<ulong>, void> MMod_Impl;
         private readonly unsafe delegate* managed<in ECCurve, Span<ulong>, void> ModSQRT_Impl;
