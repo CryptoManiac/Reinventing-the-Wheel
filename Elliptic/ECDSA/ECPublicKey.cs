@@ -375,8 +375,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             ReadOnlySpan<ulong> point = points[Convert.ToUInt64(VLI.TestBit(u1, num_bits - 1)) | (Convert.ToUInt64(VLI.TestBit(u2, num_bits - 1)) << 1)];
             VLI.Set(rx, point, _curve.NUM_WORDS);
             VLI.Set(ry, point.Slice(_curve.NUM_WORDS), _curve.NUM_WORDS);
-            VLI.Clear(z, _curve.NUM_WORDS);
-            z[0] = 1;
+            VLI.Set(z, 1, _curve.NUM_WORDS);
 
             for (int i = num_bits - 2; i >= 0; --i)
             {

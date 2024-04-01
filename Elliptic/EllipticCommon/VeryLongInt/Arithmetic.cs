@@ -8,7 +8,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
     public static partial class VLI
     {
         /// <summary>
-        /// Sets dest = src
+        /// Sets result = right
         /// </summary>
         /// <param name="dest"></param>
         /// <param name="src"></param>
@@ -18,6 +18,29 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
             var dest = result.Slice(0, num_words);
             var src = right.Slice(0, num_words);
             src.CopyTo(dest);
+        }
+
+        /// <summary>
+        /// Sets value of result to right
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="right"></param>
+        /// <param name="num_words"></param>
+        public static void Set(Span<ulong> result, ulong right, int num_words)
+        {
+            Clear(result, num_words);
+            result[0] = right;
+        }
+
+        /// <summary>
+        /// Sets every word of result to right
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="right"></param>
+        /// <param name="num_words"></param>
+        public static void Fill(Span<ulong> result, ulong right, int num_words)
+        {
+            result.Slice(0, num_words).Fill(right);
         }
 
         /// <summary>
@@ -391,8 +414,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
 
             Set(a, input, num_words);
             Set(b, mod, num_words);
-            Clear(u, num_words);
-            u[0] = 1;
+            Set(u, 1, num_words);
             Clear(v, num_words);
 
             int cmpResult;

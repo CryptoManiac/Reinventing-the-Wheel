@@ -55,9 +55,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             Span<ulong> z = stackalloc ulong[NUM_WORDS];
 
             // Version without initial_Z
-            VLI.Clear(z, NUM_WORDS);
-            z[0] = 1;
-
+            VLI.Set(z, 1, NUM_WORDS);
             VLI.Set(X2, X1, NUM_WORDS);
             VLI.Set(Y2, Y1, NUM_WORDS);
 

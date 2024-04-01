@@ -172,12 +172,12 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         {
             Span<ulong> d0 = stackalloc ulong[curve.NUM_WORDS];
             Span<ulong> e0 = stackalloc ulong[curve.NUM_WORDS];
-            e0[0] = 1; // e0 <-- 1
             Span<ulong> f0 = stackalloc ulong[curve.NUM_WORDS];
 
+            VLI.Set(e0, 1, curve.NUM_WORDS); // e0 <-- 1
             VLI.Set(d0, r, curve.NUM_WORDS); // d0 <-- r
-            // f0 <-- p  - c
-            VLI.ModSub(f0, curve.P, c, curve.P, curve.NUM_WORDS);
+            VLI.ModSub(f0, curve.P, c, curve.P, curve.NUM_WORDS); // f0 <-- p  - c
+
             for (int i = 0, pow2i = 1; i <= 6; i++)
             {
                 mod_sqrt_secp224r1_rss(curve, d1, e1, f1, d0, e0, f0, pow2i); // RSS (d1,e1,f1,d0,e0,f0,2^i)

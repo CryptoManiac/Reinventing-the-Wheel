@@ -70,12 +70,14 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         {
             Span<ulong> p1 = stackalloc ulong[curve.NUM_WORDS];
             Span<ulong> result = stackalloc ulong[curve.NUM_WORDS];
-            p1[0] = result[0] = 1;
 
-            // When curve_secp256k1.p == 3 (mod 4), we can compute
-            //   sqrt(a) = a^((curve_secp256k1.p + 1) / 4) (mod curve_secp256k1.p).
+            VLI.Set(p1, 1, curve.NUM_WORDS);
+            VLI.Set(result, 1, curve.NUM_WORDS);
 
-            VLI.Add(p1, curve.P, p1, curve.NUM_WORDS); // p1 = curve_p + 1
+            // When curve.P == 3 (mod 4), we can compute
+            //   sqrt(a) = a^((curve.P + 1) / 4) (mod curve.P).
+
+            VLI.Add(p1, curve.P, p1, curve.NUM_WORDS); // p1 = curve.P + 1
             for (int i = VLI.NumBits(p1, curve.NUM_WORDS) - 1; i > 1; --i)
             {
                 curve.ModSquare(result, result);
@@ -95,8 +97,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         private static void XSide_Generic(in ECCurve curve, Span<ulong> result, ReadOnlySpan<ulong> x)
         {
             Span<ulong> _3 = stackalloc ulong[curve.NUM_WORDS];
-            _3[0] = 3; // -a = 3
-
+            VLI.Set(_3, 3, curve.NUM_WORDS); // -a = 3
             curve.ModSquare(result, x);                             // r = x^2
             VLI.ModSub(result, result, _3, curve.P, curve.NUM_WORDS);       // r = x^2 - 3
             curve.ModMult(result, result, x);                     // r = x^3 - 3x
