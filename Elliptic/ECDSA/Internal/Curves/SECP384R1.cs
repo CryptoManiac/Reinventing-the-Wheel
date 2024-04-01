@@ -41,7 +41,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             {
                 ulong carry = 0;
                 VLI.Clear(tmp, 2 * curve.NUM_WORDS);
-                omega_mult(curve, tmp, product.Slice(curve.NUM_WORDS));    // tmp = w * c1 */
+                OmegaMult_SECP384R1(curve, tmp, product.Slice(curve.NUM_WORDS));    // tmp = w * c1 */
                 VLI.Clear(product.Slice(curve.NUM_WORDS), curve.NUM_WORDS); // p = c0
 
                 // (c1, c0) = c0 + w * c1
@@ -63,7 +63,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             VLI.Set(result, product, curve.NUM_WORDS);
         }
 
-        private static void omega_mult(in ECCurve curve, Span<ulong> result, Span<ulong> right)
+        private static void OmegaMult_SECP384R1(in ECCurve curve, Span<ulong> result, Span<ulong> right)
         {
             Span<ulong> tmp = stackalloc ulong[2 * curve.NUM_WORDS];
             ulong carry, diff;

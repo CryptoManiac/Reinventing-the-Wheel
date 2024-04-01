@@ -96,11 +96,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             VLI.Clear(tmp, curve.NUM_WORDS);
             VLI.Clear(tmp.Slice(curve.NUM_WORDS), curve.NUM_WORDS);
 
-            OmegaMult(curve, tmp, product.Slice(curve.NUM_WORDS)); // (Rq, q) = q * c
+            OmegaMult_SECP256K1(curve, tmp, product.Slice(curve.NUM_WORDS)); // (Rq, q) = q * c
 
             carry = VLI.Add(result, product, tmp, curve.NUM_WORDS); // (C, r) = r + q
             VLI.Clear(product, curve.NUM_WORDS);
-            OmegaMult(curve, product, tmp.Slice(curve.NUM_WORDS)); // Rq*c
+            OmegaMult_SECP256K1(curve, product, tmp.Slice(curve.NUM_WORDS)); // Rq*c
             carry += VLI.Add(result, result, product, curve.NUM_WORDS); // (C1, r) = r + Rq*c
 
             while (carry > 0)
@@ -114,7 +114,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
         }
 
-        private static void OmegaMult(in ECCurve curve, Span<ulong> result, ReadOnlySpan<ulong> right)
+        private static void OmegaMult_SECP256K1(in ECCurve curve, Span<ulong> result, ReadOnlySpan<ulong> right)
         {
             ulong r0 = 0;
             ulong r1 = 0;
