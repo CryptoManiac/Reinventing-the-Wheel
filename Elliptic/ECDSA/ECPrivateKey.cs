@@ -336,15 +336,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             //   bits of k / the private key by premultiplying by a random number
             Span<ulong> rand = stackalloc ulong[_curve.NUM_WORDS];
 
-            // Generate the scrambling key
+            // Generate the K scrambling value
             IPrivateKey randomKey;
-            for (int i = 0; !curve.GenerateRandomSecret(out randomKey) && i < 64; ++i);
-
-            if (!randomKey.IsValid)
-            {
-                // Sanity check: This must never ever happen in the real life
-                throw new SystemException("System RNG failure: done 64 attempts and still failed to produce a reasonable random value");
-            }
+            curve.GenerateRandomSecret(out randomKey);
 
             // Derive child key with message hash as an additional entropy source
             randomKey.DeriveHMAC<HMAC_IMPL>(out randomKey, message_hash, 0);
@@ -431,10 +425,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             Span<ulong> K = stackalloc ulong[_curve.NUM_WORDS];
 
             // Begin by generating a new random key with the platform's RNG
-            if (!curve.GenerateRandomSecret(out IPrivateKey randomKey))
-            {
-                return false;
-            }
+            curve.GenerateRandomSecret(out IPrivateKey randomKey);
 
             // Will retry until succeed
             for (int i = 1; i != int.MaxValue; ++i)

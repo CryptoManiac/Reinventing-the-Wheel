@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using Wheel.Crypto.Elliptic.EllipticCommon;
 using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
 using Wheel.Hashing.HMAC;
+using Wheel.Hashing.HMAC.SHA2;
 
 namespace Wheel.Crypto.Elliptic.ECDSA
 {
@@ -367,17 +368,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// </summary>
         /// <param name="result">Private key to be filled</param>
         /// <returns>True on success</returns>
-        public bool GenerateRandomSecret(out IPrivateKey result)
+        public void GenerateRandomSecret(out IPrivateKey result)
         {
-            // NOTE: There is some dark magic involved. The reason is that for shorter curve
-            // lengths there is no guarantee that NUM_BYTES / sizeof(ulong) == NUM_WORDS holds true.
-            Span<byte> random_key_bytes = stackalloc byte[NUM_BYTES];
-            Span<ulong> random_key_words = stackalloc ulong[NUM_WORDS];
-            RNG.Fill(random_key_bytes);
-            // Convert to native and wrap, returning the result of attempt
-            VLI.BytesToNative(random_key_words, random_key_bytes, NUM_BYTES);
-            result = new ECPrivateKey(this);
-            return result.Wrap(random_key_words);
+            Span<byte> rnd = stackalloc byte[NUM_BYTES * 2];
+            RNG.Fill(rnd);
+            GenerateDeterministicSecret<HMAC_SHA512>(out result, rnd.Slice(0, NUM_BYTES), rnd.Slice(NUM_BYTES), 0);
         }
 
         /// <summary>

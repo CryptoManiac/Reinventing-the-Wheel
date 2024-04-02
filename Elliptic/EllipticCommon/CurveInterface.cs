@@ -119,7 +119,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// </summary>
         /// <param name="result">Private key to be filled</param>
         /// <returns>True on success</returns>
-        public bool GenerateRandomSecret(out IPrivateKey result);
+        public void GenerateRandomSecret(out IPrivateKey result);
 
         /// <summary>
         /// Deterministically generate the new private key from seed, using HMAC-based generator
