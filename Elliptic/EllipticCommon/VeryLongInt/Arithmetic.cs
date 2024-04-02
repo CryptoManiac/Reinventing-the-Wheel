@@ -110,6 +110,36 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
         }
 
         /// <summary>
+        /// Calculate XOR:
+        ///  result[i] = left[i] ^ right
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <param name="num_words"></param>
+        public static void Xor(Span<ulong> result, ReadOnlySpan<ulong> left, ulong right, int num_words)
+        {
+            for (int i = 0; i < num_words; ++i)
+            {
+                result[i] = left[i] ^ right;
+            }
+        }
+
+        /// <summary>
+        /// Apply XOR in-place:
+        ///  left[i] ^= right
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <param name="num_words"></param>
+        public static void Xor(Span<ulong> left, ulong right, int num_words)
+        {
+            for (int i = 0; i < num_words; ++i)
+            {
+                left[i] ^= right;
+            }
+        }
+
+        /// <summary>
         /// Apply AND in-place:
         ///  left &= right
         /// </summary>
@@ -121,6 +151,21 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
             for (int i = 0; i < num_words; ++i)
             {
                 left[i] &= right[i];
+            }
+        }
+
+        /// <summary>
+        /// Apply AND in-place:
+        ///  left[i] &= right
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <param name="num_words"></param>
+        public static void And(Span<ulong> left, ulong right, int num_words)
+        {
+            for (int i = 0; i < num_words; ++i)
+            {
+                left[i] &= right;
             }
         }
 
@@ -151,6 +196,21 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
             for (int i = 0; i < num_words; ++i)
             {
                 result[i] = left[i] & right[i];
+            }
+        }
+
+        /// <summary>
+        /// Calculate AND:
+        ///  result = left & right
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <param name="num_words"></param>
+        public static void And(Span<ulong> result, ReadOnlySpan<ulong> left, ulong right, int num_words)
+        {
+            for (int i = 0; i < num_words; ++i)
+            {
+                result[i] = left[i] & right;
             }
         }
 
