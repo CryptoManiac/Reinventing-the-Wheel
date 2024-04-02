@@ -1,4 +1,7 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Drawing;
+using System.Runtime.CompilerServices;
+using System.Threading.Channels;
+using Wheel.Crypto.Elliptic.EllipticCommon;
 using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
 
 namespace Wheel.Crypto.Elliptic.ECDSA
@@ -88,22 +91,6 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="result"></param>
         /// <param name="point"></param>
         /// <param name="scalar"></param>
-        [SkipLocalsInit]
-        internal void PointMul(Span<ulong> result, ReadOnlySpan<ulong> point, ReadOnlySpan<ulong> scalar)
-        {
-            Span<ulong> tmp1 = stackalloc ulong[NUM_WORDS];
-            Span<ulong> tmp2 = stackalloc ulong[NUM_WORDS];
-            VLI.Picker p2 = new(tmp1, tmp2);
-            ulong carry = RegularizeK(scalar, tmp1, tmp2);
-            PointMul(result, point, p2[!Convert.ToBoolean(carry)], NUM_N_BITS + 1);
-        }
-
-        /// <summary>
-        /// ECC Point multiplication by scalar
-        /// </summary>
-        /// <param name="result"></param>
-        /// <param name="point"></param>
-        /// <param name="scalar"></param>
         /// <param name="initial_Z"></param>
         /// <param name="num_bits"></param>
         [SkipLocalsInit]
@@ -150,58 +137,6 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         }
 
         /// <summary>
-        /// ECC Point multiplication by scalar
-        /// </summary>
-        /// <param name="result"></param>
-        /// <param name="point"></param>
-        /// <param name="scalar"></param>
-        /// <param name="initial_Z"></param>
-        /// <param name="num_bits"></param>
-        [SkipLocalsInit]
-        internal void PointMul(Span<ulong> result, ReadOnlySpan<ulong> point, ReadOnlySpan<ulong> scalar, int num_bits)
-        {
-            // R0 and R1
-            VLI.Picker Rx = new(stackalloc ulong[NUM_WORDS], stackalloc ulong[NUM_WORDS]);
-            VLI.Picker Ry = new(stackalloc ulong[NUM_WORDS], stackalloc ulong[NUM_WORDS]);
-            Span<ulong> z = stackalloc ulong[NUM_WORDS];
-
-            ulong nb;
-
-            VLI.Set(Rx[1], point, NUM_WORDS);
-            VLI.Set(Ry[1], point.Slice(NUM_WORDS), NUM_WORDS);
-
-            XYcZ_Double(Rx[1], Ry[1], Rx[0], Ry[0]);
-
-            for (int i = num_bits - 2; i > 0; --i)
-            {
-                nb = Convert.ToUInt64(!VLI.TestBit(scalar, i));
-                XYcZ_addC(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
-                XYcZ_Add(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);
-            }
-
-            nb = Convert.ToUInt64(!VLI.TestBit(scalar, 0));
-            XYcZ_addC(Rx[1 - nb], Ry[1 - nb], Rx[nb], Ry[nb]);
-
-            // Find final 1/Z value.
-            VLI.ModSub(z, Rx[1], Rx[0], P, NUM_WORDS); // X1 - X0
-            ModMult(z, z, Ry[1 - nb]);               // Yb * (X1 - X0)
-            ModMult(z, z, point);                    // xP * Yb * (X1 - X0)
-
-            VLI.ModInv(z, z, P, NUM_WORDS);            // 1 / (xP * Yb * (X1 - X0))
-                                                             // yP / (xP * Yb * (X1 - X0))
-            ModMult(z, z, point.Slice(NUM_WORDS));
-            ModMult(z, z, Rx[1 - nb]); // Xb * yP / (xP * Yb * (X1 - X0))
-
-            // End 1/Z calculation
-
-            XYcZ_Add(Rx[nb], Ry[nb], Rx[1 - nb], Ry[1 - nb]);
-            ApplyZ(Rx[0], Ry[0], z);
-
-            VLI.Set(result, Rx[0], NUM_WORDS);
-            VLI.Set(result.Slice(NUM_WORDS), Ry[0], NUM_WORDS);
-        }
-
-        /// <summary>
         /// Compute the corresponding public key for a private key.
         /// </summary>
         /// <param name="result">Will be filled in with the corresponding public key</param>
@@ -220,7 +155,12 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             //  attack to learn the number of leading zeros.
             carry = RegularizeK(private_key, tmp1, tmp2);
 
-            PointMul(result, G, p2[!Convert.ToBoolean(carry)], NUM_N_BITS + 1);
+            // Get a random initial Z value to improve
+            //  protection against side channel attacks.
+            GenerateRandomSecret(out IPrivateKey rndKey, null);
+            rndKey.UnWrap(p2[carry]);
+
+            PointMul(result, G, p2[!Convert.ToBoolean(carry)], p2[carry], NUM_N_BITS + 1);
 
             // Final validation of computed value
             return !IsZeroPoint(result);

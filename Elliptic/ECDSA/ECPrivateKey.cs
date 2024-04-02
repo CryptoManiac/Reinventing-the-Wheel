@@ -316,6 +316,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         {
             Span<ulong> p = stackalloc ulong[_curve.NUM_WORDS * 2];
             Span<ulong> tmp = stackalloc ulong[_curve.NUM_WORDS];
+            Span<ulong> initialZ = stackalloc ulong[_curve.NUM_WORDS];
             VLI.Picker k2 = new(tmp, s);
 
             ulong carry;
@@ -331,7 +332,12 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
 
             carry = _curve.RegularizeK(k, tmp, s);
-            _curve.PointMul(p, _curve.G, k2[!Convert.ToBoolean(carry)], _curve.NUM_N_BITS + 1);
+
+            // get a random initial Z value to improve protection against side - channel attacks.
+            curve.GenerateRandomSecret(out IPrivateKey rndKey, message_hash);
+            rndKey.UnWrap(initialZ);
+
+            _curve.PointMul(p, _curve.G, k2[!Convert.ToBoolean(carry)], initialZ, _curve.NUM_N_BITS + 1);
             if (VLI.IsZero(p, _curve.NUM_WORDS))
             {
                 return false;
@@ -339,19 +345,13 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             // Prevent side channel analysis of VLI.ModInv() to determine
             //   bits of k / the private key by premultiplying by a random number
-            Span<ulong> rand = stackalloc ulong[_curve.NUM_WORDS];
+            Span<ulong> randK = stackalloc ulong[_curve.NUM_WORDS];
 
             // Generate the K scrambling value
-            curve.GenerateRandomSecret(out IPrivateKey randomKey, message_hash);
+            rndKey.DeriveHMAC<HMAC_IMPL>(out IPrivateKey rndKey2, message_hash, 1);
+            rndKey2.UnWrap(randK);
 
-            // Unwrapping the native value must never fail here
-            if (!randomKey.UnWrap(rand))
-            {
-                // Sanity check: This must never ever happen in the real life
-                throw new SystemException("randomKey unwrap failure");
-            }
-
-            VLI.Set(tmp, rand, _curve.NUM_WORDS);
+            VLI.Set(tmp, randK, _curve.NUM_WORDS);
             VLI.ModMult(k, k, tmp, _curve.N, _curve.NUM_WORDS); // k' = rand * k
             VLI.ModInv(k, k, _curve.N, _curve.NUM_WORDS);       // k = 1 / k'
             VLI.ModMult(k, k, tmp, _curve.N, _curve.NUM_WORDS); // k = 1 / k
@@ -601,7 +601,12 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             // cannot use a side channel attack to learn the number of leading zeros.
             carry = _curve.RegularizeK(secret_scalar_x, secret_scalar_x, temp_scalar_k);
 
-            _curve.PointMul(ecdh_point, ecdh_point, p2[!Convert.ToBoolean(carry)], _curve.NUM_N_BITS + 1);
+            // Get a random initial Z value to improve
+            //  protection against side channel attacks.
+            _curve.GenerateRandomSecret(out IPrivateKey rndKey, null);
+            rndKey.UnWrap(p2[carry]);
+
+            _curve.PointMul(ecdh_point, ecdh_point, p2[!Convert.ToBoolean(carry)], p2[carry], _curve.NUM_N_BITS + 1);
 
             // Will fail if the point is zero
             bool result = shared.Wrap(ecdh_point.Slice(0, _curve.NUM_WORDS));

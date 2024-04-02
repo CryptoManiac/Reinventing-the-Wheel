@@ -41,25 +41,18 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         {
             Span<ulong> z = stackalloc ulong[NUM_WORDS];
 
-            // Setting Z as it is provided
-            VLI.Set(z, initial_Z, NUM_WORDS);
+            if (initial_Z.IsEmpty)
+            {
+                // Continuing without initialZ
+                VLI.Set(z, 1, NUM_WORDS);
+                z[0] = 1;
+            }
+            else
+            {
+                // Setting Z as it is provided
+                VLI.Set(z, initial_Z, NUM_WORDS);
+            }
 
-            VLI.Set(X2, X1, NUM_WORDS);
-            VLI.Set(Y2, Y1, NUM_WORDS);
-
-            ApplyZ(X1, Y1, z);
-            DoubleJacobian(X1, Y1, z);
-            ApplyZ(X2, Y2, z);
-        }
-
-        // P = (x1, y1) => 2P, (x2, y2) => P'
-        [SkipLocalsInit]
-        internal void XYcZ_Double(Span<ulong> X1, Span<ulong> Y1, Span<ulong> X2, Span<ulong> Y2)
-        {
-            Span<ulong> z = stackalloc ulong[NUM_WORDS];
-
-            // Version without initial_Z
-            VLI.Set(z, 1, NUM_WORDS);
             VLI.Set(X2, X1, NUM_WORDS);
             VLI.Set(Y2, Y1, NUM_WORDS);
 
