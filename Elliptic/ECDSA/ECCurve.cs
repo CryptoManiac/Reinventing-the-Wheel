@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using Wheel.Crypto.Elliptic.EllipticCommon;
 using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
 using Wheel.Hashing.HMAC;
@@ -11,7 +10,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
     #region Random number generator
     internal static class RNG
     {
-        private static RandomNumberGenerator gen = RandomNumberGenerator.Create();
+        private static System.Security.Cryptography.RandomNumberGenerator gen = System.Security.Cryptography.RandomNumberGenerator.Create();
         private static object LockGuard = new();
 
         public static void Fill(Span<ulong> rnd)
