@@ -42,40 +42,56 @@
         }
 
         /// <summary>
-        /// Counts the number of words in 
+        /// Counts the number of used words, in constant time
         /// </summary>
         /// <param name="words"></param>
         /// <returns></returns>
         private static int NumDigits(ReadOnlySpan<ulong> words, int max_words)
         {
-            int i;
-            // Search from the end until we find a non-zero digit.
-            // We do it in reverse because we expect that most digits will be nonzero.
-            for (i = max_words - 1; i >= 0 && words[i] == 0; --i) ;
-            return i + 1;
+            // Constant-time check for number of used words:
+            //  Iterate through all words regardless of their value
+            int used_words = 0;
+            for (int i = max_words; i > 0; --i)
+            {
+                // Mask will be 0xffffffff only when used_words is not set,
+                //  it will be zero otherwise
+                uint mask = (uint)-Convert.ToInt32(!Convert.ToBoolean(used_words));
+
+                // If used_words is zero then the 0xffffffff mask will allow addition
+                //  of current index to used_words. This operation will "add" zero otherwise.
+                used_words += (int)(i & mask);
+            }
+
+            return used_words;
         }
 
         /// <summary>
-        /// Counts the number of bits required to represent 
+        /// Counts the number of bits required to represent the number, in constant time
         /// </summary>
         /// <param name="words"></param>
         /// <returns></returns>
         public static int NumBits(ReadOnlySpan<ulong> words, int max_words)
         {
             int num_digits = NumDigits(words, max_words);
-            if (num_digits == 0)
+
+            // If the number of used words is zero then the mask will be zero, resulting
+            //  with getting the first element of word array, which is zero itself.
+            int zeroOrIndex = (int)((num_digits - 1) & (uint)-Convert.ToInt32(0 != num_digits));
+            ulong digit = words[zeroOrIndex];
+
+            // Constant-time bitcoint: iterate through
+            //  all bits regardless of their value
+            int i = 0;
+            for (int k = 0; k < WORD_BITS; ++k)
             {
-                return 0;
+                // Increment by one and shift by one if the word
+                // is zero, perform the no-ops otherwise
+                int oneIfHaveBits = Convert.ToInt32(Convert.ToBoolean(digit));
+                i += oneIfHaveBits;
+                digit >>= oneIfHaveBits;
             }
 
-            ulong digit = words[num_digits - 1];
-            int i;
-            for (i = 0; digit != 0; ++i)
-            {
-                digit >>= 1;
-            }
-
-            return ((num_digits - 1) << WORD_BITS_SHIFT) + i;
+            return (zeroOrIndex << WORD_BITS_SHIFT) + i;
         }
 
         /// <summary>
