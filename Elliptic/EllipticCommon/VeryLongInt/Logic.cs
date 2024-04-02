@@ -31,6 +31,30 @@
         }
 
         /// <summary>
+        /// result = flag ? ifTrue : ifFalse without branching
+        /// </summary>
+        private static void CMov(Span<ulong> result, ReadOnlySpan<ulong> ifFalse, ReadOnlySpan<ulong> ifTrue, bool flag, int num_words)
+        {
+            ulong mask = (ulong)-Convert.ToInt64(flag);
+            Span<ulong> X = stackalloc ulong[num_words];
+            Xor(X, ifFalse, ifTrue, num_words);
+            And(X, mask, num_words);
+            Xor(result, X, num_words);
+        }
+
+        /// <summary>
+        /// if (flag) result = ifTrue without branching
+        /// </summary>
+        private static void CMov(Span<ulong> result, ReadOnlySpan<ulong> ifTrue, bool flag, int num_words)
+        {
+            ulong mask = (ulong)-Convert.ToInt64(flag);
+            Span<ulong> X = stackalloc ulong[num_words];
+            Xor(X, result, ifTrue, num_words);
+            And(X, mask, num_words);
+            Xor(result, X, num_words);
+        }
+
+        /// <summary>
         /// Check that specific bit is set
         /// </summary>
         /// <param name="words">Long integer words</param>
