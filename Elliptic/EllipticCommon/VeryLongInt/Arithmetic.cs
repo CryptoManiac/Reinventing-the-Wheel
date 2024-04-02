@@ -382,7 +382,9 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
             int word_shift = shift / WORD_BITS;
             int bit_shift = shift % WORD_BITS;
             ulong carry = 0;
-            Clear(mod_multiple, word_shift);
+
+            Clear(mod_multiple, 2 * num_words);
+
             if (bit_shift > 0)
             {
                 for (index = 0; index < (ulong)num_words; ++index)
