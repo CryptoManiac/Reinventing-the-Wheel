@@ -337,11 +337,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             Span<ulong> rand = stackalloc ulong[_curve.NUM_WORDS];
 
             // Generate the K scrambling value
-            IPrivateKey randomKey;
-            curve.GenerateRandomSecret(out randomKey);
-
-            // Derive child key with message hash as an additional entropy source
-            randomKey.DeriveHMAC<HMAC_IMPL>(out randomKey, message_hash, 0);
+            curve.GenerateRandomSecret(out IPrivateKey randomKey, message_hash);
 
             // Unwrapping the native value must never fail here
             if (!randomKey.UnWrap(rand))
@@ -373,7 +369,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 return false;
             }
 
-            if (VLI.ConstTimeCmp(s, _curve.Half_N, _curve.NUM_WORDS) == 1)
+            if (VLI.VarTimeCmp(s, _curve.Half_N, _curve.NUM_WORDS) == 1)
             {
                 // Apply Low-S rule to signature
                 VLI.Sub(s, _curve.N, s, _curve.NUM_WORDS); // s = n - s 
@@ -425,15 +421,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             Span<ulong> K = stackalloc ulong[_curve.NUM_WORDS];
 
             // Begin by generating a new random key with the platform's RNG
-            curve.GenerateRandomSecret(out IPrivateKey randomKey);
+            curve.GenerateRandomSecret(out IPrivateKey randomKey, message_hash);
 
             // Will retry until succeed
             for (int i = 1; i != int.MaxValue; ++i)
             {
-                // Use the HMAC derivation of a secret child to ensure our
-                //  security in cases when the system RNG is compromised
-                randomKey.DeriveHMAC<HMAC_IMPL>(out randomKey, message_hash, i);
-
                 // Unwrapping the native value must never fail here
                 if (!randomKey.UnWrap(K))
                 {

@@ -113,13 +113,14 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
 
         /// <summary>
         /// Generation of a random secret key on top of the .NET RandomNumberGenerator API. The security of this key will depend
-        /// on the quality of the local RNG implementation. I suggest that you should treat these keys as unsecure by default,
-        /// use this API with caution and never use the generated keys directly, without hashing. It will be a good idea to use
-        /// the DeriveHMAC method to derive the children keys from them.
+        /// on the quality of the local RNG implementation and the quality of the entropy array being used as well. I suggest that
+        /// you should treat these keys as unsecure by default, use this API with caution and never use the generated keys directly,
+        /// without hashing. It will be a good idea to use the DeriveHMAC method to derive the children keys from them.
         /// </summary>
         /// <param name="result">Private key to be filled</param>
+        /// <param name="entropy">Additional entropy</param>
         /// <returns>True on success</returns>
-        public void GenerateRandomSecret(out IPrivateKey result);
+        public void GenerateRandomSecret(out IPrivateKey result, ReadOnlySpan<byte> entropy);
 
         /// <summary>
         /// Deterministically generate the new private key from seed, using HMAC-based generator
