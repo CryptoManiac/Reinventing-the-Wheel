@@ -1,4 +1,5 @@
-﻿using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
+﻿using System.Runtime.CompilerServices;
+using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
 
 namespace Wheel.Crypto.Elliptic.ECDSA
 {
@@ -45,6 +46,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="X1"></param>
         /// <param name="Y1"></param>
         /// <param name="Z1"></param>
+        [SkipLocalsInit]
         public static void DoubleJacobian_SECP256K1(in ECCurve curve, Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1)
         {
             // t1 = X, t2 = Y, t3 = Z
@@ -88,6 +90,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <summary>
         /// Computes result = product % p
         /// </summary>
+        [SkipLocalsInit]
         private static void MMod_SECP256K1(in ECCurve curve, Span<ulong> result, Span<ulong> product)
         {
             Span<ulong> tmp = stackalloc ulong[2 * curve.NUM_WORDS];

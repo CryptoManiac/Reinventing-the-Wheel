@@ -1,4 +1,5 @@
-﻿using Wheel.Crypto.Elliptic.EllipticCommon;
+﻿using System.Runtime.CompilerServices;
+using Wheel.Crypto.Elliptic.EllipticCommon;
 using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
 
 namespace Wheel.Crypto.Elliptic.ECDSA
@@ -195,6 +196,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// </summary>
         /// <param name="serialized"></param>
         /// <returns>True if the data is valid and initialization has been successful</returns>
+        [SkipLocalsInit]
         public bool Parse(ReadOnlySpan<byte> serialized)
         {
             Reset();
@@ -210,6 +212,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             return Wrap(_public);
         }
 
+        [SkipLocalsInit]
         public bool Decompress(ReadOnlySpan<byte> compressed)
         {
             Reset();
@@ -257,6 +260,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// </summary>
         /// <param name="compressed"></param>
         /// <returns>True if successful and this key is valid</returns>
+        [SkipLocalsInit]
         public readonly bool Compress(Span<byte> compressed)
         {
             if (!IsValid || compressed.Length != (_curve.NUM_BYTES + 1))
@@ -287,6 +291,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="result"></param>
         /// <param name="scalar"></param>
         /// <returns></returns>
+        [SkipLocalsInit]
         public readonly bool KeyTweak(out IPublicKey result, ReadOnlySpan<byte> scalar)
         {
             result = new ECPublicKey(_curve);
@@ -325,6 +330,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="s"></param>
         /// <param name="message_hash"></param>
         /// <returns></returns>
+        [SkipLocalsInit]
         private readonly bool VerifySignature(ReadOnlySpan<ulong> r, ReadOnlySpan<ulong> s, ReadOnlySpan<byte> message_hash)
         {
             Span<ulong> u1 = stackalloc ulong[_curve.NUM_WORDS];

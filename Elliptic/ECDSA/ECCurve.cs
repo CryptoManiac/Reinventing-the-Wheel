@@ -383,6 +383,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="seed">Secret seed to generate from</param>
         /// <param name="personalization">Personalization argument bytes (to generate more than one key from the same seed)</param>
         /// <param name="sequence">Generation sequence number (to generate more than one key from the same seed + personalization pair)</param>
+        [SkipLocalsInit]
         public void GenerateDeterministicSecret<HMAC_IMPL>(out IPrivateKey result, ReadOnlySpan<byte> seed, ReadOnlySpan<byte> personalization, int sequence) where HMAC_IMPL : unmanaged, IMac
         {
             // See 3..2 of the RFC 6979 to get what is going on here

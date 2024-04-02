@@ -1,4 +1,5 @@
-﻿using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
+﻿using System.Runtime.CompilerServices;
+using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
 
 namespace Wheel.Crypto.Elliptic.ECDSA
 {
@@ -24,6 +25,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="X1"></param>
         /// <param name="Y1"></param>
         /// <param name="Z"></param>
+        [SkipLocalsInit]
         internal void ApplyZ(Span<ulong> X1, Span<ulong> Y1, ReadOnlySpan<ulong> Z)
         {
             Span<ulong> t1 = stackalloc ulong[NUM_WORDS];
@@ -34,6 +36,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         }
 
         // P = (x1, y1) => 2P, (x2, y2) => P'
+        [SkipLocalsInit]
         internal void XYcZ_Initial_Double(Span<ulong> X1, Span<ulong> Y1, Span<ulong> X2, Span<ulong> Y2, ReadOnlySpan<ulong> initial_Z)
         {
             Span<ulong> z = stackalloc ulong[NUM_WORDS];
@@ -50,6 +53,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         }
 
         // P = (x1, y1) => 2P, (x2, y2) => P'
+        [SkipLocalsInit]
         internal void XYcZ_Double(Span<ulong> X1, Span<ulong> Y1, Span<ulong> X2, Span<ulong> Y2)
         {
             Span<ulong> z = stackalloc ulong[NUM_WORDS];
@@ -67,6 +71,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         // Input P = (x1, y1, Z), Q = (x2, y2, Z)
         //   Output P' = (x1', y1', Z3), P + Q = (x3, y3, Z3)
         //   or P => P', Q => P + Q
+        [SkipLocalsInit]
         internal void XYcZ_Add(Span<ulong> X1, Span<ulong> Y1, Span<ulong> X2, Span<ulong> Y2)
         {
             // t1 = X1, t2 = Y1, t3 = X2, t4 = Y2
@@ -92,6 +97,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         // Input P = (x1, y1, Z), Q = (x2, y2, Z)
         //   Output P + Q = (x3, y3, Z3), P - Q = (x3', y3', Z3)
         //   or P => P - Q, Q => P + Q
+        [SkipLocalsInit]
         internal void XYcZ_addC(Span<ulong> X1, Span<ulong> Y1, Span<ulong> X2, Span<ulong> Y2)
         {
             // t1 = X1, t2 = Y1, t3 = X2, t4 = Y2

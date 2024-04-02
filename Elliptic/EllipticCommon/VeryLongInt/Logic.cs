@@ -1,4 +1,6 @@
-﻿namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
+﻿using System.Runtime.CompilerServices;
+
+namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
 {
     /// <summary>
     /// Logical operations with very long integers (aka VLI)
@@ -33,6 +35,7 @@
         /// <summary>
         /// result = flag ? ifTrue : ifFalse without branching
         /// </summary>
+        [SkipLocalsInit]
         private static void CMov(Span<ulong> result, ReadOnlySpan<ulong> ifFalse, ReadOnlySpan<ulong> ifTrue, bool flag, int num_words)
         {
             ulong mask = (ulong)-Convert.ToInt64(flag);
@@ -45,6 +48,7 @@
         /// <summary>
         /// if (flag) result = ifTrue without branching
         /// </summary>
+        [SkipLocalsInit]
         private static void CMov(Span<ulong> result, ReadOnlySpan<ulong> ifTrue, bool flag, int num_words)
         {
             ulong mask = (ulong)-Convert.ToInt64(flag);
@@ -141,6 +145,7 @@
         /// <param name="right"></param>
         /// <param name="num_words"></param>
         /// <returns></returns>
+        [SkipLocalsInit]
         public static int ConstTimeCmp(ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right, int num_words)
         {
             Span<ulong> tmp = stackalloc ulong[num_words];

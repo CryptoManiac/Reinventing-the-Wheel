@@ -1,4 +1,5 @@
-﻿using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
+﻿using System.Runtime.CompilerServices;
+using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
 
 namespace Wheel.Crypto.Elliptic.ECDSA
 {
@@ -22,6 +23,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// </summary>
         /// <param name="point"></param>
         /// <returns></returns>
+        [SkipLocalsInit]
         internal bool IsValidPoint(ReadOnlySpan<ulong> point)
         {
             Span<ulong> tmp1 = stackalloc ulong[NUM_WORDS];
@@ -52,6 +54,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="R"></param>
         /// <param name="input_P"></param>
         /// <param name="input_Q"></param>
+        [SkipLocalsInit]
         internal void PointAdd(Span<ulong> R, Span<ulong> input_P, ReadOnlySpan<ulong> input_Q)
         {
             Span<ulong> P = stackalloc ulong[NUM_WORDS * 2];
@@ -85,6 +88,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="result"></param>
         /// <param name="point"></param>
         /// <param name="scalar"></param>
+        [SkipLocalsInit]
         internal void PointMul(Span<ulong> result, ReadOnlySpan<ulong> point, ReadOnlySpan<ulong> scalar)
         {
             Span<ulong> tmp1 = stackalloc ulong[NUM_WORDS];
@@ -102,6 +106,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="scalar"></param>
         /// <param name="initial_Z"></param>
         /// <param name="num_bits"></param>
+        [SkipLocalsInit]
         internal void PointMul(Span<ulong> result, ReadOnlySpan<ulong> point, ReadOnlySpan<ulong> scalar, ReadOnlySpan<ulong> initial_Z, int num_bits)
         {
             // R0 and R1
@@ -152,6 +157,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="scalar"></param>
         /// <param name="initial_Z"></param>
         /// <param name="num_bits"></param>
+        [SkipLocalsInit]
         internal void PointMul(Span<ulong> result, ReadOnlySpan<ulong> point, ReadOnlySpan<ulong> scalar, int num_bits)
         {
             // R0 and R1
@@ -201,6 +207,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="result">Will be filled in with the corresponding public key</param>
         /// <param name="private_key"> The private key to compute the public key for</param>
         /// <returns>True if the key was computed successfully, False if an error occurred.</returns>
+        [SkipLocalsInit]
         internal bool ComputePublicPoint(Span<ulong> result, ReadOnlySpan<ulong> private_key)
         {
             Span<ulong> tmp1 = stackalloc ulong[NUM_WORDS];

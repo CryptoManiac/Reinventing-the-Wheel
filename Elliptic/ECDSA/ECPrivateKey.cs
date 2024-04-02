@@ -1,4 +1,5 @@
-﻿using Wheel.Crypto.Elliptic.EllipticCommon;
+﻿using System.Runtime.CompilerServices;
+using Wheel.Crypto.Elliptic.EllipticCommon;
 using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
 using Wheel.Hashing;
 using Wheel.Hashing.HMAC;
@@ -219,6 +220,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// </summary>
         /// <param name="private_key">Serialized scalar data</param>
         /// <returns>True if successful</returns>
+        [SkipLocalsInit]
         public bool Parse(ReadOnlySpan<byte> private_key)
         {
             Reset();
@@ -234,6 +236,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// </summary>
         /// <param name="public_key">Will be filled in with the corresponding public key</param>
         /// <returns>True if the key was computed successfully, False if an error occurred.</returns>
+        [SkipLocalsInit]
         public readonly bool ComputePublicKey(out IPublicKey public_key)
         {
             public_key = new ECPublicKey(_curve);
@@ -264,6 +267,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="result"></param>
         /// <param name="scalar"></param>
         /// <returns></returns>
+        [SkipLocalsInit]
         public readonly bool KeyTweak(ref IPrivateKey result, ReadOnlySpan<byte> scalar)
         {
             if (!IsValid)
@@ -307,6 +311,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <param name="K">Random secret</param>
         /// <returns>True on success</returns>
+        [SkipLocalsInit]
         private readonly bool SignWithK<HMAC_IMPL>(Span<ulong> r, Span<ulong> s, ReadOnlySpan<byte> message_hash, ReadOnlySpan<ulong> K) where HMAC_IMPL : unmanaged, IMac
         {
             Span<ulong> p = stackalloc ulong[_curve.NUM_WORDS * 2];
@@ -387,6 +392,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="s">Will be filled in with the signature value</param>
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <returns>True on success</returns>
+        [SkipLocalsInit]
         private readonly bool SignDeterministic<HMAC_IMPL>(Span<ulong> r, Span<ulong> s, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
         {
             // Secret K will be written here
@@ -415,6 +421,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="s">Will be filled in with the signature value</param>
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <returns>True on success</returns>
+        [SkipLocalsInit]
         private readonly bool Sign<HMAC_IMPL>(Span<ulong> r, Span<ulong> s, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
         {
             // Secret K will be written here
@@ -508,6 +515,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="entropy">Entropy bytes (random or some user input, not necessarily secret)</param>
         /// <param name="sequence">Key sequence (to generate the different keys for the same source key and entropy bytes array pair)</param>
         /// <exception cref="InvalidOperationException">Thrown when called on the either empty or invalid ECPrivateKey instance</exception>
+        [SkipLocalsInit]
         public readonly void DeriveHMAC<HMAC_IMPL>(out IPrivateKey result, ReadOnlySpan<byte> entropy, int sequence) where HMAC_IMPL : unmanaged, IMac
         {
             // We're using our private key as secret seed and the entropy is
@@ -547,6 +555,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="public_key">The public key of the remote party.</param>
         /// <param name="shared">Will be filled in with the encapsulated shared secret.</param>
         /// <returns>True if the shared secret was generated successfully, False if an error occurred.</returns>
+        [SkipLocalsInit]
         public readonly bool ECDH(in IPublicKey public_key, out IPrivateKey shared)
         {
             if (public_key.curve is not ECCurve)
@@ -613,6 +622,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <typeparam name="HASHER_IMPL">Hasher to use</typeparam>
         /// <param name="secret_hash"></param>
         /// <returns>True if successful</returns>
+        [SkipLocalsInit]
         public readonly bool CalculateKeyHash<HASHER_IMPL>(Span<byte> secret_hash) where HASHER_IMPL : unmanaged, IHasher
         {
             HASHER_IMPL hasher = new();

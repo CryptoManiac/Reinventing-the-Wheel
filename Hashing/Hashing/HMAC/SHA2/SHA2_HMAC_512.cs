@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Wheel.Hashing.SHA.SHA512;
 using Wheel.Hashing.SHA.SHA512.Internal;
 
@@ -36,6 +37,7 @@ namespace Wheel.Hashing.HMAC.SHA2
             initialized = false;
         }
 
+        [SkipLocalsInit]
         public void Init(ReadOnlySpan<byte> key)
         {
             int keySz;
@@ -99,6 +101,7 @@ namespace Wheel.Hashing.HMAC.SHA2
             inside.Update(message);
         }
 
+        [SkipLocalsInit]
         public void Digest(Span<byte> mac)
         {
             if (!initialized)

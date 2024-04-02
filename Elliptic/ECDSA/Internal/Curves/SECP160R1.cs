@@ -1,4 +1,5 @@
-﻿using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
+﻿using System.Runtime.CompilerServices;
+using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
 
 namespace Wheel.Crypto.Elliptic.ECDSA
 {
@@ -30,6 +31,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <summary>
         /// Computes result = product % p
         /// </summary>
+        [SkipLocalsInit]
         private static void MMod_SECP160R1(in ECCurve curve, Span<ulong> result, Span<ulong> product)
         {
             Span<ulong> tmp = stackalloc ulong[2 * curve.NUM_WORDS];

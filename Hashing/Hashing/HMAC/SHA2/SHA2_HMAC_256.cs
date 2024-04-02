@@ -38,6 +38,7 @@ namespace Wheel.Hashing.HMAC.SHA2
             initialized = false;
         }
 
+        [SkipLocalsInit]
         public void Init(ReadOnlySpan<byte> key)
         {
             int keySz;
@@ -101,6 +102,7 @@ namespace Wheel.Hashing.HMAC.SHA2
             inside.Update(message);
         }
 
+        [SkipLocalsInit]
         public void Digest(Span<byte> mac)
         {
             if (!initialized)

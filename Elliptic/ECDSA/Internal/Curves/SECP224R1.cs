@@ -1,4 +1,5 @@
-﻿using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
+﻿using System.Runtime.CompilerServices;
+using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
 
 namespace Wheel.Crypto.Elliptic.ECDSA
 {
@@ -31,6 +32,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// Compute a = sqrt(a) (mod curve_p)
         /// </summary>
         /// <param name="a"></param>
+        [SkipLocalsInit]
         private static void ModSQRT_SECP224R1(in ECCurve curve, Span<ulong> a)
         {
             Span<ulong> e1 = stackalloc ulong[curve.NUM_WORDS];
@@ -61,6 +63,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <summary>
         /// Computes result = product % p
         /// </summary>
+        [SkipLocalsInit]
         private static void MMod_SECP224R1(in ECCurve curve, Span<ulong> result, Span<ulong> product)
         {
             Span<ulong> tmp = stackalloc ulong[curve.NUM_WORDS];
@@ -115,6 +118,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <summary>
         /// Routine 3.2.4 RS;  from http://www.nsa.gov/ia/_files/nist-routines.pdf
         /// </summary>
+        [SkipLocalsInit]
         private static void mod_sqrt_secp224r1_rs(in ECCurve curve, Span<ulong> d1, Span<ulong> e1, Span<ulong> f1, ReadOnlySpan<ulong> d0, ReadOnlySpan<ulong> e0, ReadOnlySpan<ulong> f0) {
             Span<ulong> t = stackalloc ulong[curve.NUM_WORDS];
 
@@ -144,6 +148,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <summary>
         /// Routine 3.2.6 RM;  from http://www.nsa.gov/ia/_files/nist-routines.pdf
         /// </summary>
+        [SkipLocalsInit]
         private static void mod_sqrt_secp224r1_rm(in ECCurve curve, Span<ulong> d2, Span<ulong> e2, Span<ulong> f2, ReadOnlySpan<ulong> c, ReadOnlySpan<ulong> d0, ReadOnlySpan<ulong> e0, ReadOnlySpan<ulong> d1, ReadOnlySpan<ulong> e1)
         {
             Span<ulong> t1 = stackalloc ulong[curve.NUM_WORDS];
@@ -168,6 +173,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <summary>
         /// Routine 3.2.7 RP;  from http://www.nsa.gov/ia/_files/nist-routines.pdf
         /// </summary>
+        [SkipLocalsInit]
         private static void mod_sqrt_secp224r1_rp(in ECCurve curve, Span<ulong> d1, Span<ulong> e1, Span<ulong> f1, ReadOnlySpan<ulong> c, ReadOnlySpan<ulong> r)
         {
             Span<ulong> d0 = stackalloc ulong[curve.NUM_WORDS];

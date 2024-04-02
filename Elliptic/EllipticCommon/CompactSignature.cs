@@ -68,9 +68,6 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
             {
                 throw new SystemException("The configured curve point coordinate size is unexpectedly big");
             }
-
-            r.Clear();
-            s.Clear();
         }
 
         /// <summary>

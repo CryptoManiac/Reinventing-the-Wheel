@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
 {
@@ -370,6 +371,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
         /// <param name="product"></param>
         /// <param name="mod"></param>
         /// <param name="num_words"></param>
+        [SkipLocalsInit]
         public static void MMod(Span<ulong> result, Span<ulong> product, ReadOnlySpan<ulong> mod, int num_words)
         {
             Span<ulong> mod_multiple = stackalloc ulong[2 * ECC_MAX_WORDS];
@@ -431,6 +433,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
         /// <param name="right"></param>
         /// <param name="mod"></param>
         /// <param name="num_words"></param>
+        [SkipLocalsInit]
         public static void ModMult(Span<ulong> result, ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right, ReadOnlySpan<ulong> mod, int num_words)
         {
             Span<ulong> product = stackalloc ulong[2 * ECC_MAX_WORDS];
@@ -446,6 +449,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
         /// <param name="left"></param>
         /// <param name="mod"></param>
         /// <param name="num_words"></param>
+        [SkipLocalsInit]
         public static void ModSquare(Span<ulong> result, ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> mod, int num_words)
         {
             Span<ulong> product = stackalloc ulong[2 * ECC_MAX_WORDS];
@@ -461,6 +465,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
         /// <param name="input"></param>
         /// <param name="mod"></param>
         /// <param name="num_words"></param>
+        [SkipLocalsInit]
         public static void ModInv(Span<ulong> result, ReadOnlySpan<ulong> input, ReadOnlySpan<ulong> mod, int num_words)
         {
             Span<ulong> a = stackalloc ulong[ECC_MAX_WORDS];
