@@ -559,35 +559,6 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
             r2 += Convert.ToUInt64(r01 < p);
             r1 = (ulong)(r01 >> WORD_BITS);
             r0 = (ulong)r01;
-
-            /*
-            ulong a0 = a & 0xffffffff;
-            ulong a1 = a >> 32;
-            ulong b0 = b & 0xffffffff;
-            ulong b1 = b >> 32;
-
-            ulong i0 = a0 * b0;
-            ulong i1 = a0 * b1;
-            ulong i2 = a1 * b0;
-            ulong i3 = a1 * b1;
-
-            ulong p0, p1;
-
-            i2 += (i0 >> 32);
-            i2 += i1;
-            if (i2 < i1)
-            {
-                // overflow
-                i3 += 0x100000000;
-            }
-
-            p0 = (i0 & 0xffffffff) | (i2 << 32);
-            p1 = i3 + (i2 >> 32);
-
-            r0 += p0;
-            r1 += p1 + Convert.ToUInt64(r0 < p0);
-            r2 += Convert.ToUInt64((r1 < p1) || (r1 == p1 && r0 < p0));
-            */
         }
 
         public static void mul2add(ulong a, ulong b, ref ulong r0, ref ulong r1, ref ulong r2)
@@ -600,39 +571,6 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
             r2 += Convert.ToUInt64(r01 < p);
             r1 = (ulong)(r01 >> WORD_BITS);
             r0 = (ulong)r01;
-
-            /*
-            ulong a0 = a & 0xffffffff;
-            ulong a1 = a >> 32;
-            ulong b0 = b & 0xffffffff;
-            ulong b1 = b >> 32;
-
-            ulong i0 = a0 * b0;
-            ulong i1 = a0 * b1;
-            ulong i2 = a1 * b0;
-            ulong i3 = a1 * b1;
-
-            ulong p0, p1;
-
-            i2 += (i0 >> 32);
-            i2 += i1;
-            if (i2 < i1)
-            {
-                // overflow
-                i3 += 0x100000000;
-            }
-
-            p0 = (i0 & 0xffffffff) | (i2 << 32);
-            p1 = i3 + (i2 >> 32);
-
-            r2 += (p1 >> 63);
-            p1 = (p1 << 1) | (p0 >> 63);
-            p0 <<= 1;
-
-            r0 += p0;
-            r1 += p1 + Convert.ToUInt64(r0 < p0);
-            r2 += Convert.ToUInt64((r1 < p1) || (r1 == p1 && r0 < p0));
-            */
         }
 
         private static void modInv_update(Span<ulong> uv, ReadOnlySpan<ulong> mod, int num_words)
