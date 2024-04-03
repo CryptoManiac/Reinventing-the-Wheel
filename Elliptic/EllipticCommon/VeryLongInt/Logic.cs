@@ -14,7 +14,18 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
         /// <returns></returns>
         public static bool IsEven(ReadOnlySpan<ulong> words)
         {
-            return 0 == (words[0] & 1u);
+            return !Convert.ToBoolean(words[0] & 1u);
+        }
+
+        /// <summary>
+        /// Returns true for negative integers
+        /// </summary>
+        /// <param name="words"></param>
+        /// <param name="num_words"></param>
+        /// <returns></returns>
+        public static bool IsNegative(ReadOnlySpan<ulong> words, int num_words)
+        {
+            return Convert.ToBoolean(words[num_words - 1] >> (8 * (WORD_SIZE - 1)) & 1);
         }
 
         /// <summary>
