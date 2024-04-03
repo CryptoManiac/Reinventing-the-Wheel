@@ -113,16 +113,6 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         public bool Sign<HMAC_IMPL>(out CompactSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac;
 
         /// <summary>
-        /// Call GenerateSecret using this key as the seed and entropy argument as the personalization string
-        /// </summary>
-        /// <typeparam name="HMAC_IMPL">HMAC implementation to use</typeparam>
-        /// <param name="result">New secret key will be placed here</param>
-        /// <param name="entropy">Entropy bytes (random or some user input, not necessarily secret)</param>
-        /// <param name="sequence">Key sequence (to generate the different keys for the same source key and entropy bytes array pair)</param>
-        /// <exception cref="InvalidOperationException">Thrown when called on the either empty or invalid ECPrivateKey instance</exception>
-        public void DeriveHMAC<HMAC_IMPL>(out IPrivateKey result, ReadOnlySpan<byte> entropy, int sequence) where HMAC_IMPL : unmanaged, IMac;
-
-        /// <summary>
         /// Compute a shared secret given your secret key and someone else's public key.
         ///
         /// Note: It is recommended that you hash the result of Derive() before using it for

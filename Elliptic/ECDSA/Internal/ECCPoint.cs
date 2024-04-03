@@ -157,8 +157,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             // Get a random initial Z value to improve
             //  protection against side channel attacks.
-            GenerateRandomSecret(out IPrivateKey rndKey, null);
-            rndKey.UnWrap(p2[carry]);
+            GenerateRandomSecret(p2[carry], null);
 
             PointMul(result, G, p2[!Convert.ToBoolean(carry)], p2[carry], NUM_N_BITS + 1);
 

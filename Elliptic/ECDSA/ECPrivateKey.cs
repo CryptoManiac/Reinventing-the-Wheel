@@ -334,7 +334,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             carry = _curve.RegularizeK(k, tmp, s);
 
             // get a random initial Z value to improve protection against side - channel attacks.
-            curve.GenerateRandomSecret(out IPrivateKey rndKey, message_hash);
+            DeriveHMAC<HMAC_IMPL>(out ECPrivateKey rndKey, message_hash, -1);
             rndKey.UnWrap(initialZ);
 
             _curve.PointMul(p, _curve.G, k2[!Convert.ToBoolean(carry)], initialZ, _curve.NUM_N_BITS + 1);
@@ -348,7 +348,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             Span<ulong> randK = stackalloc ulong[_curve.NUM_WORDS];
 
             // Generate the K scrambling value
-            rndKey.DeriveHMAC<HMAC_IMPL>(out IPrivateKey rndKey2, message_hash, 1);
+            rndKey.DeriveHMAC<HMAC_IMPL>(out ECPrivateKey rndKey2, message_hash, -1);
             rndKey2.UnWrap(randK);
 
             VLI.Set(tmp, randK, _curve.NUM_WORDS);
@@ -428,18 +428,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             Span<ulong> K = stackalloc ulong[_curve.NUM_WORDS];
 
             // Begin by generating a new random key with the platform's RNG
-            curve.GenerateRandomSecret(out IPrivateKey randomKey, message_hash);
+            _curve.GenerateRandomSecret(K, message_hash);
 
             // Will retry until succeed
             for (int i = 1; i != int.MaxValue; ++i)
             {
-                // Unwrapping the native value must never fail here
-                if (!randomKey.UnWrap(K))
-                {
-                    // Sanity check: This must never ever happen in the real life
-                    throw new SystemException("randomKey unwrap failure");
-                }
-
                 // Try to sign
                 if (SignWithK<HMAC_IMPL>(r, s, message_hash, K))
                 {
@@ -516,7 +509,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="sequence">Key sequence (to generate the different keys for the same source key and entropy bytes array pair)</param>
         /// <exception cref="InvalidOperationException">Thrown when called on the either empty or invalid ECPrivateKey instance</exception>
         [SkipLocalsInit]
-        public readonly void DeriveHMAC<HMAC_IMPL>(out IPrivateKey result, ReadOnlySpan<byte> entropy, int sequence) where HMAC_IMPL : unmanaged, IMac
+        public readonly void DeriveHMAC<HMAC_IMPL>(out ECPrivateKey result, ReadOnlySpan<byte> entropy, int sequence) where HMAC_IMPL : unmanaged, IMac
         {
             // We're using our private key as secret seed and the entropy is
             //  being used as the personalization string
@@ -526,7 +519,10 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 throw new InvalidOperationException("Trying to derive from the invalid private key");
             }
 
-            _curve.GenerateDeterministicSecret<HMAC_IMPL>(out result, seed, entropy, sequence);
+            Span<ulong> secret_words = stackalloc ulong[_curve.NUM_WORDS];
+            _curve.GenerateDeterministicSecret<HMAC_IMPL>(secret_words, seed, entropy, sequence);
+            result = new(_curve, secret_words);
+            secret_words.Clear();
             seed.Clear();
         }
 
@@ -540,7 +536,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         {
             // The K value requirements are identical to shose for the secret key.
             // This means that any valis secret key is acceptable to be used as K value.
-            DeriveHMAC<HMAC_IMPL>(out IPrivateKey pk, message_hash, sequence);
+            DeriveHMAC<HMAC_IMPL>(out ECPrivateKey pk, message_hash, sequence);
 
             // The generated private key is used as secret K value
             pk.UnWrap(result);
@@ -603,8 +599,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             // Get a random initial Z value to improve
             //  protection against side channel attacks.
-            _curve.GenerateRandomSecret(out IPrivateKey rndKey, null);
-            rndKey.UnWrap(p2[carry]);
+            _curve.GenerateRandomSecret(p2[carry], null);
 
             _curve.PointMul(ecdh_point, ecdh_point, p2[!Convert.ToBoolean(carry)], p2[carry], _curve.NUM_N_BITS + 1);
 

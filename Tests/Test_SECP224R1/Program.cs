@@ -89,7 +89,7 @@ void CompareSig(string algorithm, Span<byte> signature)
 ECCurve curve = ECCurve.Get_SECP224R1();
 
 // Derive new secret key
-curve.GenerateDeterministicSecret<HMAC_SHA512>(out IPrivateKey secretKey, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), secret_key_number);
+curve.GenerateDeterministicSecret<HMAC_SHA512>(out ECPrivateKey secretKey, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), secret_key_number);
 
 if (!secretKey.ComputePublicKey(out IPublicKey publicKey))
 {

@@ -368,11 +368,12 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="result">Private key to be filled</param>
         /// <param name="entropy">Additional entropy</param>
         /// <returns>True on success</returns>
-        public void GenerateRandomSecret(out IPrivateKey result, ReadOnlySpan<byte> entropy)
+        [SkipLocalsInit]
+        public void GenerateRandomSecret(out ECPrivateKey result, ReadOnlySpan<byte> entropy)
         {
-            Span<byte> rnd = stackalloc byte[NUM_BYTES];
-            RNG.Fill(rnd);
-            GenerateDeterministicSecret<HMAC_SHA512>(out result, rnd, entropy, 0);
+            Span<ulong> rnd = stackalloc ulong[NUM_WORDS];
+            GenerateRandomSecret(rnd, entropy);
+            result = new(this, rnd);
         }
 
         /// <summary>
@@ -384,7 +385,73 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="personalization">Personalization argument bytes (to generate more than one key from the same seed)</param>
         /// <param name="sequence">Generation sequence number (to generate more than one key from the same seed + personalization pair)</param>
         [SkipLocalsInit]
-        public void GenerateDeterministicSecret<HMAC_IMPL>(out IPrivateKey result, ReadOnlySpan<byte> seed, ReadOnlySpan<byte> personalization, int sequence) where HMAC_IMPL : unmanaged, IMac
+        public void GenerateDeterministicSecret<HMAC_IMPL>(out ECPrivateKey result, ReadOnlySpan<byte> seed, ReadOnlySpan<byte> personalization, int sequence) where HMAC_IMPL : unmanaged, IMac
+        {
+            Span<ulong> rnd = stackalloc ulong[NUM_WORDS];
+            GenerateDeterministicSecret<HMAC_IMPL>(rnd, seed, personalization, sequence);
+            result = new(this, rnd);
+        }
+
+        /// <summary>
+        /// Generation of a random secret key on top of the .NET RandomNumberGenerator API. The security of this key will depend
+        /// on the quality of the local RNG implementation and the quality of the entropy array being used as well. I suggest that
+        /// you should treat these keys as unsecure by default, use this API with caution and never use the generated keys directly,
+        /// without hashing. It will be a good idea to use the DeriveHMAC method to derive the children keys from them.
+        /// </summary>
+        /// <param name="result">Private key to be filled</param>
+        /// <param name="entropy">Additional entropy</param>
+        /// <returns>True on success</returns>
+        [SkipLocalsInit]
+        public void GenerateRandomSecret(Span<ulong> result, ReadOnlySpan<byte> entropy)
+        {
+            Span<byte> rnd = stackalloc byte[NUM_BYTES];
+            GenerateRandomSecret(rnd, entropy);
+            VLI.BytesToNative(result, rnd, NUM_BYTES);
+        }
+
+        /// <summary>
+        /// Deterministically generate the new private key from seed, using HMAC-based generator
+        /// </summary>
+        /// <typeparam name="HMAC_IMPL">HMAC implementation to use</typeparam>
+        /// <param name="result">Private key to be filled</param>
+        /// <param name="seed">Secret seed to generate from</param>
+        /// <param name="personalization">Personalization argument bytes (to generate more than one key from the same seed)</param>
+        /// <param name="sequence">Generation sequence number (to generate more than one key from the same seed + personalization pair)</param>
+        [SkipLocalsInit]
+        public void GenerateDeterministicSecret<HMAC_IMPL>(Span<ulong> result, ReadOnlySpan<byte> seed, ReadOnlySpan<byte> personalization, int sequence) where HMAC_IMPL : unmanaged, IMac
+        {
+            Span<byte> rnd = stackalloc byte[NUM_BYTES];
+            GenerateDeterministicSecret<HMAC_IMPL>(rnd, seed, personalization, sequence);
+            VLI.BytesToNative(result, rnd, NUM_BYTES);
+        }
+
+        /// <summary>
+        /// Generation of a random secret key on top of the .NET RandomNumberGenerator API. The security of this key will depend
+        /// on the quality of the local RNG implementation and the quality of the entropy array being used as well. I suggest that
+        /// you should treat these keys as unsecure by default, use this API with caution and never use the generated keys directly,
+        /// without hashing. It will be a good idea to use the DeriveHMAC method to derive the children keys from them.
+        /// </summary>
+        /// <param name="result">Private key to be filled</param>
+        /// <param name="entropy">Additional entropy</param>
+        /// <returns>True on success</returns>
+        [SkipLocalsInit]
+        public void GenerateRandomSecret(Span<byte> result, ReadOnlySpan<byte> entropy)
+        {
+            Span<byte> rnd = stackalloc byte[NUM_BYTES];
+            RNG.Fill(rnd);
+            GenerateDeterministicSecret<HMAC_SHA512>(result, rnd, entropy, 0);
+        }
+
+        /// <summary>
+        /// Deterministically generate the new private key from seed, using HMAC-based generator
+        /// </summary>
+        /// <typeparam name="HMAC_IMPL">HMAC implementation to use</typeparam>
+        /// <param name="result">Private key to be filled</param>
+        /// <param name="seed">Secret seed to generate from</param>
+        /// <param name="personalization">Personalization argument bytes (to generate more than one key from the same seed)</param>
+        /// <param name="sequence">Generation sequence number (to generate more than one key from the same seed + personalization pair)</param>
+        [SkipLocalsInit]
+        public void GenerateDeterministicSecret<HMAC_IMPL>(Span<byte> result, ReadOnlySpan<byte> seed, ReadOnlySpan<byte> personalization, int sequence) where HMAC_IMPL : unmanaged, IMac
         {
             // See 3..2 of the RFC 6979 to get what is going on here
             // We're not following it to the letter, but our algorithm is very similar
@@ -459,7 +526,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 {
                     if (IsValidPrivateKey(secret_data))
                     {
-                        result = MakePrivateKey(secret_data);
+                        secret_data.Slice(0, result.Length).CopyTo(result);
                         secret_data.Clear();
                         return;
                     }
