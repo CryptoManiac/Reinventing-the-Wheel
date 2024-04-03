@@ -420,7 +420,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
                     ulong diff = v[index][i] - mod_multiple[i] - borrow;
                     if (diff != v[index][i])
                     {
-                        borrow = (diff > v[index][i]) ? 1u : 0;
+                        borrow = Convert.ToUInt64(diff > v[index][i]);
                     }
                     v[1 - index][i] = diff;
                 }
