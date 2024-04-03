@@ -316,8 +316,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         private readonly bool SignWithK<HMAC_IMPL>(Span<ulong> r, Span<ulong> s, ReadOnlySpan<byte> message_hash, ReadOnlySpan<ulong> K) where HMAC_IMPL : unmanaged, IMac
         {
             Span<ulong> p = stackalloc ulong[_curve.NUM_WORDS * 2];
+            Span<ulong> rnd = stackalloc ulong[_curve.NUM_WORDS];
             Span<ulong> tmp = stackalloc ulong[_curve.NUM_WORDS];
-            Span<ulong> initialZ = stackalloc ulong[_curve.NUM_WORDS];
             VLI.Picker k2 = new(tmp, s);
 
             ulong carry;
@@ -334,20 +334,19 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             carry = _curve.RegularizeK(k, tmp, s);
 
-            // Get a random initial Z value to improve protection against side - channel attacks.
-            _curve.GenerateRandomSecret(initialZ, message_hash);
-            _curve.PointMul(p, _curve.G, k2[!Convert.ToBoolean(carry)], initialZ, _curve.NUM_N_BITS + 1);
+            // Get a random number for the initial Z value to improve
+            //  protection against side - channel attacks.
+            _curve.GenerateRandomSecret(rnd, message_hash);
+
+            _curve.PointMul(p, _curve.G, k2[!Convert.ToBoolean(carry)], rnd, _curve.NUM_N_BITS + 1);
             if (VLI.IsZero(p, _curve.NUM_WORDS))
             {
                 return false;
             }
 
             // Prevent side channel analysis of VLI.ModInv() to determine
-            //   bits of k / the private key by premultiplying by a random number
-            Span<ulong> randK = stackalloc ulong[_curve.NUM_WORDS];
-            _curve.GenerateRandomSecret(randK, message_hash);
-
-            VLI.Set(tmp, randK, _curve.NUM_WORDS);
+            //   bits of k / the private key by premultiplying by a same random number
+            VLI.Set(tmp, rnd, _curve.NUM_WORDS);
             VLI.ModMult(k, k, tmp, _curve.N, _curve.NUM_WORDS); // k' = rand * k
             VLI.ModInv(k, k, _curve.N, _curve.NUM_WORDS);       // k = 1 / k'
             VLI.ModMult(k, k, tmp, _curve.N, _curve.NUM_WORDS); // k = 1 / k
