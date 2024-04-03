@@ -306,7 +306,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
         /// <summary>
         ///  Computes result = left << c, returning carry. Can modify in place (if result == left). 0 < shift < 64.
         /// </summary>
-        public static ulong LShift(Span<ulong> result, Span<ulong> left, int shift, int num_words)
+        public static ulong LShift(Span<ulong> result, ReadOnlySpan<ulong> left, int shift, int num_words)
         {
             ulong carry = 0;
             for (int i = 0; i < num_words; ++i)
