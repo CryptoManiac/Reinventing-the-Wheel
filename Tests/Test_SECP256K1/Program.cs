@@ -91,7 +91,7 @@ static int SignDataNonDeterministic<HMAC_IMPL>(Span<byte> signature, ECPrivateKe
     return encodedSz;
 }
 
-static bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOnlySpan<byte> public_key, ICurve curve)
+static bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOnlySpan<byte> public_key, ECCurve curve)
 {
     Span<byte> message_hash = stackalloc byte[32];
     SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));

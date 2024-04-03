@@ -4,14 +4,19 @@ using Wheel.Crypto.Elliptic.ECDSA.Internal;
 namespace Wheel.Crypto.Elliptic.ECDSA
 {
     /// <summary>
-    /// Compact signature value pair
+    /// ECDSA Compact signature value pair
     /// </summary>
     public struct CompactSignature : IECDSASignature
     {
         /// <summary>
         /// ECC implementation to use
         /// </summary>
-        public ICurve curve { get; private set; }
+        private readonly ECCurve _curve { get; }
+
+        /// <summary>
+        /// Public property for unification purposes
+        /// </summary>
+        public readonly ICurve curve => _curve;
 
         /// <summary>
         /// R part of the signature
@@ -22,7 +27,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             {
                 fixed (ulong* ptr = &signature_data[0])
                 {
-                    return new Span<ulong>(ptr, curve.NUM_WORDS);
+                    return new Span<ulong>(ptr, _curve.NUM_WORDS);
                 }
             }
         }
@@ -36,7 +41,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             {
                 fixed (ulong* ptr = &signature_data[curve.NUM_WORDS])
                 {
-                    return new Span<ulong>(ptr, curve.NUM_WORDS);
+                    return new Span<ulong>(ptr, _curve.NUM_WORDS);
                 }
             }
         }
@@ -44,7 +49,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <summary>
         /// Encoded data size in bytes
         /// </summary>
-        public readonly int EncodedSize => GetEncodedSize(curve);
+        public readonly int EncodedSize => GetEncodedSize(_curve);
 
         /// <summary>
         /// The r and s are sliced from this hidden array.
@@ -60,9 +65,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// Construct the empty signature for given curve
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        public CompactSignature(ICurve curve)
+        public CompactSignature(ECCurve curve)
         {
-            this.curve = curve;
+            _curve = curve;
             // Sanity check constraint
             if (curve.NUM_WORDS > VLI.ECC_MAX_WORDS)
             {
@@ -74,7 +79,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// Create instance and parse provided data
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        public CompactSignature(ICurve curve, ReadOnlySpan<byte> bytes) : this(curve)
+        public CompactSignature(ECCurve curve, ReadOnlySpan<byte> bytes) : this(curve)
         {
             if (!Parse(bytes))
             {
@@ -89,8 +94,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <returns>Number of bytes written/to write</returns>
         public readonly int Encode(Span<byte> encoded)
         {
-            byte lenR = (byte)curve.NUM_BYTES;
-            byte lenS = (byte)curve.NUM_BYTES;
+            byte lenR = (byte)_curve.NUM_BYTES;
+            byte lenS = (byte)_curve.NUM_BYTES;
 
             int reqSz = lenS + lenR;
             if (encoded.Length >= reqSz)
@@ -108,8 +113,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <returns>True on success</returns>
         public bool Parse(ReadOnlySpan<byte> encoded)
         {
-            byte lenR = (byte)curve.NUM_BYTES;
-            byte lenS = (byte)curve.NUM_BYTES;
+            byte lenR = (byte)_curve.NUM_BYTES;
+            byte lenS = (byte)_curve.NUM_BYTES;
 
             int reqLen = lenS + lenR;
 

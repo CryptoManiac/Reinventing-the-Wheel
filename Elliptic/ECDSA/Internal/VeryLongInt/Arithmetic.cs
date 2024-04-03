@@ -5,7 +5,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
     /// <summary>
     /// Arithmetic operations with very long integers (aka VLI)
     /// </summary>
-    public static partial class VLI
+    internal static partial class VLI
     {
         /// <summary>
         /// Sets result = right
@@ -110,81 +110,6 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
         }
 
         /// <summary>
-        /// Calculate XOR for every word:
-        ///  result[i] = left[i] ^ right
-        /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <param name="num_words"></param>
-        public static void Xor(Span<ulong> result, ReadOnlySpan<ulong> left, ulong right, int num_words)
-        {
-            for (int i = 0; i < num_words; ++i)
-            {
-                result[i] = left[i] ^ right;
-            }
-        }
-
-        /// <summary>
-        /// Apply AND in-place:
-        ///  left &= right
-        /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <param name="num_words"></param>
-        public static void And(Span<ulong> left, ReadOnlySpan<ulong> right, int num_words)
-        {
-            for (int i = 0; i < num_words; ++i)
-            {
-                left[i] &= right[i];
-            }
-        }
-
-        /// <summary>
-        /// Calculate XOR:
-        ///  result = left ^ right
-        /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <param name="num_words"></param>
-        public static void Xor(Span<ulong> result, ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right, int num_words)
-        {
-            for (int i = 0; i < num_words; ++i)
-            {
-                result[i] = left[i] ^ right[i];
-            }
-        }
-
-        /// <summary>
-        /// Calculate AND:
-        ///  result = left & right
-        /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <param name="num_words"></param>
-        public static void And(Span<ulong> result, ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right, int num_words)
-        {
-            for (int i = 0; i < num_words; ++i)
-            {
-                result[i] = left[i] & right[i];
-            }
-        }
-
-        /// <summary>
-        /// Calculate AND for every word:
-        ///  result = left[i] & right
-        /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <param name="num_words"></param>
-        public static void And(Span<ulong> result, ReadOnlySpan<ulong> left, ulong right, int num_words)
-        {
-            for (int i = 0; i < num_words; ++i)
-            {
-                result[i] = left[i] & right;
-            }
-        }
-
-        /// <summary>
         /// Computes result = left * right. Result must be 2 * num_words long.
         /// </summary>
         /// <param name="result"></param>
@@ -274,32 +199,6 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
             }
 
             result[num_words * 2 - 1] = r0;
-        }
-
-        /// <summary>
-        /// Computes result = - right.
-        /// </summary>
-        /// <param name="result"></param>
-        /// <param name="right"></param>
-        /// <param name="num_words"></param>
-        public static void Negate(Span<ulong> result, ReadOnlySpan<ulong> right, int num_words)
-        {
-            for (int i = 0; i < num_words; ++i)
-            {
-                result[i] = (ulong)-(long)right[i];
-            }
-        }
-
-        /// <summary>
-        /// Computes result = 2 * right^2. Result must be 2 * num_words long.
-        /// </summary>
-        /// <param name="result"></param>
-        /// <param name="right"></param>
-        /// <param name="num_words"></param>
-        public static void DoubleSquare(Span<ulong> result, ReadOnlySpan<ulong> right, int num_words)
-        {
-            Square(result, right, num_words);
-            Mult(result, result, 2, num_words);
         }
 
         /// <summary>

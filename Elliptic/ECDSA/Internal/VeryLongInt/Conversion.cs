@@ -3,7 +3,7 @@
     /// <summary>
     /// Format conversion operations for very long integers (aka VLI)
     /// </summary>
-    public static partial class VLI
+    internal static partial class VLI
 	{
         /// <summary>
         /// Get number of bytes which will be sufficient to encode the required number of bits

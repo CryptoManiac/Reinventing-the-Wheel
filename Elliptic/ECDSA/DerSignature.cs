@@ -4,14 +4,19 @@ using Wheel.Crypto.Elliptic.ECDSA.Internal;
 namespace Wheel.Crypto.Elliptic.ECDSA
 {
     /// <summary>
-    /// DER encapsulated signature value pair
+    /// ECDSA DER encapsulated signature value pair
     /// </summary>
     public struct DERSignature : IECDSASignature
     {
         /// <summary>
         /// ECC implementation to use
         /// </summary>
-        public ICurve curve { get; private set; }
+        private readonly ECCurve _curve { get; }
+
+        /// <summary>
+        /// Public property for unification purposes
+        /// </summary>
+        public readonly ICurve curve => _curve;
 
         /// <summary>
         /// R part of the signature
@@ -22,7 +27,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             {
                 fixed (ulong* ptr = &signature_data[0])
                 {
-                    return new Span<ulong>(ptr, curve.NUM_WORDS);
+                    return new Span<ulong>(ptr, _curve.NUM_WORDS);
                 }
             }
         }
@@ -34,9 +39,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         {
             get
             {
-                fixed (ulong* ptr = &signature_data[curve.NUM_WORDS])
+                fixed (ulong* ptr = &signature_data[_curve.NUM_WORDS])
                 {
-                    return new Span<ulong>(ptr, curve.NUM_WORDS);
+                    return new Span<ulong>(ptr, _curve.NUM_WORDS);
                 }
             }
         }
@@ -44,7 +49,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <summary>
         /// Maximum encoded data size in bytes
         /// </summary>
-        public readonly int EncodedSize => GetEncodedSize(curve);
+        public readonly int EncodedSize => GetEncodedSize(_curve);
 
         /// <summary>
         /// The r and s are sliced from this hidden array.
@@ -60,7 +65,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// Construct the empty signature for given curve
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        public DERSignature(ICurve curve)
+        public DERSignature(ECCurve curve)
         {
             // Sanity check constraint
             if (curve.NUM_WORDS > VLI.ECC_MAX_WORDS)
@@ -68,7 +73,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 throw new SystemException("The configured curve point coordinate size is unexpectedly big");
             }
 
-            this.curve = curve;
+            this._curve = curve;
             r.Clear();
             s.Clear();
         }
@@ -77,7 +82,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// Create instance and parse provided data
         /// </summary>
         /// <param name="curve">ECC implementation</param>
-        public DERSignature(ICurve curve, ReadOnlySpan<byte> bytes) : this(curve)
+        public DERSignature(ECCurve curve, ReadOnlySpan<byte> bytes) : this(curve)
         {
             if (!Parse(bytes))
             {
@@ -90,10 +95,10 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             encoded.Clear();
 
             // Encode R and S values
-            Span<byte> r_data = stackalloc byte[curve.NUM_BYTES];
-            Span<byte> s_data = stackalloc byte[curve.NUM_BYTES];
-            VLI.NativeToBytes(r_data, curve.NUM_BYTES, r);
-            VLI.NativeToBytes(s_data, curve.NUM_BYTES, s);
+            Span<byte> r_data = stackalloc byte[_curve.NUM_BYTES];
+            Span<byte> s_data = stackalloc byte[_curve.NUM_BYTES];
+            VLI.NativeToBytes(r_data, _curve.NUM_BYTES, r);
+            VLI.NativeToBytes(s_data, _curve.NUM_BYTES, s);
 
             // Check whether we have 0x7f byte or not to add prefix
             int lenR = r_data.Length + (r_data[0] > 0x7F ? 1 : 0);
@@ -317,20 +322,20 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
 
             // Remove r prefix
-            if ((rlen - 1) == curve.NUM_BYTES && encoded[rpos] == 0x00)
+            if ((rlen - 1) == _curve.NUM_BYTES && encoded[rpos] == 0x00)
             {
                 rpos++;
                 rlen--;
             }
 
             // Remove s prefix
-            if ((slen - 1) == curve.NUM_BYTES && encoded[spos] == 0x00)
+            if ((slen - 1) == _curve.NUM_BYTES && encoded[spos] == 0x00)
             {
                 spos++;
                 slen--;
             }
 
-            if (rlen > curve.NUM_BYTES || slen > curve.NUM_BYTES)
+            if (rlen > _curve.NUM_BYTES || slen > _curve.NUM_BYTES)
             {
                 // Overflow
                 return false;

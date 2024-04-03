@@ -3,7 +3,7 @@
     /// <summary>
     /// Variable time logical operations with very long integers (aka VLI)
     /// </summary>
-	public static partial class VLI
+	internal static partial class VLI
     {
         /// <summary>
         /// Variable-time comparison to zero

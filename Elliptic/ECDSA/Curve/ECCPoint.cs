@@ -7,7 +7,11 @@ namespace Wheel.Crypto.Elliptic.ECDSA
     /// <summary>
     /// Elliptic Curve point operations
     /// </summary>
+#pragma warning disable CS0660
+#pragma warning disable CS0661
     public readonly partial struct ECCurve
+#pragma warning restore CS0661
+#pragma warning restore CS0660
     {
         /// <summary>
         /// Check that point is not an infinity and that it actually exists

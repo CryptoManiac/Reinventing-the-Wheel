@@ -436,6 +436,44 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="signature">The signature object</param>
         /// <param name="message_hash">The hash of the signed data</param>
         /// <returns></returns>
+        public readonly bool VerifySignature(DERSignature signature, ReadOnlySpan<byte> message_hash)
+        {
+            if (signature.curve is not ECCurve)
+            {
+                // Shouldn't happen in real life
+                throw new InvalidOperationException("Invalid curve implementation instance");
+            }
+
+            return (_curve == (ECCurve)signature.curve) && VerifySignature(signature.r, signature.s, message_hash);
+        }
+
+        /// <summary>
+        /// Verify an ECDSA signature.
+        /// Usage: Compute the hash of the signed data using the same hash as the signer and
+        /// pass it to this function along with the signer's public key and the signature values (r and s).
+        /// </summary>
+        /// <param name="signature">The signature object</param>
+        /// <param name="message_hash">The hash of the signed data</param>
+        /// <returns></returns>
+        public readonly bool VerifySignature(CompactSignature signature, ReadOnlySpan<byte> message_hash)
+        {
+            if (signature.curve is not ECCurve)
+            {
+                // Shouldn't happen in real life
+                throw new InvalidOperationException("Invalid curve implementation instance");
+            }
+
+            return (_curve == (ECCurve)signature.curve) && VerifySignature(signature.r, signature.s, message_hash);
+        }
+
+        /// <summary>
+        /// Verify an ECDSA signature.
+        /// Usage: Compute the hash of the signed data using the same hash as the signer and
+        /// pass it to this function along with the signer's public key and the signature values (r and s).
+        /// </summary>
+        /// <param name="signature">The signature object</param>
+        /// <param name="message_hash">The hash of the signed data</param>
+        /// <returns></returns>
         public readonly bool VerifySignature(IECDSASignature signature, ReadOnlySpan<byte> message_hash)
         {
             if (signature.curve is not ECCurve)

@@ -5,7 +5,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
     /// <summary>
     /// Logical operations with very long integers (aka VLI)
     /// </summary>
-	public static partial class VLI
+	internal static partial class VLI
 	{
         /// <summary>
         /// Returns true for even integers
@@ -15,17 +15,6 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
         public static bool IsEven(ReadOnlySpan<ulong> words)
         {
             return !Convert.ToBoolean(words[0] & 1u);
-        }
-
-        /// <summary>
-        /// Returns true for negative integers
-        /// </summary>
-        /// <param name="words"></param>
-        /// <param name="num_words"></param>
-        /// <returns></returns>
-        public static bool IsNegative(ReadOnlySpan<ulong> words, int num_words)
-        {
-            return Convert.ToBoolean(words[num_words - 1] >> (8 * (WORD_SIZE - 1)) & 1);
         }
 
         /// <summary>
@@ -41,32 +30,6 @@ namespace Wheel.Crypto.Elliptic.ECDSA.Internal
                 bits |= words[i];
             }
             return !Convert.ToBoolean(bits);
-        }
-
-        /// <summary>
-        /// result = flag ? ifTrue : ifFalse without branching
-        /// </summary>
-        [SkipLocalsInit]
-        private static void CMov(Span<ulong> result, ReadOnlySpan<ulong> ifFalse, ReadOnlySpan<ulong> ifTrue, bool flag, int num_words)
-        {
-            ulong mask = (ulong)-Convert.ToInt64(flag);
-            Span<ulong> X = stackalloc ulong[num_words];
-            Xor(X, ifFalse, ifTrue, num_words);
-            And(X, X, mask, num_words);
-            Xor(result, X, num_words);
-        }
-
-        /// <summary>
-        /// if (flag) result = ifTrue without branching
-        /// </summary>
-        [SkipLocalsInit]
-        private static void CMov(Span<ulong> result, ReadOnlySpan<ulong> ifTrue, bool flag, int num_words)
-        {
-            ulong mask = (ulong)-Convert.ToInt64(flag);
-            Span<ulong> X = stackalloc ulong[num_words];
-            Xor(X, result, ifTrue, num_words);
-            And(X, X, mask, num_words);
-            Xor(result, X, num_words);
         }
 
         /// <summary>

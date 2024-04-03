@@ -95,7 +95,7 @@ string message = "aaa";
 byte[] message_hash = new byte[32];
 SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
 
-bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOnlySpan<byte> public_key, ICurve curve)
+bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOnlySpan<byte> public_key, ECCurve curve)
 {
     return new ECPublicKey(curve, public_key).VerifySignature(new DERSignature(curve, signature), message_hash);
 }

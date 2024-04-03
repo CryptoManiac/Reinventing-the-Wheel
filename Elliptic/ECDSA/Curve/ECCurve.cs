@@ -53,11 +53,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
     /// <summary>
     /// Properties and methods every EC implementation must provide
     /// </summary>
-#pragma warning disable CS0661
-#pragma warning disable CS0660
     public readonly partial struct ECCurve : ICurve
-#pragma warning restore CS0660
-#pragma warning restore CS0661
     {
         /// <summary>
         /// Curve point parameters
