@@ -51,7 +51,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 VLI.Set(e0, e1, curve.NUM_WORDS);          // e0 <-- e1
                 VLI.Set(f0, f1, curve.NUM_WORDS);          // f0 <-- f1
                 mod_sqrt_secp224r1_rs(curve, d1, e1, f1, d0, e0, f0); // RS (d1, e1, f1, d0, e0, f0)
-                if (VLI.IsZero(d1, curve.NUM_WORDS))
+                if (VLI.IsZero_VT(d1, curve.NUM_WORDS))
                 {     // if d1 == 0
                     break;
                 }

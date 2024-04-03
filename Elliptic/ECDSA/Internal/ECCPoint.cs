@@ -13,16 +13,6 @@ namespace Wheel.Crypto.Elliptic.ECDSA
     public readonly partial struct ECCurve
     {
         /// <summary>
-        /// Returns 1 if 'point' is the point at infinity, 0 otherwise.
-        /// </summary>
-        /// <param name="point"></param>
-        /// <returns></returns>
-        internal bool IsZeroPoint(ReadOnlySpan<ulong> point)
-        {
-            return VLI.IsZero(point, 2 * NUM_WORDS);
-        }
-
-        /// <summary>
         /// Check that point is not an infinity and that it actually exists
         /// </summary>
         /// <param name="point"></param>
@@ -34,7 +24,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             Span<ulong> tmp2 = stackalloc ulong[NUM_WORDS];
 
             // The point at infinity is invalid.
-            if (IsZeroPoint(point))
+            if (VLI.IsZero_VT(point, 2 * NUM_WORDS))
             {
                 return false;
             }
@@ -49,7 +39,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             XSide(tmp2, point); // tmp2 = x^3 + ax + b
 
             // Make sure that y^2 == x^3 + ax + b
-            return VLI.Equal(tmp1, tmp2, NUM_WORDS);
+            return VLI.Equal_VT(tmp1, tmp2, NUM_WORDS);
         }
 
         /// <summary>
@@ -163,7 +153,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             PointMul(result, G, p2[!Convert.ToBoolean(carry)], p2[carry], NUM_N_BITS + 1);
 
             // Final validation of computed value
-            return !IsZeroPoint(result);
+            return !VLI.IsZero(result, 2 * NUM_WORDS);
         }
 
     }

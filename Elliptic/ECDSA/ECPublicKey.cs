@@ -346,7 +346,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
 
             // r, s must not be 0
-            if (VLI.IsZero(r, _curve.NUM_WORDS) || VLI.IsZero(s, _curve.NUM_WORDS))
+            if (VLI.IsZero_VT(r, _curve.NUM_WORDS) || VLI.IsZero_VT(s, _curve.NUM_WORDS))
             {
                 return false;
             }
@@ -410,7 +410,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
 
             // Accept only if v == r.
-            return VLI.Equal(rx, r, _curve.NUM_WORDS);
+            return VLI.Equal_VT(rx, r, _curve.NUM_WORDS);
         }
 
         /// <summary>

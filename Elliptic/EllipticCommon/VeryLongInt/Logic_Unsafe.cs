@@ -8,6 +8,41 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
 	public static partial class VLI
     {
         /// <summary>
+        /// Variable-time comparison to zero
+        /// </summary>
+        /// <param name="words">Long integer words</param>
+        /// <returns>True if zero</returns>
+        public static bool IsZero_VT(ReadOnlySpan<ulong> words, int num_words)
+        {
+            for (int i = 0; i != num_words; ++i)
+            {
+                if (words[i] != 0)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Variable-time comparison
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns>True if left == right</returns>
+        public static bool Equal_VT(ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right, int num_words)
+        {
+            for (int i = 0; i != num_words; ++i)
+            {
+                if (left[i] != right[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Counts the number of bits required to represent the number, variable time version
         /// </summary>
         /// <param name="words"></param>
