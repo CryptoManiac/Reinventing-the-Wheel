@@ -40,7 +40,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
 
             // x and y must be smaller than p.
-            if (VLI.VarTimeCmp(P, point, NUM_WORDS) != 1 || VLI.VarTimeCmp(P, point.Slice(NUM_WORDS), NUM_WORDS) != 1)
+            if (VLI.VarTimeCmp(P, point, NUM_WORDS) != 1 || VLI.VarTimeCmp(P, point[NUM_WORDS..], NUM_WORDS) != 1)
             {
                 return false;
             }
@@ -66,24 +66,24 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             Span<ulong> z = stackalloc ulong[NUM_WORDS];
 
             VLI.Set(P, input_P, NUM_WORDS);
-            VLI.Set(P.Slice(NUM_WORDS), input_P.Slice(NUM_WORDS), NUM_WORDS);
+            VLI.Set(P[NUM_WORDS..], input_P[NUM_WORDS..], NUM_WORDS);
             VLI.Set(Q, input_Q, NUM_WORDS);
-            VLI.Set(Q.Slice(NUM_WORDS), input_Q.Slice(NUM_WORDS), NUM_WORDS);
+            VLI.Set(Q[NUM_WORDS..], input_Q[NUM_WORDS..], NUM_WORDS);
 
-            XYcZ_Add(P, P.Slice(NUM_WORDS), Q, Q.Slice(NUM_WORDS));
+            XYcZ_Add(P, P[NUM_WORDS..], Q, Q[NUM_WORDS..]);
 
             // Find final 1/Z value.
-            ModMult(z, input_P, P.Slice(NUM_WORDS));
+            ModMult(z, input_P, P[NUM_WORDS..]);
             VLI.ModInv(z, z, P, NUM_WORDS);
             ModMult(z, z, P);
-            ModMult(z, z, input_P.Slice(NUM_WORDS));
+            ModMult(z, z, input_P[NUM_WORDS..]);
 
             // End 1/Z calculation
 
-            ApplyZ(Q, Q.Slice(NUM_WORDS), z);
+            ApplyZ(Q, Q[NUM_WORDS..], z);
 
             VLI.Set(R, Q, NUM_WORDS);
-            VLI.Set(R.Slice(NUM_WORDS), Q.Slice(NUM_WORDS), NUM_WORDS);
+            VLI.Set(R[NUM_WORDS..], Q[NUM_WORDS..], NUM_WORDS);
         }
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             VLI.ModInv(z, z, P, NUM_WORDS);            // 1 / (xP * Yb * (X1 - X0))
                                                              // yP / (xP * Yb * (X1 - X0))
-            ModMult(z, z, point.Slice(NUM_WORDS));
+            ModMult(z, z, point[NUM_WORDS..]);
             ModMult(z, z, Rx[1 - nb]); // Xb * yP / (xP * Yb * (X1 - X0))
 
             // End 1/Z calculation
@@ -134,7 +134,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             ApplyZ(Rx[0], Ry[0], z);
 
             VLI.Set(result, Rx[0], NUM_WORDS);
-            VLI.Set(result.Slice(NUM_WORDS), Ry[0], NUM_WORDS);
+            VLI.Set(result[NUM_WORDS..], Ry[0], NUM_WORDS);
         }
 
         /// <summary>

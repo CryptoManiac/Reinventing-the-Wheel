@@ -37,7 +37,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             Span<ulong> tmp = stackalloc ulong[2 * curve.NUM_WORDS];
             VLI.Clear(tmp, 2 * curve.NUM_WORDS);
 
-            OmegaMult_SECP160R1(curve, tmp, product.Slice(curve.NUM_WORDS - 1)); // (Rq, q) = q * c
+            OmegaMult_SECP160R1(curve, tmp, product[(curve.NUM_WORDS - 1)..]); // (Rq, q) = q * c
 
             product[curve.NUM_WORDS - 1] &= 0xffffffff;
             ulong copy = tmp[curve.NUM_WORDS - 1];
@@ -45,7 +45,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             VLI.Add(result, product, tmp, curve.NUM_WORDS); // (C, r) = r + q
             VLI.Clear(product, curve.NUM_WORDS);
             tmp[curve.NUM_WORDS - 1] = copy;
-            OmegaMult_SECP160R1(curve, product, tmp.Slice(curve.NUM_WORDS - 1)); // Rq * c
+            OmegaMult_SECP160R1(curve, product, tmp[(curve.NUM_WORDS - 1)..]); // Rq * c
             VLI.Add(result, result, product, curve.NUM_WORDS); // (C1, r) = r + Rq * c
 
             while (VLI.VarTimeCmp(result, curve.P, curve.NUM_WORDS) > 0)

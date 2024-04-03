@@ -16,8 +16,8 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
         /// <param name="num_words"></param>
         public static void Set(Span<ulong> result, ReadOnlySpan<ulong> right, int num_words)
         {
-            var dest = result.Slice(0, num_words);
-            var src = right.Slice(0, num_words);
+            var dest = result[..num_words];
+            var src = right[..num_words];
             src.CopyTo(dest);
         }
 
@@ -41,7 +41,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
         /// <param name="num_words"></param>
         public static void Fill(Span<ulong> result, ulong right, int num_words)
         {
-            result.Slice(0, num_words).Fill(right);
+            result[..num_words].Fill(right);
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
         /// <param name="num_words"></param>
         public static void Clear(Span<ulong> vli, int num_words)
         {
-            vli.Slice(0, num_words).Clear();
+            vli[..num_words].Clear();
         }
 
         /// <summary>
@@ -408,7 +408,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
             }
             else
             {
-                Set(mod_multiple.Slice(word_shift), mod, num_words);
+                Set(mod_multiple[word_shift..], mod, num_words);
             }
 
             for (index = 1; shift >= 0; --shift)
@@ -430,7 +430,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
 
                 RShift1(mod_multiple, num_words);
                 mod_multiple[num_words - 1] |= mod_multiple[num_words] << (WORD_BITS - 1);
-                RShift1(mod_multiple.Slice(num_words), num_words);
+                RShift1(mod_multiple[num_words..], num_words);
             }
             Set(result, v[index], num_words);
         }

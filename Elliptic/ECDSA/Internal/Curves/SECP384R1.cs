@@ -39,12 +39,12 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         {
             Span<ulong> tmp = stackalloc ulong[2 * curve.NUM_WORDS];
 
-            while (!VLI.IsZero(product.Slice(curve.NUM_WORDS), curve.NUM_WORDS)) // While c1 != 0
+            while (!VLI.IsZero(product[curve.NUM_WORDS..], curve.NUM_WORDS)) // While c1 != 0
             {
                 ulong carry = 0;
                 VLI.Clear(tmp, 2 * curve.NUM_WORDS);
-                OmegaMult_SECP384R1(curve, tmp, product.Slice(curve.NUM_WORDS));    // tmp = w * c1 */
-                VLI.Clear(product.Slice(curve.NUM_WORDS), curve.NUM_WORDS); // p = c0
+                OmegaMult_SECP384R1(curve, tmp, product[curve.NUM_WORDS..]);    // tmp = w * c1 */
+                VLI.Clear(product[curve.NUM_WORDS..], curve.NUM_WORDS); // p = c0
 
                 // (c1, c0) = c0 + w * c1
                 for (int i = 0; i < curve.NUM_WORDS + 3; ++i)
@@ -74,8 +74,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             // Multiply by (2^128 + 2^96 - 2^32 + 1).
             VLI.Set(result, right, curve.NUM_WORDS); // 1
             carry = VLI.LShift(tmp, right, 32, curve.NUM_WORDS);
-            result[1 + curve.NUM_WORDS] = carry + VLI.Add(result.Slice(1), result.Slice(1), tmp, curve.NUM_WORDS);  // 2^96 + 1
-            result[2 + curve.NUM_WORDS] = VLI.Add(result.Slice(2), result.Slice(2), right, curve.NUM_WORDS);        // 2^128 + 2^96 + 1
+            result[1 + curve.NUM_WORDS] = carry + VLI.Add(result[1..], result[1..], tmp, curve.NUM_WORDS);  // 2^96 + 1
+            result[2 + curve.NUM_WORDS] = VLI.Add(result[2..], result[2..], right, curve.NUM_WORDS);        // 2^128 + 2^96 + 1
             carry += VLI.Sub(result, result, tmp, curve.NUM_WORDS);                                           // 2^128 + 2^96 - 2^32 + 1
             diff = result[curve.NUM_WORDS] - carry;
             if (diff > result[curve.NUM_WORDS])

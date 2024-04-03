@@ -38,7 +38,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             int carry = 0;
 
             VLI.Set(result, product, curve.NUM_WORDS);
-            VLI.Set(tmp, product.Slice(curve.NUM_WORDS), curve.NUM_WORDS);
+            VLI.Set(tmp, product[curve.NUM_WORDS..], curve.NUM_WORDS);
 
             carry = (int)VLI.Add(result, result, tmp, curve.NUM_WORDS);
 

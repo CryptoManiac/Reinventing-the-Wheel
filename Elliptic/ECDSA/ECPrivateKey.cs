@@ -600,7 +600,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             _curve.PointMul(ecdh_point, ecdh_point, p2[!Convert.ToBoolean(carry)], p2[carry], _curve.NUM_N_BITS + 1);
 
             // Will fail if the point is zero
-            bool result = shared.Wrap(ecdh_point.Slice(0, _curve.NUM_WORDS));
+            bool result = shared.Wrap(ecdh_point[.._curve.NUM_WORDS]);
 
             // Clear the temporary vars
             VLI.Clear(ecdh_point, 2 * _curve.NUM_WORDS);

@@ -223,7 +223,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             fixed (ulong* ptr = &curveBuffers.scrambleKey[0])
             {
-                random.Slice(1).CopyTo(new Span<ulong>(ptr, NUM_WORDS));
+                random[1..].CopyTo(new Span<ulong>(ptr, NUM_WORDS));
             }
 
             fixed (ulong* ptr = &curveBuffers.p[0])
@@ -517,8 +517,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 hmac.Digest(V);
 
                 // T = T || V
-                Span<byte> src = V.Slice(0, Math.Min(V.Length, secret_data.Length - secret_byte_index));
-                Span<byte> target = secret_data.Slice(secret_byte_index);
+                Span<byte> src = V[..Math.Min(V.Length, secret_data.Length - secret_byte_index)];
+                Span<byte> target = secret_data[secret_byte_index..];
                 src.CopyTo(target);
                 secret_byte_index += src.Length;
 
@@ -526,7 +526,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 {
                     if (IsValidPrivateKey(secret_data))
                     {
-                        secret_data.Slice(0, result.Length).CopyTo(result);
+                        secret_data[..result.Length].CopyTo(result);
                         secret_data.Clear();
                         return;
                     }

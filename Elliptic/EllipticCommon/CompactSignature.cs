@@ -95,7 +95,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
             int reqSz = lenS + lenR;
             if (encoded.Length >= reqSz)
             {
-                VLI.NativeToBytes(encoded.Slice(0, lenR), lenR, r);
+                VLI.NativeToBytes(encoded[..lenR], lenR, r);
                 VLI.NativeToBytes(encoded.Slice(lenR, lenS), lenS, s);
             }
             return reqSz;
@@ -120,7 +120,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
             }
 
             // Decode R and S values
-            VLI.BytesToNative(r, encoded.Slice(0, lenR), lenR);
+            VLI.BytesToNative(r, encoded[..lenR], lenR);
             VLI.BytesToNative(s, encoded.Slice(lenR, lenS), lenS);
 
             return true;
