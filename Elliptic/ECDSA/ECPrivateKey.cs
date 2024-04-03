@@ -140,9 +140,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 return false;
             }
 
-            VLI.Xor(secret_x, _curve.ScrambleKey, _curve.NUM_WORDS); // Unscramble
             secret_x.CopyTo(native_out);
-            VLI.Xor(secret_x, _curve.ScrambleKey, _curve.NUM_WORDS); // Scramble
+            VLI.Xor(native_out, _curve.ScrambleKey, _curve.NUM_WORDS); // Unscramble
             return true;
         }
 
@@ -353,9 +352,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             VLI.Set(r, p, _curve.NUM_WORDS); // store r
 
-            VLI.Xor(secret_x, _curve.ScrambleKey, _curve.NUM_WORDS); // Unscramble
             VLI.Set(tmp, secret_x, _curve.NUM_WORDS); // tmp = private key
-            VLI.Xor(secret_x, _curve.ScrambleKey, _curve.NUM_WORDS); // Scramble
+            VLI.Xor(tmp, _curve.ScrambleKey, _curve.NUM_WORDS); // Unscramble
 
             s[_curve.NUM_WORDS - 1] = 0;
             VLI.Set(s, p, _curve.NUM_WORDS);
@@ -581,9 +579,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             Span<ulong> secret_scalar_x = stackalloc ulong[_curve.NUM_WORDS];
             Span<ulong> temp_scalar_k = stackalloc ulong[_curve.NUM_WORDS];
 
-            VLI.Xor(secret_x, _curve.ScrambleKey, _curve.NUM_WORDS); // Unscramble
             VLI.Set(secret_scalar_x, secret_x, _curve.NUM_WORDS);
-            VLI.Xor(secret_x, _curve.ScrambleKey, _curve.NUM_WORDS); // Scramble
+            VLI.Xor(secret_scalar_x, _curve.ScrambleKey, _curve.NUM_WORDS); // Unscramble
 
             VLI.Picker p2 = new(secret_scalar_x, temp_scalar_k);
             ulong carry;
