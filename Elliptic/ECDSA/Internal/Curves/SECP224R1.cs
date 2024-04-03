@@ -108,7 +108,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
             else
             {
-                while (VLI.VarTimeCmp(curve.P, result, curve.NUM_WORDS) != 1)
+                while (VLI.Cmp_VT(curve.P, result, curve.NUM_WORDS) != 1)
                 {
                     VLI.Sub(result, result, curve.P, curve.NUM_WORDS);
                 }

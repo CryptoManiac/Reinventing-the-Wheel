@@ -70,7 +70,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             int carry = (int)VLI.Add(result, result, tmp, curve.NUM_WORDS);
 
-            while (Convert.ToBoolean(carry) || VLI.VarTimeCmp(curve.P, result, curve.NUM_WORDS) != 1)
+            while (Convert.ToBoolean(carry) || VLI.Cmp_VT(curve.P, result, curve.NUM_WORDS) != 1)
             {
                 carry -= (int)VLI.Sub(result, result, curve.P, curve.NUM_WORDS);
             }

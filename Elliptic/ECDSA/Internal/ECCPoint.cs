@@ -40,7 +40,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
 
             // x and y must be smaller than p.
-            if (VLI.VarTimeCmp(P, point, NUM_WORDS) != 1 || VLI.VarTimeCmp(P, point[NUM_WORDS..], NUM_WORDS) != 1)
+            if (VLI.Cmp_VT(P, point, NUM_WORDS) != 1 || VLI.Cmp_VT(P, point[NUM_WORDS..], NUM_WORDS) != 1)
             {
                 return false;
             }

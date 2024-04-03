@@ -114,7 +114,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                     return false;
                 }
                 VLI.Xor(secret_x, _curve.ScrambleKey, _curve.NUM_WORDS); // Unscramble
-                bool result = VLI.ConstTimeCmp(_curve.N, secret_x, _curve.NUM_WORDS) == 1;
+                bool result = VLI.Cmp(_curve.N, secret_x, _curve.NUM_WORDS) == 1;
                 VLI.Xor(secret_x, _curve.ScrambleKey, _curve.NUM_WORDS); // Scramble
                 return result;
             }
@@ -159,7 +159,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
 
             // Make sure the private key is in the range [1, n-1].
-            if (VLI.IsZero(native_in, _curve.NUM_WORDS) || VLI.ConstTimeCmp(_curve.N, native_in, _curve.NUM_WORDS) != 1)
+            if (VLI.IsZero(native_in, _curve.NUM_WORDS) || VLI.Cmp(_curve.N, native_in, _curve.NUM_WORDS) != 1)
             {
                 return false;
             }
@@ -287,7 +287,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 return false;
             }
 
-            if (VLI.ConstTimeCmp(_curve.N, _scalar, _curve.NUM_WORDS) != 1)
+            if (VLI.Cmp(_curve.N, _scalar, _curve.NUM_WORDS) != 1)
             {
                 return false;
             }
@@ -323,7 +323,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             ulong carry;
 
             // Make sure 0 < K < curve_n 
-            if (VLI.IsZero(K, _curve.NUM_WORDS) || VLI.ConstTimeCmp(_curve.N, K, _curve.NUM_WORDS) != 1)
+            if (VLI.IsZero(K, _curve.NUM_WORDS) || VLI.Cmp(_curve.N, K, _curve.NUM_WORDS) != 1)
             {
                 throw new InvalidDataException("The secret k value does not meet the requirements");
             }
@@ -370,7 +370,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 return false;
             }
 
-            if (VLI.VarTimeCmp(s, _curve.Half_N, _curve.NUM_WORDS) == 1)
+            if (VLI.Cmp_VT(s, _curve.Half_N, _curve.NUM_WORDS) == 1)
             {
                 // Apply Low-S rule to signature
                 VLI.Sub(s, _curve.N, s, _curve.NUM_WORDS); // s = n - s 

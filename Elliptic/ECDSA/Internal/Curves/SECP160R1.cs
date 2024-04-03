@@ -48,7 +48,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             OmegaMult_SECP160R1(curve, product, tmp[(curve.NUM_WORDS - 1)..]); // Rq * c
             VLI.Add(result, result, product, curve.NUM_WORDS); // (C1, r) = r + Rq * c
 
-            while (VLI.VarTimeCmp(result, curve.P, curve.NUM_WORDS) > 0)
+            while (VLI.Cmp_VT(result, curve.P, curve.NUM_WORDS) > 0)
             {
                 VLI.Sub(result, result, curve.P, curve.NUM_WORDS);
             }

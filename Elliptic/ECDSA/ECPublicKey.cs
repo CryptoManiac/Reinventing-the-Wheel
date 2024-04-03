@@ -352,7 +352,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
 
             // r, s must be < n.
-            if (VLI.VarTimeCmp(_curve.N, r, _curve.NUM_WORDS) != 1 || VLI.VarTimeCmp(_curve.N, s, _curve.NUM_WORDS) != 1)
+            if (VLI.Cmp_VT(_curve.N, r, _curve.NUM_WORDS) != 1 || VLI.Cmp_VT(_curve.N, s, _curve.NUM_WORDS) != 1)
             {
                 return false;
             }
@@ -404,7 +404,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             _curve.ApplyZ(rx, ry, z);
 
             // v = x1 (mod n)
-            if (VLI.VarTimeCmp(_curve.N, rx, _curve.NUM_WORDS) != 1)
+            if (VLI.Cmp_VT(_curve.N, rx, _curve.NUM_WORDS) != 1)
             {
                 VLI.Sub(rx, rx, _curve.N, _curve.NUM_WORDS);
             }

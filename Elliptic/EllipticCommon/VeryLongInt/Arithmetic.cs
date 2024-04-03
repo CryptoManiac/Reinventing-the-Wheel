@@ -347,7 +347,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
         public static void ModAdd(Span<ulong> result, ReadOnlySpan<ulong> left, ReadOnlySpan<ulong> right, ReadOnlySpan<ulong> mod, int num_words)
         {
             ulong carry = Add(result, left, right, num_words);
-            if (0 != carry || VarTimeCmp(mod, result, num_words) != 1)
+            if (0 != carry || Cmp_VT(mod, result, num_words) != 1)
             {
                 /* result > mod (result = mod + remainder), so subtract mod to get remainder. */
                 Sub(result, result, mod, num_words);
@@ -496,7 +496,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
             Clear(v, num_words);
 
             int cmpResult;
-            while ((cmpResult = VarTimeCmp(a, b, num_words)) != 0)
+            while ((cmpResult = Cmp_VT(a, b, num_words)) != 0)
             {
                 if (IsEven(a))
                 {
@@ -512,7 +512,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
                 {
                     Sub(a, a, b, num_words);
                     RShift1(a, num_words);
-                    if (VarTimeCmp(u, v, num_words) < 0)
+                    if (Cmp_VT(u, v, num_words) < 0)
                     {
                         Add(u, u, mod, num_words);
                     }
@@ -523,7 +523,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
                 {
                     Sub(b, b, a, num_words);
                     RShift1(b, num_words);
-                    if (VarTimeCmp(v, u, num_words) < 0)
+                    if (Cmp_VT(v, u, num_words) < 0)
                     {
                         Add(v, v, mod, num_words);
                     }

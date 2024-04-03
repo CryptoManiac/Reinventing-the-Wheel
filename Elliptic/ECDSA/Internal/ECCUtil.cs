@@ -147,7 +147,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
 
             // Reduce mod curve_n
-            if (VLI.VarTimeCmp(N, native, NUM_WORDS) != 1)
+            if (VLI.Cmp_VT(N, native, NUM_WORDS) != 1)
             {
                 VLI.Sub(native, native, N, NUM_WORDS);
             }
