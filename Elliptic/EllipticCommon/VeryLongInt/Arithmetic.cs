@@ -278,6 +278,20 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
         }
 
         /// <summary>
+        /// Computes result = - right.
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="right"></param>
+        /// <param name="num_words"></param>
+        public static void Negate(Span<ulong> result, ReadOnlySpan<ulong> right, int num_words)
+        {
+            for (int i = 0; i < num_words; ++i)
+            {
+                result[i] = (ulong)-(long)right[i];
+            }
+        }
+
+        /// <summary>
         /// Computes result = 2 * right^2. Result must be 2 * num_words long.
         /// </summary>
         /// <param name="result"></param>
