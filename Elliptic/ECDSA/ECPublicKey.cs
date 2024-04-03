@@ -376,7 +376,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             // Use Shamir's trick to calculate u1*G + u2*Q
             VLI.QuadPicker points = new(null, _curve.G, native_point, sum);
-            int num_bits = int.Max(VLI.NumBits(u1, _curve.NUM_WORDS), VLI.NumBits(u2, _curve.NUM_WORDS));
+            int num_bits = int.Max(VLI.NumBits_VT(u1, _curve.NUM_WORDS), VLI.NumBits_VT(u2, _curve.NUM_WORDS));
 
             ReadOnlySpan<ulong> point = points[Convert.ToUInt64(VLI.TestBit(u1, num_bits - 1)) | (Convert.ToUInt64(VLI.TestBit(u2, num_bits - 1)) << 1)];
             VLI.Set(rx, point, _curve.NUM_WORDS);

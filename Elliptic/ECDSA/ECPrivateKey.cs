@@ -365,7 +365,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             _curve.BitsToInt(tmp, message_hash, message_hash.Length);
             VLI.ModAdd(s, tmp, s, _curve.N, _curve.NUM_WORDS); // s = e + r*d 
             VLI.ModMult(s, s, k, _curve.N, _curve.NUM_WORDS);  // s = (e + r*d) / k 
-            if (VLI.NumBits(s, _curve.NUM_WORDS) > _curve.NUM_BYTES * 8)
+            if (VLI.NumBits_VT(s, _curve.NUM_WORDS) > _curve.NUM_BYTES * 8)
             {
                 return false;
             }

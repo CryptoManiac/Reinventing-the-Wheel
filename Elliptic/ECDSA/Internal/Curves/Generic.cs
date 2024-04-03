@@ -78,7 +78,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             //   sqrt(a) = a^((curve.P + 1) / 4) (mod curve.P).
 
             VLI.Add(p1, curve.P, p1, curve.NUM_WORDS); // p1 = curve.P + 1
-            for (int i = VLI.NumBits(p1, curve.NUM_WORDS) - 1; i > 1; --i)
+            for (int i = VLI.NumBits_VT(p1, curve.NUM_WORDS) - 1; i > 1; --i)
             {
                 curve.ModSquare(result, result);
                 if (VLI.TestBit(p1, i))

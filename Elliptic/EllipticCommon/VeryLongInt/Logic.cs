@@ -81,16 +81,16 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
         }
 
         /// <summary>
-        /// Counts the number of used words, in constant time
+        /// Counts the number of bits required to represent the number, in constant time
         /// </summary>
         /// <param name="words"></param>
         /// <returns></returns>
-        private static int NumDigits(ReadOnlySpan<ulong> words, int max_words)
+        public static int NumBits(ReadOnlySpan<ulong> words, int num_words)
         {
             // Constant-time check for number of used words:
             //  Iterate through all words regardless of their value
             int used_words = 0;
-            for (int i = max_words; i > 0; --i)
+            for (int i = num_words; i > 0; --i)
             {
                 // Mask will be 0xffffffff only when used_words is not set,
                 //  it will be zero otherwise
@@ -101,36 +101,47 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
                 used_words += (int)(i & mask);
             }
 
-            return used_words;
-        }
-
-        /// <summary>
-        /// Counts the number of bits required to represent the number, in constant time
-        /// </summary>
-        /// <param name="words"></param>
-        /// <returns></returns>
-        public static int NumBits(ReadOnlySpan<ulong> words, int max_words)
-        {
-            int num_digits = NumDigits(words, max_words);
-
             // If the number of used words is zero then the mask will be zero, resulting
             //  with getting the first element of word array, which is zero itself.
-            int zeroOrIndex = (int)((num_digits - 1) & (uint)-Convert.ToInt32(0 != num_digits));
+            int zeroOrIndex = (int)((used_words - 1) & (uint)-Convert.ToInt32(0 != used_words));
             ulong digit = words[zeroOrIndex];
 
             // Constant-time bitcoint: iterate through
             //  all bits regardless of their value
-            int i = 0;
+            int bitcount = 0;
             for (int k = 0; k < WORD_BITS; ++k)
             {
                 // Increment by one and shift by one if the word
                 // is zero, perform the no-ops otherwise
                 int oneIfHaveBits = Convert.ToInt32(Convert.ToBoolean(digit));
-                i += oneIfHaveBits;
+                bitcount += oneIfHaveBits;
                 digit >>= oneIfHaveBits;
             }
 
-            return (zeroOrIndex << WORD_BITS_SHIFT) + i;
+            return (zeroOrIndex << WORD_BITS_SHIFT) + bitcount;
+        }
+
+        /// <summary>
+        /// Counts the number of bits required to represent the number, variable time version
+        /// </summary>
+        /// <param name="words"></param>
+        /// <returns></returns>
+        public static int NumBits_VT(ReadOnlySpan<ulong> words, int num_words)
+        {
+            // Search from the end until we find a non-zero word.
+            //  We do it in reverse because we expect that most digits will be nonzero.
+            int i;
+            for (i = num_words - 1; i >= 0 && words[i] == 0; --i);
+            int used_words = i + 1;
+
+            ulong digit = words[used_words - 1];
+            int bitcount;
+            for (bitcount = 0; digit != 0; ++bitcount)
+            {
+                digit >>= 1;
+            }
+
+            return ((used_words - 1) << WORD_BITS_SHIFT) + bitcount;
         }
 
         /// <summary>
