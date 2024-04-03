@@ -111,7 +111,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
         }
 
         /// <summary>
-        /// Calculate XOR:
+        /// Calculate XOR for every word:
         ///  result[i] = left[i] ^ right
         /// </summary>
         /// <param name="left"></param>
@@ -126,7 +126,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
         }
 
         /// <summary>
-        /// Apply XOR in-place:
+        /// Apply XOR in-place for every word:
         ///  left[i] ^= right
         /// </summary>
         /// <param name="left"></param>
@@ -156,7 +156,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
         }
 
         /// <summary>
-        /// Apply AND in-place:
+        /// Apply AND in-place for every word:
         ///  left[i] &= right
         /// </summary>
         /// <param name="left"></param>
@@ -201,8 +201,8 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
         }
 
         /// <summary>
-        /// Calculate AND:
-        ///  result = left & right
+        /// Calculate AND for every word:
+        ///  result = left[i] & right
         /// </summary>
         /// <param name="left"></param>
         /// <param name="right"></param>
@@ -256,12 +256,27 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
         }
 
         /// <summary>
-        /// Computes result = left^2. Result must be 2 * num_words long.
+        /// Computes result = left * right. Result must be 2 * num_words long.
         /// </summary>
         /// <param name="result"></param>
         /// <param name="left"></param>
+        /// <param name="right"></param>
         /// <param name="num_words"></param>
-        public static void Square(Span<ulong> result, ReadOnlySpan<ulong> left, int num_words)
+        [SkipLocalsInit]
+        public static void Mult(Span<ulong> result, ReadOnlySpan<ulong> left, ulong right, int num_words)
+        {
+            Span<ulong> tmp = stackalloc ulong[num_words];
+            Set(tmp, right, num_words);
+            Mult(result, result, tmp, num_words);
+        }
+
+        /// <summary>
+        /// Computes result = right^2. Result must be 2 * num_words long.
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="right"></param>
+        /// <param name="num_words"></param>
+        public static void Square(Span<ulong> result, ReadOnlySpan<ulong> right, int num_words)
         {
             ulong r0 = 0;
             ulong r1 = 0;
@@ -276,11 +291,11 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
                 {
                     if (i < k - i)
                     {
-                        mul2add(left[i], left[k - i], ref r0, ref r1, ref r2);
+                        mul2add(right[i], right[k - i], ref r0, ref r1, ref r2);
                     }
                     else
                     {
-                        muladd(left[i], left[k - i], ref r0, ref r1, ref r2);
+                        muladd(right[i], right[k - i], ref r0, ref r1, ref r2);
                     }
                 }
                 result[k] = r0;
@@ -290,6 +305,18 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
             }
 
             result[num_words * 2 - 1] = r0;
+        }
+
+        /// <summary>
+        /// Computes result = 2 * right^2. Result must be 2 * num_words long.
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="right"></param>
+        /// <param name="num_words"></param>
+        public static void DoubleSquare(Span<ulong> result, ReadOnlySpan<ulong> right, int num_words)
+        {
+            Square(result, right, num_words);
+            Mult(result, result, 2, num_words);
         }
 
         /// <summary>
