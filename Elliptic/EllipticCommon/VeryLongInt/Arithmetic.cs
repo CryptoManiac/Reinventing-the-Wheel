@@ -126,21 +126,6 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
         }
 
         /// <summary>
-        /// Apply XOR in-place for every word:
-        ///  left[i] ^= right
-        /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <param name="num_words"></param>
-        public static void Xor(Span<ulong> left, ulong right, int num_words)
-        {
-            for (int i = 0; i < num_words; ++i)
-            {
-                left[i] ^= right;
-            }
-        }
-
-        /// <summary>
         /// Apply AND in-place:
         ///  left &= right
         /// </summary>
@@ -152,21 +137,6 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
             for (int i = 0; i < num_words; ++i)
             {
                 left[i] &= right[i];
-            }
-        }
-
-        /// <summary>
-        /// Apply AND in-place for every word:
-        ///  left[i] &= right
-        /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <param name="num_words"></param>
-        public static void And(Span<ulong> left, ulong right, int num_words)
-        {
-            for (int i = 0; i < num_words; ++i)
-            {
-                left[i] &= right;
             }
         }
 

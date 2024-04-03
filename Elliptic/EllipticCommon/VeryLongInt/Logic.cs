@@ -41,7 +41,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
             ulong mask = (ulong)-Convert.ToInt64(flag);
             Span<ulong> X = stackalloc ulong[num_words];
             Xor(X, ifFalse, ifTrue, num_words);
-            And(X, mask, num_words);
+            And(X, X, mask, num_words);
             Xor(result, X, num_words);
         }
 
@@ -54,7 +54,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
             ulong mask = (ulong)-Convert.ToInt64(flag);
             Span<ulong> X = stackalloc ulong[num_words];
             Xor(X, result, ifTrue, num_words);
-            And(X, mask, num_words);
+            And(X, X, mask, num_words);
             Xor(result, X, num_words);
         }
 
