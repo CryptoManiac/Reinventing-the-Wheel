@@ -603,14 +603,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="shared">Will be filled in with the encapsulated shared secret.</param>
         /// <returns>True if the shared secret was generated successfully, False if an error occurred.</returns>
         [SkipLocalsInit]
-        public readonly bool ECDH(in IPublicKey public_key, out ECPrivateKey shared)
+        public readonly bool ECDH(in ECPublicKey public_key, out ECPrivateKey shared)
         {
-            if (public_key is not ECPublicKey || public_key.curve is not ECCurve)
-            {
-                // Shouldn't happen in real life
-                throw new InvalidOperationException("Invalid curve implementation instance");
-            }
-
             if (_curve != (ECCurve)public_key.curve)
             {
                 // It doesn't make any sense to use points on non-matching curves
@@ -676,7 +670,12 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         [SkipLocalsInit]
         public readonly bool ECDH(in IPublicKey public_key, out IPrivateKey shared)
         {
-            bool result = ECDH(public_key, out ECPrivateKey generatedKey);
+            if (public_key is not ECPublicKey)
+            {
+                throw new InvalidOperationException("Invalid puplic key type");
+            }
+
+            bool result = ECDH((ECPublicKey)public_key, out ECPrivateKey generatedKey);
             shared = generatedKey;
             return result;
         }

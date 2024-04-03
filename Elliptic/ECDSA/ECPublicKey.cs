@@ -438,12 +438,6 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <returns></returns>
         public readonly bool VerifySignature(DERSignature signature, ReadOnlySpan<byte> message_hash)
         {
-            if (signature.curve is not ECCurve)
-            {
-                // Shouldn't happen in real life
-                throw new InvalidOperationException("Invalid curve implementation instance");
-            }
-
             return (_curve == (ECCurve)signature.curve) && VerifySignature(signature.r, signature.s, message_hash);
         }
 
@@ -457,12 +451,6 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <returns></returns>
         public readonly bool VerifySignature(CompactSignature signature, ReadOnlySpan<byte> message_hash)
         {
-            if (signature.curve is not ECCurve)
-            {
-                // Shouldn't happen in real life
-                throw new InvalidOperationException("Invalid curve implementation instance");
-            }
-
             return (_curve == (ECCurve)signature.curve) && VerifySignature(signature.r, signature.s, message_hash);
         }
 
@@ -476,12 +464,6 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <returns></returns>
         public readonly bool VerifySignature(IECDSASignature signature, ReadOnlySpan<byte> message_hash)
         {
-            if (signature.curve is not ECCurve)
-            {
-                // Shouldn't happen in real life
-                throw new InvalidOperationException("Invalid curve implementation instance");
-            }
-
             return (_curve == (ECCurve)signature.curve) && VerifySignature(signature.r, signature.s, message_hash);
         }
 
@@ -495,7 +477,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <returns></returns>
         public readonly bool VerifySignature(ISignature signature, ReadOnlySpan<byte> message_hash)
         {
-            if (signature is not IECDSASignature)
+            if (signature is not DERSignature && signature is not CompactSignature)
             {
                 throw new InvalidOperationException("Invalid signature implementation instance");
             }
