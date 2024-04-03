@@ -1,4 +1,4 @@
-﻿namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
+﻿namespace Wheel.Crypto.Elliptic.ECDSA.Internal
 {
     /// <summary>
     /// Format conversion operations for very long integers (aka VLI)

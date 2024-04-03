@@ -1,12 +1,12 @@
 ﻿using Wheel.Crypto.Elliptic.EllipticCommon;
-using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
+using Wheel.Crypto.Elliptic.ECDSA.Internal;
 
-namespace Wheel.Crypto.Elliptic.EllipticCommon
+namespace Wheel.Crypto.Elliptic.ECDSA
 {
     /// <summary>
     /// Compact signature value pair
     /// </summary>
-    public struct CompactSignature : ISignature
+    public struct CompactSignature : IECDSASignature
     {
         /// <summary>
         /// ECC implementation to use

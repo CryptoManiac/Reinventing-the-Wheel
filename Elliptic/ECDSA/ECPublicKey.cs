@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using Wheel.Crypto.Elliptic.EllipticCommon;
-using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
+using Wheel.Crypto.Elliptic.ECDSA.Internal;
 
 namespace Wheel.Crypto.Elliptic.ECDSA
 {
@@ -292,7 +292,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="scalar"></param>
         /// <returns></returns>
         [SkipLocalsInit]
-        public readonly bool KeyTweak(out IPublicKey result, ReadOnlySpan<byte> scalar)
+        public readonly bool KeyTweak(out ECPublicKey result, ReadOnlySpan<byte> scalar)
         {
             result = new ECPublicKey(_curve);
 
@@ -319,6 +319,21 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             // Try to wrap the resulting point data
             return result.Wrap(_result);
+        }
+
+
+        /// <summary>
+        /// EC public key tweak by scalar
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="scalar"></param>
+        /// <returns></returns>
+        [SkipLocalsInit]
+        public readonly bool KeyTweak(out IPublicKey outKey, ReadOnlySpan<byte> scalar)
+        {
+            bool result = KeyTweak(out ECPublicKey generatedKey, scalar);
+            outKey = generatedKey;
+            return result;
         }
 
         /// <summary>
@@ -421,7 +436,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="signature">The signature object</param>
         /// <param name="message_hash">The hash of the signed data</param>
         /// <returns></returns>
-        public readonly bool VerifySignature(ISignature signature, ReadOnlySpan<byte> message_hash)
+        public readonly bool VerifySignature(IECDSASignature signature, ReadOnlySpan<byte> message_hash)
         {
             if (signature.curve is not ECCurve)
             {
@@ -430,6 +445,24 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
 
             return (_curve == (ECCurve)signature.curve) && VerifySignature(signature.r, signature.s, message_hash);
+        }
+
+        /// <summary>
+        /// Verify an ECDSA signature.
+        /// Usage: Compute the hash of the signed data using the same hash as the signer and
+        /// pass it to this function along with the signer's public key and the signature values (r and s).
+        /// </summary>
+        /// <param name="signature">The signature object</param>
+        /// <param name="message_hash">The hash of the signed data</param>
+        /// <returns></returns>
+        public readonly bool VerifySignature(ISignature signature, ReadOnlySpan<byte> message_hash)
+        {
+            if (signature is not IECDSASignature)
+            {
+                throw new InvalidOperationException("Invalid signature implementation instance");
+            }
+
+            return VerifySignature(signature, message_hash);
         }
     }
 }

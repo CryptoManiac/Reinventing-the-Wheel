@@ -1,4 +1,4 @@
-﻿namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
+﻿namespace Wheel.Crypto.Elliptic.ECDSA.Internal
 {
     public static partial class VLI {
         /// In our implementation, we're set on using the ulong type as a machine word

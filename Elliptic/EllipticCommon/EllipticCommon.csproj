@@ -15,12 +15,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="VeryLongInt\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="VeryLongInt\" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\Hashing\Hashing.csproj" />
   </ItemGroup>
 </Project>

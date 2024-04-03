@@ -20,28 +20,9 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         public int EncodedSize { get; }
 
         /// <summary>
-        /// Compressed data size in bytes
-        /// </summary>
-        public int CompressedSize { get; }
-
-        /// <summary>
         /// Erase object state
         /// </summary>
         public void Reset();
-
-        /// <summary>
-        /// Dump the native point data
-        /// </summary>
-        /// <param name="native_out">A buffer for the native point data</param>
-        /// <returns>True if point is valid and copying has been successful</returns>
-        public bool UnWrap(Span<ulong> native_out);
-
-        /// <summary>
-        /// Set native point data to given value
-        /// </summary>
-        /// <param name="native_in"></param>
-        /// <returns>True if point is valid and copying has been successful</returns>
-        public bool Wrap(ReadOnlySpan<ulong> native_in);
 
         /// <summary>
         /// Serialize the native key into big endian number
@@ -56,20 +37,6 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// <param name="public_key">Serialized point data</param>
         /// <returns>True if successful</returns>
         public bool Parse(ReadOnlySpan<byte> public_key);
-
-        /// <summary>
-        /// Parse compressed public key
-        /// </summary>
-        /// <param name="compressed">Compressed point data</param>
-        /// <returns>True if successful</returns>
-        public bool Decompress(ReadOnlySpan<byte> compressed);
-
-        /// <summary>
-        /// Serialize the native key into a compressed point
-        /// </summary>
-        /// <param name="compressed">A buffer for compressed key data</param>
-        /// <returns>True if successful and this key is valid</returns>
-        public bool Compress(Span<byte> compressed);
 
         /// <summary>
         /// Public key tweak by scalar

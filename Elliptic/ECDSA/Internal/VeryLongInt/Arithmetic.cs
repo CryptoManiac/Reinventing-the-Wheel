@@ -1,7 +1,6 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
-namespace Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt
+namespace Wheel.Crypto.Elliptic.ECDSA.Internal
 {
     /// <summary>
     /// Arithmetic operations with very long integers (aka VLI)

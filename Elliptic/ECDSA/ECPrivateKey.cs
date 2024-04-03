@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Wheel.Crypto.Elliptic.EllipticCommon;
-using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
+using Wheel.Crypto.Elliptic.ECDSA.Internal;
 using Wheel.Hashing;
 using Wheel.Hashing.HMAC;
 
@@ -237,7 +237,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="public_key">Will be filled in with the corresponding public key</param>
         /// <returns>True if the key was computed successfully, False if an error occurred.</returns>
         [SkipLocalsInit]
-        public readonly bool ComputePublicKey(out IPublicKey public_key)
+        public readonly bool ComputePublicKey(out ECPublicKey public_key)
         {
             public_key = new ECPublicKey(_curve);
 
@@ -262,14 +262,28 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         }
 
         /// <summary>
+        /// Compute the corresponding public key for a private key.
+        /// </summary>
+        /// <param name="public_key">Will be filled in with the corresponding public key</param>
+        /// <returns>True if the key was computed successfully, False if an error occurred.</returns>
+        [SkipLocalsInit]
+        public readonly bool ComputePublicKey(out IPublicKey public_key)
+        {
+            bool result = ComputePublicKey(out ECPublicKey generatedKey);
+            public_key = generatedKey;
+            return result;
+        }
+
+        /// <summary>
         /// Private key tweak by scalar
         /// </summary>
         /// <param name="result"></param>
         /// <param name="scalar"></param>
         /// <returns></returns>
         [SkipLocalsInit]
-        public readonly bool KeyTweak(ref IPrivateKey result, ReadOnlySpan<byte> scalar)
+        public readonly bool KeyTweak(out ECPrivateKey result, ReadOnlySpan<byte> scalar)
         {
+            result = new(_curve);
             if (!IsValid)
             {
                 return false;
@@ -303,6 +317,20 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             return result.Wrap(_result);
         }
 
+        /// <summary>
+        /// Private key tweak by scalar
+        /// </summary>
+        /// <param name="result"></param>
+        /// <param name="scalar"></param>
+        /// <returns></returns>
+        [SkipLocalsInit]
+        public readonly bool KeyTweak(out IPrivateKey keyOut, ReadOnlySpan<byte> scalar)
+        {
+            bool result = KeyTweak(out ECPrivateKey generatedKey, scalar);
+            keyOut = generatedKey;
+            return result;
+
+        }
         /// <summary>
         /// Generate an ECDSA signature for a given hash value, with the user-provided provided K
         /// </summary>
@@ -447,7 +475,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <returns></returns>
         public readonly bool SignDeterministic<HMAC_IMPL>(out DERSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
         {
-            signature = _curve.MakeDERSignature();
+            signature = new(_curve);
             return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
         }
 
@@ -461,8 +489,23 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <returns></returns>
         public readonly bool SignDeterministic<HMAC_IMPL>(out CompactSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
         {
-            signature = _curve.MakeCompactSignature();
+            signature = new(_curve);
             return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
+        }
+
+        /// <summary>
+        /// Generate an ECDSA signature for a given hash value, using a non-deterministic algorithm
+        /// 
+        /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
+        /// </summary>
+        /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
+        /// <param name="message_hash">The hash of the message to sign</param>
+        /// <returns></returns>
+        public readonly bool SignDeterministic<HMAC_IMPL>(out ISignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+        {
+            bool result = SignDeterministic<HMAC_IMPL>(out DERSignature generatedSig, message_hash);
+            signature = generatedSig;
+            return result;
         }
 
         /// <summary>
@@ -475,7 +518,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <returns></returns>
         public readonly bool Sign<HMAC_IMPL>(out DERSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
         {
-            signature = _curve.MakeDERSignature();
+            signature = new(_curve);
             return Sign<HMAC_IMPL>(signature.r, signature.s, message_hash);
         }
 
@@ -489,8 +532,23 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <returns></returns>
         public readonly bool Sign<HMAC_IMPL>(out CompactSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
         {
-            signature = _curve.MakeCompactSignature();
+            signature = new(_curve);
             return Sign<HMAC_IMPL>(signature.r, signature.s, message_hash);
+        }
+
+        /// <summary>
+        /// Generate an ECDSA signature for a given hash value, using a non-deterministic algorithm
+        /// 
+        /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
+        /// </summary>
+        /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
+        /// <param name="message_hash">The hash of the message to sign</param>
+        /// <returns></returns>
+        public readonly bool Sign<HMAC_IMPL>(out ISignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+        {
+            bool result = Sign<HMAC_IMPL>(out DERSignature generatedSig, message_hash);
+            signature = generatedSig;
+            return result;
         }
 
         /// <summary>
@@ -545,9 +603,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// <param name="shared">Will be filled in with the encapsulated shared secret.</param>
         /// <returns>True if the shared secret was generated successfully, False if an error occurred.</returns>
         [SkipLocalsInit]
-        public readonly bool ECDH(in IPublicKey public_key, out IPrivateKey shared)
+        public readonly bool ECDH(in IPublicKey public_key, out ECPrivateKey shared)
         {
-            if (public_key.curve is not ECCurve)
+            if (public_key is not ECPublicKey || public_key.curve is not ECCurve)
             {
                 // Shouldn't happen in real life
                 throw new InvalidOperationException("Invalid curve implementation instance");
@@ -561,7 +619,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
 
             // Init an empty secret to fill it later
-            shared = _curve.MakePrivateKey();
+            shared = new(_curve);
 
             if (!IsValid)
             {
@@ -569,7 +627,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             }
 
             Span<ulong> ecdh_point = stackalloc ulong[_curve.NUM_WORDS * 2];
-            if (!public_key.UnWrap(ecdh_point))
+            if (!((ECPublicKey)public_key).UnWrap(ecdh_point))
             {
                 // Doesn't make any sense to
                 // use invalid points
@@ -603,6 +661,23 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             VLI.Clear(secret_scalar_x, _curve.NUM_WORDS);
             VLI.Clear(temp_scalar_k, _curve.NUM_WORDS);
 
+            return result;
+        }
+
+        /// <summary>
+        /// Compute a shared secret given your secret key and someone else's public key.
+        ///
+        /// Note: It is recommended that you hash the result of Derive() before using it for
+        /// symmetric encryption or HMAC.
+        /// </summary>
+        /// <param name="public_key">The public key of the remote party.</param>
+        /// <param name="shared">Will be filled in with the encapsulated shared secret.</param>
+        /// <returns>True if the shared secret was generated successfully, False if an error occurred.</returns>
+        [SkipLocalsInit]
+        public readonly bool ECDH(in IPublicKey public_key, out IPrivateKey shared)
+        {
+            bool result = ECDH(public_key, out ECPrivateKey generatedKey);
+            shared = generatedKey;
             return result;
         }
 

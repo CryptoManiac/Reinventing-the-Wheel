@@ -1,30 +1,42 @@
-﻿namespace Wheel.Crypto.Elliptic.EllipticCommon
+﻿using Wheel.Crypto.Elliptic.EllipticCommon;
+
+namespace Wheel.Crypto.Elliptic.ECDSA
 {
-    public interface ISignature
-    {
+	public interface IECDSASignature : ISignature
+	{
         /// <summary>
         /// ECC implementation to use
         /// </summary>
-        public ICurve curve { get; }
+        public new ICurve curve { get; }
 
         /// <summary>
         /// Encoded data size in bytes
         /// </summary>
-        public int EncodedSize { get; }
-        
+        public new int EncodedSize { get; }
+
+        /// R part of the signature
+        /// </summary>
+        public Span<ulong> r { get; }
+
+        /// <summary>
+        /// S part of the signature
+        /// </summary>
+        public Span<ulong> s { get; }
+
         /// <summary>
         /// Write signature data in current format
         /// </summary>
         /// <param name="encoded"></param>
         /// <returns>Number of bytes written/to write</returns>
-        public int Encode(Span<byte> encoded);
+        public new int Encode(Span<byte> encoded);
 
         /// <summary>
         /// Parse input and construct signature from its contents
         /// </summary>
         /// <param name="encoded"></param>
         /// <returns>True on success</returns>
-        public bool Parse(ReadOnlySpan<byte> encoded);
+        public new bool Parse(ReadOnlySpan<byte> encoded);
+
     }
 }
 

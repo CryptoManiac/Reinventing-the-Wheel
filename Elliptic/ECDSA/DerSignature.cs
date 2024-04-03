@@ -1,12 +1,12 @@
 ﻿using Wheel.Crypto.Elliptic.EllipticCommon;
-using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
+using Wheel.Crypto.Elliptic.ECDSA.Internal;
 
-namespace Wheel.Crypto.Elliptic.EllipticCommon
+namespace Wheel.Crypto.Elliptic.ECDSA
 {
     /// <summary>
     /// DER encapsulated signature value pair
     /// </summary>
-    public struct DERSignature : ISignature
+    public struct DERSignature : IECDSASignature
     {
         /// <summary>
         /// ECC implementation to use

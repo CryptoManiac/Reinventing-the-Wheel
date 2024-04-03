@@ -28,7 +28,7 @@ List<string> signaturesToCheck = new()
 {
 };
 
-static int SignData<HMAC_IMPL>(Span<byte> signature, IPrivateKey sk, string message, ECCurve curve) where HMAC_IMPL : unmanaged, IMac
+static int SignData<HMAC_IMPL>(Span<byte> signature, ECPrivateKey sk, string message, ECCurve curve) where HMAC_IMPL : unmanaged, IMac
 {
     // Empty for tests
     Span<byte> message_hash = stackalloc byte[32];
@@ -48,7 +48,7 @@ static int SignData<HMAC_IMPL>(Span<byte> signature, IPrivateKey sk, string mess
     return encodedSz;
 }
 
-static int SignDataNonDeterministic<HMAC_IMPL>(Span<byte> signature, IPrivateKey sk, string message, ICurve curve) where HMAC_IMPL : unmanaged, IMac
+static int SignDataNonDeterministic<HMAC_IMPL>(Span<byte> signature, ECPrivateKey sk, string message, ECCurve curve) where HMAC_IMPL : unmanaged, IMac
 {
     // Empty for tests
     Span<byte> message_hash = stackalloc byte[32];
@@ -71,7 +71,7 @@ static bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOn
 {
     Span<byte> message_hash = stackalloc byte[32];
     SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
-    return curve.MakePublicKey(public_key).VerifySignature(new DERSignature(curve, signature), message_hash);
+    return new ECPublicKey(curve, public_key).VerifySignature(new DERSignature(curve, signature), message_hash);
 }
 
 void CompareSig(string algorithm, Span<byte> signature)
@@ -91,7 +91,7 @@ ECCurve curve = ECCurve.Get_SECP160R1();
 // Derive new secret key
 curve.GenerateDeterministicSecret<HMAC_SHA512>(out ECPrivateKey secretKey, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), secret_key_number);
 
-if (!secretKey.ComputePublicKey(out IPublicKey publicKey))
+if (!secretKey.ComputePublicKey(out ECPublicKey publicKey))
 {
     throw new SystemException("Computation of the public key has failed");
 }

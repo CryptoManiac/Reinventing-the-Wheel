@@ -1,5 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
-using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
+using Wheel.Crypto.Elliptic.ECDSA.Internal;
 
 namespace Wheel.Crypto.Elliptic.ECDSA
 {

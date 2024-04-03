@@ -46,58 +46,6 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         public int CompactSignatureSize { get; }
 
         /// <summary>
-        /// Make an empty (invalid) public key for this curve
-        /// </summary>
-        /// <returns>A zero-initialized public key</returns>
-        public IPublicKey MakePublicKey();
-
-        /// <summary>
-        /// Make an empty (invalid) private key for this curve
-        /// </summary>
-        /// <returns>A zero-initialized private key</returns>
-        public IPrivateKey MakePrivateKey();
-
-        /// <summary>
-        /// Make an empty (invalid) DER signature for this curve
-        /// </summary>
-        /// <returns>A zero-initialized DER signature</returns>
-        public DERSignature MakeDERSignature();
-
-        /// <summary>
-        /// Make an empty (invalid) compact signature for this curve
-        /// </summary>
-        /// <returns>A zero-initialized compact signature</returns>
-        public CompactSignature MakeCompactSignature();
-
-        /// <summary>
-        /// Parse public key bytes and construct new instance from them
-        /// </summary>
-        /// <param name="data">Public key bytes</param>
-        /// <returns>A new copy of public key structure</returns>
-        public IPublicKey MakePublicKey(ReadOnlySpan<byte> data);
-
-        /// <summary>
-        /// Parse private key bytes and construct new instance from them
-        /// </summary>
-        /// <param name="data">Private key bytes</param>
-        /// <returns>A new copy of private key structure</returns>
-        public IPrivateKey MakePrivateKey(ReadOnlySpan<byte> data);
-
-        /// <summary>
-        /// Parse DER signature bytes and construct new instance from them
-        /// </summary>
-        /// <param name="data">DER signature bytes</param>
-        /// <returns>A new copy of DER signature structure</returns>
-        public DERSignature MakeDERSignature(ReadOnlySpan<byte> data);
-
-        /// <summary>
-        /// Parse compact signature bytes and construct new instance from them
-        /// </summary>
-        /// <param name="data">Compact signature bytes</param>
-        /// <returns>A new copy of compact signature structure</returns>
-        public CompactSignature MakeCompactSignature(ReadOnlySpan<byte> data);
-
-        /// <summary>
         /// Check whether the provided byte array contains a valid public key
         /// </summary>
         /// <param name="data">Public key bytes</param>

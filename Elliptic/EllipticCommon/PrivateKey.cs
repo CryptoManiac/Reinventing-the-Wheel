@@ -26,20 +26,6 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         public void Reset();
 
         /// <summary>
-        /// Dump the native point data
-        /// </summary>
-        /// <param name="native_out">A buffer for the native representation of private key</param>
-        /// <returns>True if point is valid and copying has been successful</returns>
-        public bool UnWrap(Span<ulong> native_out);
-
-        /// <summary>
-        /// Set native secret data to given value
-        /// </summary>
-        /// <param name="native_in">Native representation of the private key</param>
-        /// <returns>True if secret is valid and copying has been successful</returns>
-        public bool Wrap(ReadOnlySpan<ulong> native_in);
-
-        /// <summary>
         /// Serialize the native key into big endian number
         /// </summary>
         /// <param name="secret_scalar"></param>
@@ -66,7 +52,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// <param name="result">New private key to be filled</param>
         /// <param name="scalar">Scalar to be used for addition</param>
         /// <returns>True on success</returns>
-        public bool KeyTweak(ref IPrivateKey result, ReadOnlySpan<byte> scalar);
+        public bool KeyTweak(out IPrivateKey result, ReadOnlySpan<byte> scalar);
 
         /// <summary>
         /// Generate a signature for a given hash value, using a deterministic algorithm
@@ -77,18 +63,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <returns></returns>
-        public bool SignDeterministic<HMAC_IMPL>(out DERSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac;
-
-        /// <summary>
-        /// Generate a signature for a given hash value, using a deterministic algorithm
-        /// 
-        /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
-        /// </summary>
-        /// <typeparam name="HMAC_IMPL">HMAC implementation to use</typeparam>
-        /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
-        /// <param name="message_hash">The hash of the message to sign</param>
-        /// <returns>True if successful (failure has an unrealisticallly low probability)</returns>
-        public bool SignDeterministic<HMAC_IMPL>(out CompactSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac;
+        public bool SignDeterministic<HMAC_IMPL>(out ISignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac;
 
         /// <summary>
         /// Generate a signature for a given hash value, using a non-deterministic algorithm
@@ -99,18 +74,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon
         /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
         /// <param name="message_hash">The hash of the message to sign</param>
         /// <returns></returns>
-        public bool Sign<HMAC_IMPL>(out DERSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac;
-
-        /// <summary>
-        /// Generate a signature for a given hash value, using a non-deterministic algorithm
-        /// 
-        /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
-        /// </summary>
-        /// <typeparam name="HMAC_IMPL">HMAC implementation to use</typeparam>
-        /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
-        /// <param name="message_hash">The hash of the message to sign</param>
-        /// <returns>True if successful (failure has an unrealisticallly low probability)</returns>
-        public bool Sign<HMAC_IMPL>(out CompactSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac;
+        public bool Sign<HMAC_IMPL>(out ISignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac;
 
         /// <summary>
         /// Compute a shared secret given your secret key and someone else's public key.

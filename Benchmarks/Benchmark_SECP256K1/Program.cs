@@ -74,7 +74,7 @@ if (!secretKey.ComputePublicKey(out IPublicKey publicKey))
     throw new SystemException("Computation of the public key has failed");
 }
 
-static void SignData<HMAC_IMPL>(Span<byte> signature, IPrivateKey sk, string message, ICurve curve) where HMAC_IMPL : unmanaged, IMac
+static void SignData<HMAC_IMPL>(Span<byte> signature, ECPrivateKey sk, string message, ICurve curve) where HMAC_IMPL : unmanaged, IMac
 {
     // Empty for tests
     Span<byte> message_hash = stackalloc byte[32];

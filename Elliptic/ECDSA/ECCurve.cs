@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Wheel.Crypto.Elliptic.EllipticCommon;
-using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
+using Wheel.Crypto.Elliptic.ECDSA.Internal;
 using Wheel.Hashing.HMAC;
 using Wheel.Hashing.HMAC.SHA2;
 
@@ -292,58 +292,6 @@ namespace Wheel.Crypto.Elliptic.ECDSA
         /// Size of compact signature in bytes
         /// </summary>
         public int CompactSignatureSize => CompactSignature.GetEncodedSize(this);
-
-        /// <summary>
-        /// Make an empty (invalid) private key for this curve
-        /// </summary>
-        /// <returns>A zero-initialized private key</returns>
-        public IPublicKey MakePublicKey() => new ECPublicKey(this);
-
-        /// <summary>
-        /// Make an empty (invalid) private key for this curve
-        /// </summary>
-        /// <returns>A zero-initialized private key</returns>
-        public IPrivateKey MakePrivateKey() => new ECPrivateKey(this);
-
-        /// <summary>
-        /// Make an empty (invalid) DER signature for this curve
-        /// </summary>
-        /// <returns>A zero-initialized DER signature</returns>
-        public DERSignature MakeDERSignature() => new(this);
-
-        /// <summary>
-        /// Make an empty (invalid) compact signature for this curve
-        /// </summary>
-        /// <returns>A zero-initialized compact signature</returns>
-        public CompactSignature MakeCompactSignature() => new(this);
-
-        /// <summary>
-        /// Parse public key bytes and construct new instance from them
-        /// </summary>
-        /// <param name="data">Public key bytes</param>
-        /// <returns>A new copy of public key structure</returns>
-        public IPublicKey MakePublicKey(ReadOnlySpan<byte> data) => new ECPublicKey(this, data);
-
-        /// <summary>
-        /// Parse private key bytes and construct new instance from them
-        /// </summary>
-        /// <param name="data">Private key bytes</param>
-        /// <returns>A new copy of private key structure</returns>
-        public IPrivateKey MakePrivateKey(ReadOnlySpan<byte> data) => new ECPrivateKey(this, data);
-
-        /// <summary>
-        /// Parse DER signature bytes and construct new instance from them
-        /// </summary>
-        /// <param name="data">DER signature bytes</param>
-        /// <returns>A new copy of DER signature structure</returns>
-        public DERSignature MakeDERSignature(ReadOnlySpan<byte> data) => new(this, data);
-
-        /// <summary>
-        /// Parse compact signature bytes and construct new instance from them
-        /// </summary>
-        /// <param name="data">Compact signature bytes</param>
-        /// <returns>A new copy of compact signature structure</returns>
-        public CompactSignature MakeCompactSignature(ReadOnlySpan<byte> data) => new(this, data);
 
         /// <summary>
         /// Check whether the provided byte array contains a valid public key
