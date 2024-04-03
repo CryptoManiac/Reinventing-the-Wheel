@@ -32,7 +32,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
                 return false;
             }
 
-            ModSquare(tmp1, point.Slice(NUM_WORDS));
+            ModSquare(tmp1, point[NUM_WORDS..]);
             XSide(tmp2, point); // tmp2 = x^3 + ax + b
 
             // Make sure that y^2 == x^3 + ax + b
@@ -92,7 +92,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             ulong nb;
 
             VLI.Set(Rx[1], point, NUM_WORDS);
-            VLI.Set(Ry[1], point.Slice(NUM_WORDS), NUM_WORDS);
+            VLI.Set(Ry[1], point[NUM_WORDS..], NUM_WORDS);
 
             XYcZ_Initial_Double(Rx[1], Ry[1], Rx[0], Ry[0], initial_Z);
 
