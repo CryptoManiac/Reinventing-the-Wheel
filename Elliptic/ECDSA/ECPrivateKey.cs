@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Wheel.Crypto.Elliptic.EllipticCommon;
 using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
 using Wheel.Hashing;
@@ -321,22 +322,20 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             ulong carry;
 
-            // Make a local copy of K for in-place modification
-            Span<ulong> k = stackalloc ulong[_curve.NUM_WORDS];
-            VLI.Set(k, K, _curve.NUM_WORDS);
-
-            // Make sure 0 < k < curve_n 
-            if (VLI.IsZero(k, _curve.NUM_WORDS) || VLI.ConstTimeCmp(_curve.N, k, _curve.NUM_WORDS) != 1)
+            // Make sure 0 < K < curve_n 
+            if (VLI.IsZero(K, _curve.NUM_WORDS) || VLI.ConstTimeCmp(_curve.N, K, _curve.NUM_WORDS) != 1)
             {
                 throw new InvalidDataException("The secret k value does not meet the requirements");
             }
 
+            // Make a local copy of K for in-place modification
+            Span<ulong> k = stackalloc ulong[_curve.NUM_WORDS];
+            VLI.Set(k, K, _curve.NUM_WORDS);
+
             carry = _curve.RegularizeK(k, tmp, s);
 
-            // get a random initial Z value to improve protection against side - channel attacks.
-            DeriveHMAC<HMAC_IMPL>(out ECPrivateKey rndKey, message_hash, -1);
-            rndKey.UnWrap(initialZ);
-
+            // Get a random initial Z value to improve protection against side - channel attacks.
+            _curve.GenerateRandomSecret(initialZ, message_hash);
             _curve.PointMul(p, _curve.G, k2[!Convert.ToBoolean(carry)], initialZ, _curve.NUM_N_BITS + 1);
             if (VLI.IsZero(p, _curve.NUM_WORDS))
             {
@@ -346,10 +345,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
             // Prevent side channel analysis of VLI.ModInv() to determine
             //   bits of k / the private key by premultiplying by a random number
             Span<ulong> randK = stackalloc ulong[_curve.NUM_WORDS];
-
-            // Generate the K scrambling value
-            rndKey.DeriveHMAC<HMAC_IMPL>(out ECPrivateKey rndKey2, message_hash, -1);
-            rndKey2.UnWrap(randK);
+            _curve.GenerateRandomSecret(randK, message_hash);
 
             VLI.Set(tmp, randK, _curve.NUM_WORDS);
             VLI.ModMult(k, k, tmp, _curve.N, _curve.NUM_WORDS); // k' = rand * k
@@ -599,7 +595,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             // Get a random initial Z value to improve
             //  protection against side channel attacks.
-            _curve.GenerateRandomSecret(p2[carry], null);
+            _curve.GenerateRandomSecret(p2[carry], MemoryMarshal.Cast<ulong, byte>(secret_scalar_x));
 
             _curve.PointMul(ecdh_point, ecdh_point, p2[!Convert.ToBoolean(carry)], p2[carry], _curve.NUM_N_BITS + 1);
 

@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using Wheel.Crypto.Elliptic.EllipticCommon;
 using Wheel.Crypto.Elliptic.EllipticCommon.VeryLongInt;
@@ -157,7 +158,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA
 
             // Get a random initial Z value to improve
             //  protection against side channel attacks.
-            GenerateRandomSecret(p2[carry], null);
+            GenerateRandomSecret(p2[carry], MemoryMarshal.Cast<ulong, byte>(private_key));
 
             PointMul(result, G, p2[!Convert.ToBoolean(carry)], p2[carry], NUM_N_BITS + 1);
 
