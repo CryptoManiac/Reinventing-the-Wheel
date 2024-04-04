@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace EdDSA.Internal;
+namespace EdDSA.Internal.GroupElement;
 
 /// <summary>
 /// GE stands for Group Element
@@ -172,16 +172,7 @@ internal struct ReadOnlyGE25519_PNIELS
         }
     }
 
-    public readonly unsafe ReadOnlySpan<ulong> ALL
-    {
-        get
-        {
-            fixed (ulong* ptr = &_ALL[0])
-            {
-                return new(ptr, TypeUlongSz);
-            }
-        }
-    }
+    public readonly unsafe ReadOnlySpan<ulong> ALL => _ALL_;
 
     private readonly unsafe Span<ulong> _ALL_
     {

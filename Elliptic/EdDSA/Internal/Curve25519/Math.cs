@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using EdDSA.Internal.Platform;
 
-namespace EdDSA.Internal;
+namespace EdDSA.Internal.Curve25519;
 
-internal static class Curve25519
+internal static class Math
 {
 	private const ulong reduce_mask_40 = ((ulong)1 << 40) - 1;
 	private const ulong reduce_mask_51 = ((ulong)1 << 51) - 1;

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace EdDSA.Internal;
+namespace EdDSA.Internal.Platform;
 
 /// <summary>
 /// Conversion functions. Likely to be removed in the future.

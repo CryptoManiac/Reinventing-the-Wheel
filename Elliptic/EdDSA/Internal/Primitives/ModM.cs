@@ -1,4 +1,5 @@
 ﻿using System;
+using EdDSA.Internal.Platform;
 
 namespace EdDSA.Internal;
 

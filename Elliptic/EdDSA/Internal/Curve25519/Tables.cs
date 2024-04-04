@@ -1,9 +1,10 @@
 ﻿using System.Runtime.InteropServices;
+using EdDSA.Internal.GroupElement;
 
-namespace EdDSA.Internal;
+namespace EdDSA.Internal.Curve25519;
 
 [StructLayout(LayoutKind.Explicit)]
-internal struct Curve25519Tables
+internal struct Tables
 {
     [FieldOffset(0 * ModM.ModM_WORDS * sizeof(ulong))]
     private unsafe fixed ulong _ECD_[ModM.ModM_WORDS];
@@ -17,38 +18,9 @@ internal struct Curve25519Tables
     private unsafe fixed ulong _NIELS_Sliding_Multiples_[32 * GE25519_NIELS.TypeUlongSz];
 
     #region Public accessors
-    public unsafe readonly ReadOnlySpan<ulong> ECD
-    {
-        get
-        {
-            fixed (ulong* ptr = &_ECD_[0])
-            {
-                return new(ptr, ModM.ModM_WORDS);
-            }
-        }
-    }
-
-    public unsafe readonly ReadOnlySpan<ulong> EC2D
-    {
-        get
-        {
-            fixed (ulong* ptr = &_EC2D_[0])
-            {
-                return new(ptr, ModM.ModM_WORDS);
-            }
-        }
-    }
-
-    public unsafe readonly ReadOnlySpan<ulong> SqrtNeg1
-    {
-        get
-        {
-            fixed (ulong* ptr = &_SqrtNeg1_[0])
-            {
-                return new(ptr, ModM.ModM_WORDS);
-            }
-        }
-    }
+    public unsafe readonly ReadOnlySpan<ulong> ECD => __ECD;
+    public unsafe readonly ReadOnlySpan<ulong> EC2D => __EC2D;
+    public unsafe readonly ReadOnlySpan<ulong> SqrtNeg1 => __SqrtNeg1;
 
     public unsafe readonly ReadOnlyGE25519 BasePoint
     {
@@ -61,16 +33,7 @@ internal struct Curve25519Tables
         }
     }
 
-    public unsafe readonly ReadOnlySpan<ReadOnlyGE25519_NIELS> NIELS_Sliding_Multiples
-    {
-        get
-        {
-            fixed (ulong* ptr = &_NIELS_Sliding_Multiples_[0])
-            {
-                return new(ptr, 32 * ReadOnlyGE25519_NIELS.TypeUlongSz);
-            }
-        }
-    }
+    public unsafe readonly ReadOnlySpan<ReadOnlyGE25519_NIELS> NIELS_Sliding_Multiples => __NIELS_Sliding_Multiples;
     #endregion
 
     #region Wrappers for safe access
@@ -130,7 +93,7 @@ internal struct Curve25519Tables
     }
     #endregion
 
-    private Curve25519Tables(ReadOnlySpan<ulong> ecd, ReadOnlySpan<ulong> ec2d, ReadOnlySpan<ulong> sqrtNeg1, in GE25519 basePoint, ReadOnlySpan<ReadOnlyGE25519_NIELS> niels_sliding_multiples)
+    private Tables(ReadOnlySpan<ulong> ecd, ReadOnlySpan<ulong> ec2d, ReadOnlySpan<ulong> sqrtNeg1, in GE25519 basePoint, ReadOnlySpan<ReadOnlyGE25519_NIELS> niels_sliding_multiples)
     {
         ecd[..ModM.ModM_WORDS].CopyTo(__ECD);
         ec2d[..ModM.ModM_WORDS].CopyTo(__EC2D);
@@ -142,7 +105,7 @@ internal struct Curve25519Tables
     /// <summary>
     /// Returns a new copy of the object containing the precalculated Curve25519 tables data
     /// </summary>
-    public static Curve25519Tables Get_Curve25519_Tables()
+    public static Tables Get_Tables()
     {
         return new(
             // ECD
