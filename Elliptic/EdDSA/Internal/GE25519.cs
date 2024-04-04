@@ -5,6 +5,7 @@ namespace EdDSA.Internal;
 /// <summary>
 /// GE stands for Group Element
 /// Memory-safe wrapper over fixed-length number arrays
+/// TODO: Implement read-only version
 /// </summary>
 [StructLayout(LayoutKind.Explicit)]
 internal struct GE25519
@@ -85,5 +86,4 @@ internal struct GE25519
             }
         }
     }
-
 }
