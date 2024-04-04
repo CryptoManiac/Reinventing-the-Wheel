@@ -6,6 +6,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\EllipticCommon\EllipticCommon.csproj" />
     <ProjectReference Include="..\..\Hashing\Hashing.csproj" />
@@ -13,8 +19,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="misc\" />
+    <None Remove="Internal\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="misc\" />
+    <Folder Include="Internal\" />
   </ItemGroup>
 </Project>
