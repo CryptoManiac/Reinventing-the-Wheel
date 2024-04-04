@@ -16,22 +16,19 @@ internal struct Curve25519Tables
     [FieldOffset((3 * ModM.ModM_WORDS + GE25519.TypeUlongSz) * sizeof(ulong))]
     private unsafe fixed ulong _NIELS_Sliding_Multiples_[32 * GE25519_NIELS.TypeUlongSz];
 
-    /// <summary>
-    /// TODO: Make these private and implement read-only versions for the public access
-    /// </summary>
-    #region Wrappers for safe access
-    public unsafe readonly Span<ulong> ECD
+    #region Public accessors
+    public unsafe readonly ReadOnlySpan<ulong> ECD
     {
         get
         {
-            fixed(ulong* ptr = &_ECD_[0])
+            fixed (ulong* ptr = &_ECD_[0])
             {
                 return new(ptr, ModM.ModM_WORDS);
             }
         }
     }
 
-    public unsafe readonly Span<ulong> EC2D
+    public unsafe readonly ReadOnlySpan<ulong> EC2D
     {
         get
         {
@@ -42,7 +39,7 @@ internal struct Curve25519Tables
         }
     }
 
-    public unsafe readonly Span<ulong> SqrtNeg1
+    public unsafe readonly ReadOnlySpan<ulong> SqrtNeg1
     {
         get
         {
@@ -53,7 +50,64 @@ internal struct Curve25519Tables
         }
     }
 
-    public unsafe GE25519 BasePoint
+    public unsafe readonly ReadOnlyGE25519 BasePoint
+    {
+        get
+        {
+            fixed (ulong* ptr = &_BasePoint_[0])
+            {
+                return *(ReadOnlyGE25519*)ptr;
+            }
+        }
+    }
+
+    public unsafe readonly ReadOnlySpan<ReadOnlyGE25519_NIELS> NIELS_Sliding_Multiples
+    {
+        get
+        {
+            fixed (ulong* ptr = &_NIELS_Sliding_Multiples_[0])
+            {
+                return new(ptr, 32 * ReadOnlyGE25519_NIELS.TypeUlongSz);
+            }
+        }
+    }
+    #endregion
+
+    #region Wrappers for safe access
+    private unsafe readonly Span<ulong> __ECD
+    {
+        get
+        {
+            fixed(ulong* ptr = &_ECD_[0])
+            {
+                return new(ptr, ModM.ModM_WORDS);
+            }
+        }
+    }
+
+    private unsafe readonly Span<ulong> __EC2D
+    {
+        get
+        {
+            fixed (ulong* ptr = &_EC2D_[0])
+            {
+                return new(ptr, ModM.ModM_WORDS);
+            }
+        }
+    }
+
+    private unsafe readonly Span<ulong> __SqrtNeg1
+    {
+        get
+        {
+            fixed (ulong* ptr = &_SqrtNeg1_[0])
+            {
+                return new(ptr, ModM.ModM_WORDS);
+            }
+        }
+    }
+
+    private unsafe readonly GE25519 __BasePoint
     {
         get
         {
@@ -64,25 +118,25 @@ internal struct Curve25519Tables
         }
     }
 
-    public unsafe readonly Span<GE25519_NIELS> NIELS_Sliding_Multiples
+    private unsafe readonly Span<ReadOnlyGE25519_NIELS> __NIELS_Sliding_Multiples
     {
         get
         {
             fixed (ulong* ptr = &_NIELS_Sliding_Multiples_[0])
             {
-                return new(ptr, 32 * GE25519_NIELS.TypeUlongSz);
+                return new(ptr, 32 * ReadOnlyGE25519_NIELS.TypeUlongSz);
             }
         }
     }
     #endregion
 
-    private Curve25519Tables(ReadOnlySpan<ulong> ecd, ReadOnlySpan<ulong> ec2d, ReadOnlySpan<ulong> sqrtNeg1, in GE25519 basePoint, ReadOnlySpan<GE25519_NIELS> niels_sliding_multiples)
+    private Curve25519Tables(ReadOnlySpan<ulong> ecd, ReadOnlySpan<ulong> ec2d, ReadOnlySpan<ulong> sqrtNeg1, in GE25519 basePoint, ReadOnlySpan<ReadOnlyGE25519_NIELS> niels_sliding_multiples)
     {
-        ecd[..ModM.ModM_WORDS].CopyTo(ECD);
-        ec2d[..ModM.ModM_WORDS].CopyTo(EC2D);
-        sqrtNeg1[..ModM.ModM_WORDS].CopyTo(SqrtNeg1);
-        basePoint.ALL.CopyTo(BasePoint.ALL);
-        niels_sliding_multiples[..32].CopyTo(NIELS_Sliding_Multiples);
+        ecd[..ModM.ModM_WORDS].CopyTo(__ECD);
+        ec2d[..ModM.ModM_WORDS].CopyTo(__EC2D);
+        sqrtNeg1[..ModM.ModM_WORDS].CopyTo(__SqrtNeg1);
+        basePoint.ALL.CopyTo(__BasePoint.ALL);
+        niels_sliding_multiples[..32].CopyTo(__NIELS_Sliding_Multiples);
     }
 
     /// <summary>
@@ -105,7 +159,7 @@ internal struct Curve25519Tables
                 0x00068ab3a5b7dda3,0x00000eea2a5eadbb,0x0002af8df483c27e,0x000332b375274732,0x00067875f0fd78b7
             ]),
             // NIELS_Sliding_Multiples
-            stackalloc GE25519_NIELS[32]
+            stackalloc ReadOnlyGE25519_NIELS[32]
             {
                 new([
                     0x00003905d740913e,0x0000ba2817d673a2,0x00023e2827f4e67c,0x000133d2e0c21a34,0x00044fd2f9298f81,
