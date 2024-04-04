@@ -1,9 +1,11 @@
 ﻿using Wheel.Hashing.SHA.SHA256.Internal;
 using System.Runtime.InteropServices;
 using System.Net;
+using System.Runtime.CompilerServices;
 
 namespace Wheel.Hashing.SHA.SHA256;
 
+[SkipLocalsInit]
 [StructLayout(LayoutKind.Explicit)]
 internal struct SHA256Base : IHasher
 {
@@ -17,7 +19,7 @@ internal struct SHA256Base : IHasher
     /// Output length
     /// </summary>
     [FieldOffset(4)]
-    private int digestSz;
+    private readonly int digestSz;
 
     /// <summary>
     /// Total input length in bits
@@ -203,7 +205,7 @@ internal struct SHA256Base : IHasher
 public struct SHA256 : IHasher
 	{
     [FieldOffset(0)]
-    private SHA256Base ctx = new SHA256Base(InternalSHA256Constants.init_state_256, 32);
+    private SHA256Base ctx = new (InternalSHA256Constants.init_state_256, 32);
 
     /// <summary>
     /// Size of structure in bytes
@@ -246,7 +248,7 @@ public struct SHA256 : IHasher
 public struct SHA224 : IHasher
 {
     [FieldOffset(0)]
-    private SHA256Base ctx = new SHA256Base(InternalSHA256Constants.init_state_224, 28);
+    private SHA256Base ctx = new(InternalSHA256Constants.init_state_224, 28);
 
     /// <summary>
     /// Size of structure in bytes

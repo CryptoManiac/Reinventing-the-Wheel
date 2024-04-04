@@ -1,8 +1,10 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Wheel.Hashing.RIPEMD.Internal;
 
 namespace Wheel.Hashing.RIPEMD;
 
+[SkipLocalsInit]
 [StructLayout(LayoutKind.Explicit)]
 public struct RIPEMD160 : IHasher
 {

@@ -79,8 +79,8 @@ public static class PBKDF2
                 clen = HashSz;
             }
 
-            var src = T.Slice(0, clen);
-            var target = key.Slice(i * HashSz);
+            var src = T[..clen];
+            var target = key[(i * HashSz)..];
 
             src.CopyTo(target);
         }

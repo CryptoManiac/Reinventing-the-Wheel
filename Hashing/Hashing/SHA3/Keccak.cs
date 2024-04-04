@@ -1,8 +1,10 @@
 ﻿using System.Net;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Wheel.Hashing.SHA3.Internal;
 
+[SkipLocalsInit]
 [StructLayout(LayoutKind.Explicit)]
 internal struct Keccak : IHasher
 {

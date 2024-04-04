@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using Wheel.Hashing.SHA.SHA512.Internal;
 namespace Wheel.Hashing.SHA.SHA512;
 
+[SkipLocalsInit]
 [StructLayout(LayoutKind.Explicit)]
 internal struct SHA512Base : IHasher
 {
@@ -17,7 +18,7 @@ internal struct SHA512Base : IHasher
     /// Output length
     /// </summary>
     [FieldOffset(4)]
-    private int digestSz;
+    private readonly int digestSz;
 
     /// <summary>
     /// Total input length in bits
@@ -48,7 +49,7 @@ internal struct SHA512Base : IHasher
     /// </summary>
     public const int TypeByteSz = 2 * sizeof(uint) + sizeof(ulong) + InternalSHA512Block.TypeByteSz + InternalSHA512State.TypeByteSz * 2;
 
-    public int HashSz => digestSz;
+    public readonly int HashSz => digestSz;
 
     public SHA512Base(in InternalSHA512State constants, int outSz)
     {
@@ -217,7 +218,7 @@ internal struct SHA512Base : IHasher
 public struct SHA512 : IHasher
 	{
     [FieldOffset(0)]
-    private SHA512Base ctx = new SHA512Base(InternalSHA512Constants.init_state_512, 64);
+    private SHA512Base ctx = new (InternalSHA512Constants.init_state_512, 64);
 
     /// <summary>
     /// Size of structure in bytes
@@ -260,7 +261,7 @@ public struct SHA512 : IHasher
 public struct SHA384 : IHasher
 {
     [FieldOffset(0)]
-    private SHA512Base ctx = new SHA512Base(InternalSHA512Constants.init_state_384, 48);
+    private SHA512Base ctx = new (InternalSHA512Constants.init_state_384, 48);
 
     /// <summary>
     /// Size of structure in bytes
@@ -303,7 +304,7 @@ public struct SHA384 : IHasher
 public struct SHA512_256 : IHasher
 {
     [FieldOffset(0)]
-    private SHA512Base ctx = new SHA512Base(InternalSHA512Constants.init_state_256, 32);
+    private SHA512Base ctx = new (InternalSHA512Constants.init_state_256, 32);
 
     /// <summary>
     /// Size of structure in bytes
@@ -346,7 +347,7 @@ public struct SHA512_256 : IHasher
 public struct SHA512_224 : IHasher
 {
     [FieldOffset(0)]
-    private SHA512Base ctx = new SHA512Base(InternalSHA512Constants.init_state_224, 28);
+    private SHA512Base ctx = new (InternalSHA512Constants.init_state_224, 28);
 
     /// <summary>
     /// Size of structure in bytes

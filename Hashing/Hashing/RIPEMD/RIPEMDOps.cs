@@ -313,6 +313,7 @@ internal static class InternalRIPEMDOps
     /// <param name="block"></param>
     /// <param name="lswlen"></param>
     /// <param name="mswlen"></param>
+    [SkipLocalsInit]
     public static void Finish(ref InternalRIPEMDState state, ref InternalRIPEMDBlock block, int lswlen, int mswlen)
     {
         InternalRIPEMDBlock X = new();
