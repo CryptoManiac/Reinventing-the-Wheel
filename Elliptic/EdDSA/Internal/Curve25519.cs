@@ -256,17 +256,18 @@ internal static class Curve25519
 	}
 
 	/* Take a little-endian, 32-byte number and expand it into polynomial form */
-	public static void curve25519_expand(Span<ulong> _out, ReadOnlySpan<byte> _in) {
-        ReadOnlySpan<ulong> data = MemoryMarshal.Cast<byte, ulong>(_in);
+	public static void curve25519_expand(Span<ulong> _out, ReadOnlySpan<byte> _in)
+	{
+		ReadOnlySpan<ulong> data = MemoryMarshal.Cast<byte, ulong>(_in);
 
-        ulong x0, x1, x2, x3;
+		ulong x0, x1, x2, x3;
 
 		x0 = data[0];
 		x1 = data[1];
 		x2 = data[2];
 		x3 = data[3];
 
-        _out[0] = x0 & reduce_mask_51;
+		_out[0] = x0 & reduce_mask_51;
 		x0 = (x0 >> 51) | (x1 << 13);
 		_out[1] = x0 & reduce_mask_51;
 		x1 = (x1 >> 38) | (x2 << 26);
@@ -283,7 +284,7 @@ internal static class Curve25519
 	public static void curve25519_contract(Span<byte> _out, ReadOnlySpan<ulong> input)
 	{
 		ulong f, i;
-		Span<ulong> t = stackalloc ulong[5];
+		Span<ulong> t = stackalloc ulong[ModM.ModM_WORDS];
 
 		t[0] = input[0];
 		t[1] = input[1];
@@ -291,13 +292,6 @@ internal static class Curve25519
 		t[3] = input[3];
 		t[4] = input[4];
 
-        t[1] += t[0] >> 51; t[0] &= reduce_mask_51;
-		t[2] += t[1] >> 51; t[1] &= reduce_mask_51;
-		t[3] += t[2] >> 51; t[2] &= reduce_mask_51;
-		t[4] += t[3] >> 51; t[3] &= reduce_mask_51;
-		t[0] += 19 * (t[4] >> 51);
-		t[4] &= reduce_mask_51;
-        
 		t[1] += t[0] >> 51; t[0] &= reduce_mask_51;
 		t[2] += t[1] >> 51; t[1] &= reduce_mask_51;
 		t[3] += t[2] >> 51; t[2] &= reduce_mask_51;
@@ -305,10 +299,17 @@ internal static class Curve25519
 		t[0] += 19 * (t[4] >> 51);
 		t[4] &= reduce_mask_51;
 
-        /* now t is between 0 and 2^255-1, properly carried. */
-        /* case 1: between 0 and 2^255-20. case 2: between 2^255-19 and 2^255-1. */
-        t[0] += 19;
-        t[1] += t[0] >> 51;
+		t[1] += t[0] >> 51; t[0] &= reduce_mask_51;
+		t[2] += t[1] >> 51; t[1] &= reduce_mask_51;
+		t[3] += t[2] >> 51; t[2] &= reduce_mask_51;
+		t[4] += t[3] >> 51; t[3] &= reduce_mask_51;
+		t[0] += 19 * (t[4] >> 51);
+		t[4] &= reduce_mask_51;
+
+		/* now t is between 0 and 2^255-1, properly carried. */
+		/* case 1: between 0 and 2^255-20. case 2: between 2^255-19 and 2^255-1. */
+		t[0] += 19;
+		t[1] += t[0] >> 51;
 		t[0] &= reduce_mask_51;
 		t[2] += t[1] >> 51;
 		t[1] &= reduce_mask_51;
@@ -319,15 +320,15 @@ internal static class Curve25519
 		t[0] += 19 * (t[4] >> 51);
 		t[4] &= reduce_mask_51;
 
-        /* now between 19 and 2^255-1 in both cases, and offset by 19. */
-        t[0] += (reduce_mask_51 + 1) - 19;
-        t[1] += (reduce_mask_51 + 1) - 1;
-        t[2] += (reduce_mask_51 + 1) - 1;
-        t[3] += (reduce_mask_51 + 1) - 1;
-        t[4] += (reduce_mask_51 + 1) - 1;
+		/* now between 19 and 2^255-1 in both cases, and offset by 19. */
+		t[0] += (reduce_mask_51 + 1) - 19;
+		t[1] += (reduce_mask_51 + 1) - 1;
+		t[2] += (reduce_mask_51 + 1) - 1;
+		t[3] += (reduce_mask_51 + 1) - 1;
+		t[4] += (reduce_mask_51 + 1) - 1;
 
-        /* now between 2^255 and 2^256-20, and offset by 2^255. */
-        t[1] += t[0] >> 51; 
+		/* now between 2^255 and 2^256-20, and offset by 2^255. */
+		t[1] += t[0] >> 51;
 		t[0] &= reduce_mask_51;
 		t[2] += t[1] >> 51;
 		t[1] &= reduce_mask_51;
@@ -339,39 +340,39 @@ internal static class Curve25519
 
 		int outIdx = 0;
 
-        f = ((t[0] >> 13 * 0) | (t[0 + 1] << (51 - 13 * 0)));
+		f = ((t[0] >> 13 * 0) | (t[0 + 1] << (51 - 13 * 0)));
 		for (i = 0; i < 8; i++, f >>= 8)
 		{
 			_out[outIdx++] = (byte)f;
 		}
-        
+
 		f = ((t[1] >> 13 * 1) | (t[1 + 1] << (51 - 13 * 1)));
 		for (i = 0; i < 8; i++, f >>= 8)
 		{
 			_out[outIdx++] = (byte)f;
 		}
-        
+
 		f = ((t[2] >> 13 * 2) | (t[2 + 1] << (51 - 13 * 2)));
 		for (i = 0; i < 8; i++, f >>= 8)
 		{
 			_out[outIdx++] = (byte)f;
 		}
-        
+
 		f = ((t[3] >> 13 * 3) | (t[3 + 1] << (51 - 13 * 3)));
 		for (i = 0; i < 8; i++, f >>= 8)
 		{
 			_out[outIdx++] = (byte)f;
 		}
-    }
+	}
 
-    /* out = (flag) ? in : out */
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="_out">96 bytes long</param>
-    /// <param name="_in">96 bytes long</param>
-    /// <param name="flag"></param>
-    public static void curve25519_move_conditional_bytes(Span<byte> _out, ReadOnlySpan<byte> _in, ulong flag)
+	/* out = (flag) ? in : out */
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <param name="_out">96 bytes long</param>
+	/// <param name="_in">96 bytes long</param>
+	/// <param name="flag"></param>
+	public static void curve25519_move_conditional_bytes(Span<byte> _out, ReadOnlySpan<byte> _in, ulong flag)
 	{
 
 		ulong nb = flag - 1, b = ~nb;
@@ -404,5 +405,105 @@ internal static class Curve25519
 		x2 = swap & (a[2] ^ b[2]); a[2] ^= x2; b[2] ^= x2;
 		x3 = swap & (a[3] ^ b[3]); a[3] ^= x3; b[3] ^= x3;
 		x4 = swap & (a[4] ^ b[4]); a[4] ^= x4; b[4] ^= x4;
+	}
+
+	/*
+ * In:  b =   2^5 - 2^0
+ * Out: b = 2^250 - 2^0
+ */
+	public static void
+	curve25519_pow_two5mtwo0_two250mtwo0(Span<ulong> b)
+	{
+		Span<ulong> t0 = stackalloc ulong[ModM.ModM_WORDS];
+		Span<ulong> c = stackalloc ulong[ModM.ModM_WORDS];
+
+		/* 2^5  - 2^0 */ /* b */
+		/* 2^10 - 2^5 */
+		curve25519_square_times(t0, b, 5);
+		/* 2^10 - 2^0 */
+		curve25519_mul(b, t0, b);
+		/* 2^20 - 2^10 */
+		curve25519_square_times(t0, b, 10);
+		/* 2^20 - 2^0 */
+		curve25519_mul(c, t0, b);
+		/* 2^40 - 2^20 */
+		curve25519_square_times(t0, c, 20);
+		/* 2^40 - 2^0 */
+		curve25519_mul(t0, t0, c);
+		/* 2^50 - 2^10 */
+		curve25519_square_times(t0, t0, 10);
+		/* 2^50 - 2^0 */
+		curve25519_mul(b, t0, b);
+		/* 2^100 - 2^50 */
+		curve25519_square_times(t0, b, 50);
+		/* 2^100 - 2^0 */
+		curve25519_mul(c, t0, b);
+		/* 2^200 - 2^100 */
+		curve25519_square_times(t0, c, 100);
+		/* 2^200 - 2^0 */
+		curve25519_mul(t0, t0, c);
+		/* 2^250 - 2^50 */
+		curve25519_square_times(t0, t0, 50);
+		/* 2^250 - 2^0 */
+		curve25519_mul(b, t0, b);
+	}
+
+	/*
+	 * z^(p - 2) = z(2^255 - 21)
+	 */
+	public static void curve25519_recip(Span<ulong> _out, ReadOnlySpan<ulong> z)
+	{
+		Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
+		Span<ulong> t0 = stackalloc ulong[ModM.ModM_WORDS];
+		Span<ulong> b = stackalloc ulong[ModM.ModM_WORDS];
+
+		/* 2 */
+		curve25519_square_times(a, z, 1); /* a = 2 */
+		/* 8 */
+		curve25519_square_times(t0, a, 2);
+		/* 9 */
+		curve25519_mul(b, t0, z); /* b = 9 */
+		/* 11 */
+		curve25519_mul(a, b, a); /* a = 11 */
+		/* 22 */
+		curve25519_square_times(t0, a, 1);
+		/* 2^5 - 2^0 = 31 */
+		curve25519_mul(b, t0, b);
+		/* 2^250 - 2^0 */
+		curve25519_pow_two5mtwo0_two250mtwo0(b);
+		/* 2^255 - 2^5 */
+		curve25519_square_times(b, b, 5);
+		/* 2^255 - 21 */
+		curve25519_mul(_out, b, a);
+	}
+
+	/*
+	 * z^((p-5)/8) = z^(2^252 - 3)
+	 */
+	public static void curve25519_pow_two252m3(Span<ulong> two252m3, ReadOnlySpan<ulong> z)
+	{
+
+		Span<ulong> b = stackalloc ulong[ModM.ModM_WORDS];
+		Span<ulong> c = stackalloc ulong[ModM.ModM_WORDS];
+		Span<ulong> t0 = stackalloc ulong[ModM.ModM_WORDS];
+
+		/* 2 */
+		curve25519_square_times(c, z, 1); /* c = 2 */
+		/* 8 */
+		curve25519_square_times(t0, c, 2); /* t0 = 8 */
+		/* 9 */
+		curve25519_mul(b, t0, z); /* b = 9 */
+		/* 11 */
+		curve25519_mul(c, b, c); /* c = 11 */
+		/* 22 */
+		curve25519_square_times(t0, c, 1);
+		/* 2^5 - 2^0 = 31 */
+		curve25519_mul(b, t0, b);
+		/* 2^250 - 2^0 */
+		curve25519_pow_two5mtwo0_two250mtwo0(b);
+		/* 2^252 - 2^2 */
+		curve25519_square_times(b, b, 2);
+		/* 2^252 - 3 */
+		curve25519_mul(two252m3, b, z);
 	}
 }
