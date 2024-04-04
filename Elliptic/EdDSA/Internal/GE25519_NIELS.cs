@@ -7,16 +7,14 @@ namespace EdDSA.Internal;
 /// Memory-safe wrapper over fixed-length number arrays
 /// </summary>
 [StructLayout(LayoutKind.Explicit)]
-internal struct GE25519
+internal struct GE25519_NIELS
 {
     [FieldOffset(0 * ModM.ModM_WORDS * sizeof(ulong))]
-    private unsafe fixed ulong _X[ModM.ModM_WORDS];
+    private unsafe fixed ulong _YsubX[ModM.ModM_WORDS];
     [FieldOffset(1 * ModM.ModM_WORDS * sizeof(ulong))]
-    private unsafe fixed ulong _Y[ModM.ModM_WORDS];
+    private unsafe fixed ulong _XaddY[ModM.ModM_WORDS];
     [FieldOffset(2 * ModM.ModM_WORDS * sizeof(ulong))]
-    private unsafe fixed ulong _Z[ModM.ModM_WORDS];
-    [FieldOffset(3 * ModM.ModM_WORDS * sizeof(ulong))]
-    private unsafe fixed ulong _T[ModM.ModM_WORDS];
+    private unsafe fixed ulong _T2D[ModM.ModM_WORDS];
 
     /// <summary>
     /// All integers at once, used by constructor
@@ -24,51 +22,41 @@ internal struct GE25519
     [FieldOffset(0)]
     private unsafe fixed ulong _ALL[TypeUlongSz];
 
-    public const int TypeUlongSz = 4 * ModM.ModM_WORDS;
+    public const int TypeUlongSz = 3 * ModM.ModM_WORDS;
 
-    public GE25519(ReadOnlySpan<ulong> values)
+    public GE25519_NIELS(ReadOnlySpan<ulong> values)
     {
         // Will throw on insufficient length
         values[..TypeUlongSz].CopyTo(ALL);
     }
 
-    public unsafe Span<ulong> X
+    public unsafe Span<ulong> YsubX
     {
-        get {
-            fixed (ulong* ptr = &_X[0])
+        get
+        {
+            fixed (ulong* ptr = &_YsubX[0])
             {
                 return new(ptr, ModM.ModM_WORDS);
             }
         }
     }
 
-    public unsafe Span<ulong> Y
+    public unsafe Span<ulong> XaddY
     {
         get
         {
-            fixed (ulong* ptr = &_Y[0])
+            fixed (ulong* ptr = &_XaddY[0])
             {
                 return new(ptr, ModM.ModM_WORDS);
             }
         }
     }
 
-    public unsafe Span<ulong> Z
+    public unsafe Span<ulong> T2D
     {
         get
         {
-            fixed(ulong* ptr = &_Z[0])
-            {
-                return new(ptr, ModM.ModM_WORDS);
-            }
-        }
-    }
-
-    public unsafe Span<ulong> T
-    {
-        get
-        {
-            fixed (ulong* ptr = &_T[0])
+            fixed (ulong* ptr = &_T2D[0])
             {
                 return new(ptr, ModM.ModM_WORDS);
             }
