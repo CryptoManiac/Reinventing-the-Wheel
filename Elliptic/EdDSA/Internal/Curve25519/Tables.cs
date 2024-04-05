@@ -23,7 +23,8 @@ internal struct Tables
     public unsafe readonly ReadOnlySpan<ulong> ECD => __ECD;
     public unsafe readonly ReadOnlySpan<ulong> EC2D => __EC2D;
     public unsafe readonly ReadOnlySpan<ulong> SqrtNeg1 => __SqrtNeg1;
-    public unsafe readonly ReadOnlySpan<GE25519_NIELS_Packed> NIELS_Base_Multiples => __NIELS_Base_Multiples;
+    public unsafe readonly ReadOnlySpan<ReadOnlyGE25519_NIELS_Packed> NIELS_Base_Multiples => MemoryMarshal.Cast<GE25519_NIELS_Packed , ReadOnlyGE25519_NIELS_Packed>(__NIELS_Base_Multiples);
+    public unsafe readonly ReadOnlySpan<ReadOnlyGE25519_NIELS> NIELS_Sliding_Multiples => MemoryMarshal.Cast<GE25519_NIELS, ReadOnlyGE25519_NIELS>(__NIELS_Sliding_Multiples);
 
     public unsafe readonly ReadOnlyGE25519 BasePoint
     {
@@ -36,7 +37,6 @@ internal struct Tables
         }
     }
 
-    public unsafe readonly ReadOnlySpan<ReadOnlyGE25519_NIELS> NIELS_Sliding_Multiples => __NIELS_Sliding_Multiples;
     #endregion
 
     #region Wrappers for safe access
@@ -84,13 +84,13 @@ internal struct Tables
         }
     }
 
-    private unsafe readonly Span<ReadOnlyGE25519_NIELS> __NIELS_Sliding_Multiples
+    private unsafe readonly Span<GE25519_NIELS> __NIELS_Sliding_Multiples
     {
         get
         {
             fixed (ulong* ptr = &_NIELS_Sliding_Multiples_[0])
             {
-                return new(ptr, 32 * ReadOnlyGE25519_NIELS.TypeUlongSz);
+                return new(ptr, 32 * GE25519_NIELS.TypeUlongSz);
             }
         }
     }
@@ -107,7 +107,7 @@ internal struct Tables
     }
     #endregion
 
-    private Tables(ReadOnlySpan<ulong> ecd, ReadOnlySpan<ulong> ec2d, ReadOnlySpan<ulong> sqrtNeg1, in GE25519 basePoint, ReadOnlySpan<ReadOnlyGE25519_NIELS> niels_sliding_multiples, ReadOnlySpan<GE25519_NIELS_Packed> niels_base_multiples)
+    private Tables(ReadOnlySpan<ulong> ecd, ReadOnlySpan<ulong> ec2d, ReadOnlySpan<ulong> sqrtNeg1, in GE25519 basePoint, ReadOnlySpan<GE25519_NIELS> niels_sliding_multiples, ReadOnlySpan<GE25519_NIELS_Packed> niels_base_multiples)
     {
         ecd[..ModM.ModM_WORDS].CopyTo(__ECD);
         ec2d[..ModM.ModM_WORDS].CopyTo(__EC2D);
@@ -137,7 +137,7 @@ internal struct Tables
                 0x00068ab3a5b7dda3,0x00000eea2a5eadbb,0x0002af8df483c27e,0x000332b375274732,0x00067875f0fd78b7
             ]),
             // NIELS_Sliding_Multiples
-            stackalloc ReadOnlyGE25519_NIELS[32]
+            stackalloc GE25519_NIELS[32]
             {
                 new([
                         0x00003905d740913e, 0x0000ba2817d673a2, 0x00023e2827f4e67c, 0x000133d2e0c21a34, 0x00044fd2f9298f81,
