@@ -345,7 +345,7 @@ public struct ECPrivateKey : IPrivateKey
         Span<ulong> p = stackalloc ulong[_curve.NUM_WORDS * 2];
         Span<ulong> rnd = stackalloc ulong[_curve.NUM_WORDS];
         Span<ulong> tmp = stackalloc ulong[_curve.NUM_WORDS];
-        VLI.Picker k2 = new(tmp, s);
+        Picker k2 = new(tmp, s);
 
         ulong carry;
 
@@ -634,7 +634,7 @@ public struct ECPrivateKey : IPrivateKey
         VLI.Set(secret_scalar_x, secret_x, _curve.NUM_WORDS);
         VLI.Xor(secret_scalar_x, _curve.ScrambleKey, _curve.NUM_WORDS); // Unscramble
 
-        VLI.Picker p2 = new(secret_scalar_x, temp_scalar_k);
+        Picker p2 = new(secret_scalar_x, temp_scalar_k);
         ulong carry;
 
         // Regularize the bitcount for the private key so that attackers

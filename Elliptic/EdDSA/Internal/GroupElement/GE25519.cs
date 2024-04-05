@@ -27,6 +27,20 @@ internal struct GE25519
 
     public const int TypeUlongSz = 4 * ModM.ModM_WORDS;
 
+    /// <summary>
+    /// Read-only version
+    /// </summary>
+    public unsafe readonly ReadOnlyGE25519 readOnly
+    {
+        get
+        {
+            fixed(void* ptr = &this)
+            {
+                return new Span<ReadOnlyGE25519>(ptr, 1)[0];
+            }
+        }
+    }
+
     public GE25519(ReadOnlySpan<ulong> values)
     {
         // Will throw on insufficient length

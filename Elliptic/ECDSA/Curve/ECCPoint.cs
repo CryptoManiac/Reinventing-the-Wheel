@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Wheel.Crypto.Elliptic.ECDSA.Internal;
+using Wheel.Crypto.Elliptic.EllipticCommon;
 
 namespace Wheel.Crypto.Elliptic.ECDSA;
 
@@ -89,8 +90,8 @@ public readonly partial struct ECCurve
     internal void PointMul(Span<ulong> result, ReadOnlySpan<ulong> point, ReadOnlySpan<ulong> scalar, ReadOnlySpan<ulong> initial_Z, int num_bits)
     {
         // R0 and R1
-        VLI.Picker Rx = new(stackalloc ulong[NUM_WORDS], stackalloc ulong[NUM_WORDS]);
-        VLI.Picker Ry = new(stackalloc ulong[NUM_WORDS], stackalloc ulong[NUM_WORDS]);
+        Picker Rx = new(stackalloc ulong[NUM_WORDS], stackalloc ulong[NUM_WORDS]);
+        Picker Ry = new(stackalloc ulong[NUM_WORDS], stackalloc ulong[NUM_WORDS]);
         Span<ulong> z = stackalloc ulong[NUM_WORDS];
 
         ulong nb;
@@ -139,7 +140,7 @@ public readonly partial struct ECCurve
     {
         Span<ulong> tmp1 = stackalloc ulong[NUM_WORDS];
         Span<ulong> tmp2 = stackalloc ulong[NUM_WORDS];
-        VLI.Picker p2 = new(tmp1, tmp2);
+        Picker p2 = new(tmp1, tmp2);
 
         ulong carry;
 
