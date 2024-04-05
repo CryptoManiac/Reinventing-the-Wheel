@@ -15,6 +15,11 @@ internal struct GE25519_NIELS_Packed
         return new(data);
     }
 
+    public static implicit operator GE25519_NIELS_Packed(Span<byte> data)
+    {
+        return new(data);
+    }
+
     public static implicit operator Span<byte>(GE25519_NIELS_Packed packed)
     {
         return packed.ALL;

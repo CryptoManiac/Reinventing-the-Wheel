@@ -30,7 +30,7 @@ internal struct GE25519_NIELS
         values[..TypeUlongSz].CopyTo(ALL);
     }
 
-    public GE25519_NIELS(in ReadOnlyGE25519_NIELS ge)
+    public GE25519_NIELS(ReadOnlyGE25519_NIELS ge)
     {
         ge.ALL.CopyTo(ALL);
     }
@@ -38,6 +38,16 @@ internal struct GE25519_NIELS
     public static implicit operator GE25519_NIELS(ReadOnlyGE25519_NIELS ge)
     {
         return new(ge);
+    }
+
+    public static implicit operator GE25519_NIELS(ReadOnlySpan<ulong> values)
+    {
+        return new(values);
+    }
+
+    public static implicit operator GE25519_NIELS(Span<ulong> values)
+    {
+        return new(values);
     }
 
     /// <summary>

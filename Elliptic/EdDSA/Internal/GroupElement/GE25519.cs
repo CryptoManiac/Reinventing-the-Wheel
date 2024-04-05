@@ -33,7 +33,7 @@ internal struct GE25519
         values[..TypeUlongSz].CopyTo(ALL);
     }
 
-    public GE25519(in ReadOnlyGE25519 ge)
+    public GE25519(ReadOnlyGE25519 ge)
     {
         ge.ALL.CopyTo(ALL);
     }
@@ -41,6 +41,16 @@ internal struct GE25519
     public static implicit operator GE25519(ReadOnlyGE25519 ge)
     {
         return new(ge);
+    }
+
+    public static implicit operator GE25519(ReadOnlySpan<ulong> values)
+    {
+        return new(values);
+    }
+
+    public static implicit operator GE25519(Span<ulong> values)
+    {
+        return new(values);
     }
 
     public readonly unsafe Span<ulong> X
