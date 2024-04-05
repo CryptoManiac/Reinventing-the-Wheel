@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace EdDSA.Internal.GroupElement;
+namespace Wheel.Crypto.Elliptic.EdDSA.Internal.GroupElement;
 
 /// <summary>
 /// GE stands for Group Element

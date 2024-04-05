@@ -1,4 +1,4 @@
-﻿namespace EdDSA.Internal.GroupElement;
+﻿namespace Wheel.Crypto.Elliptic.EdDSA.Internal.GroupElement;
 
 internal struct GE25519_NIELS_Packed
 {

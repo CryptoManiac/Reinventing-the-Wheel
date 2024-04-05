@@ -1,7 +1,7 @@
 ﻿using System;
-using EdDSA.Internal.Platform;
+using Wheel.Crypto.Elliptic.EdDSA.Internal.Platform;
 
-namespace EdDSA.Internal;
+namespace Wheel.Crypto.Elliptic.EdDSA.Internal;
 
 public static class ModM
 {

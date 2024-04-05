@@ -6,8 +6,8 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
 /// Represents ECDSA signature
 /// The difference from ISignature is the presence of r and s field getters.
 /// </summary>
-	public interface IECDSASignature : ISignature
-	{
+public interface IECDSASignature : ISignature
+{
     /// <summary>
     /// ECC implementation to use
     /// </summary>

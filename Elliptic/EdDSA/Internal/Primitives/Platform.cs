@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace EdDSA.Internal.Platform;
+﻿namespace Wheel.Crypto.Elliptic.EdDSA.Internal.Platform;
 
 /// <summary>
 /// Conversion functions. Likely to be removed in the future.

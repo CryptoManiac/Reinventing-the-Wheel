@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Reflection.Emit;
-using EdDSA.Internal.Curve25519;
+using Wheel.Crypto.Elliptic.EdDSA.Internal.Curve25519;
 using Wheel.Crypto.Elliptic.EllipticCommon;
 
-namespace EdDSA.Internal.GroupElement;
+namespace Wheel.Crypto.Elliptic.EdDSA.Internal.GroupElement;
 
 internal static class GEMath
 {

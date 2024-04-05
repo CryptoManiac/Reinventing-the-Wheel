@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using EdDSA.Internal.Platform;
+using Wheel.Crypto.Elliptic.EdDSA.Internal.Platform;
 
-namespace EdDSA.Internal.Curve25519;
+namespace Wheel.Crypto.Elliptic.EdDSA.Internal.Curve25519;
 
 internal static class EdMath
 {

@@ -1,5 +1,4 @@
-﻿using System;
-namespace EdDSA.Internal.Curve25519;
+﻿namespace Wheel.Crypto.Elliptic.EdDSA.Internal.Curve25519;
 
 public static class Logic
 {

@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
-using EdDSA.Internal.GroupElement;
+using Wheel.Crypto.Elliptic.EdDSA.Internal.GroupElement;
 
-namespace EdDSA.Internal.Curve25519;
+namespace Wheel.Crypto.Elliptic.EdDSA.Internal.Curve25519;
 
 [StructLayout(LayoutKind.Explicit)]
 internal struct Tables
