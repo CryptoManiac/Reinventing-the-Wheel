@@ -37,18 +37,9 @@ internal struct GE25519_PNIELS
         ge.ALL.CopyTo(ALL);
     }
 
-    /// <summary>
-    /// Read-only version
-    /// </summary>
-    public unsafe readonly ReadOnlyGE25519_PNIELS readOnly
+    public static implicit operator GE25519_PNIELS(ReadOnlyGE25519_PNIELS ge)
     {
-        get
-        {
-            fixed (void* ptr = &this)
-            {
-                return new Span<ReadOnlyGE25519_PNIELS>(ptr, 1)[0];
-            }
-        }
+        return new(ge);
     }
 
     public readonly unsafe Span<ulong> YsubX

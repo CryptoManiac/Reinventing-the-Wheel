@@ -35,6 +35,11 @@ internal struct GE25519_NIELS
         ge.ALL.CopyTo(ALL);
     }
 
+    public static implicit operator GE25519_NIELS(ReadOnlyGE25519_NIELS ge)
+    {
+        return new(ge);
+    }
+
     /// <summary>
     /// Read-only version
     /// </summary>
