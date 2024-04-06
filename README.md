@@ -35,6 +35,13 @@ The well tested implementations of the following hash functions are provided as 
     * ECDH shared secret derivation
     * Private and public key tweak by scalar
 
+* Memory-safe Ed25519 implementation
+    * Deterministic and random key generation
+    * Deterministic and non-deterministic message signing
+    * Signature verification
+    * ECDH shared secret derivation
+    * Private and public key tweak by scalar
+
 ### Symmetric cryptography
 
 * AES256-CTR with PKCS7 padding
