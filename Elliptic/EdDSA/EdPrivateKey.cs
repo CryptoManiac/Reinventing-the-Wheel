@@ -1,4 +1,5 @@
 ﻿using Wheel.Crypto.Elliptic.EdDSA.Internal;
+using Wheel.Crypto.Elliptic.EdDSA.Internal.Curve25519;
 using Wheel.Crypto.Elliptic.EdDSA.Internal.GroupElement;
 using Wheel.Crypto.Elliptic.EllipticCommon;
 using Wheel.Hashing;
@@ -49,6 +50,7 @@ public struct EdPrivateKey : IPrivateKey
     {
         get
         {
+            Logic.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
             Span<byte> keyCheck = stackalloc byte[32];
             secret_scalar_data.CopyTo(keyCheck);
 
@@ -57,6 +59,7 @@ public struct EdPrivateKey : IPrivateKey
             keyCheck[31] |= 64;
 
             bool isValid = keyCheck.SequenceEqual(secret_scalar_data);
+            Logic.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
             keyCheck.Clear();
 
             return isValid;
@@ -143,7 +146,9 @@ public struct EdPrivateKey : IPrivateKey
         HASHER_IMPL hasher = new();
         if (secret_hash.Length == hasher.HashSz)
         {
+            Logic.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
             hasher.Update(secret_scalar_data);
+            Logic.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
             hasher.Digest(secret_hash);
             return true;
         }
@@ -169,9 +174,12 @@ public struct EdPrivateKey : IPrivateKey
         Span<byte> public_data = stackalloc byte[32];
 
         /* A = aB */
+        Logic.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
         ModM.expand256(secret_scalar, secret_scalar_data, 32);
+        Logic.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
         GEMath.ge25519_scalarmult_base_niels(ref public_point, GEMath.tables.NIELS_Base_Multiples, secret_scalar);
         GEMath.ge25519_pack(public_data, public_point);
+        secret_scalar.Clear();
 
         return public_key.Parse(public_data);
     }
@@ -212,8 +220,12 @@ public struct EdPrivateKey : IPrivateKey
         }
 
         GE25519 public_point, shared_point;
+
         Span<ulong> secret_scalar = stackalloc ulong[ModM.ModM_WORDS];
+
+        Logic.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
         ModM.expand256(secret_scalar, secret_scalar_data, 32);
+        Logic.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
 
         if (!GEMath.ge25519_unpack_negative_vartime(ref public_point, public_bytes))
         {
@@ -231,6 +243,7 @@ public struct EdPrivateKey : IPrivateKey
 
         bool result = shared.Parse(shared_bytes);
         shared_bytes.Clear();
+        secret_scalar.Clear();
         return result;
     }
 
@@ -274,12 +287,15 @@ public struct EdPrivateKey : IPrivateKey
         Span<ulong> added = stackalloc ulong[ModM.ModM_WORDS];
         Span<byte> tweaked = stackalloc byte[32];
 
+        Logic.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
         ModM.expand256(sum, secret_scalar_data, 32);
+        Logic.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
         ModM.expand256(added, scalar, 32);
         ModM.add256(sum, sum, added);
         ModM.contract256(tweaked, sum);
 
         result.Parse(tweaked);
+        sum.Clear();
         tweaked.Clear();
         return result.IsValid;
     }
@@ -297,6 +313,7 @@ public struct EdPrivateKey : IPrivateKey
         }
 
         private_key[..32].CopyTo(secret_scalar_data);
+        Logic.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
         return IsValid;
     }
 
@@ -321,6 +338,7 @@ public struct EdPrivateKey : IPrivateKey
         }
 
         secret_scalar_data.CopyTo(secret_scalar[..32]);
+        Logic.ed25519_xor(secret_scalar, _curve.ScrambleKey, 32);
         return true;
     }
 
@@ -350,7 +368,9 @@ public struct EdPrivateKey : IPrivateKey
 
         // r = DRNG(secret, message_hash, message_hash_len)
         Span<byte> rnd = stackalloc byte[64];
+        Logic.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
         _curve.GenerateDeterministicNonce<HMAC_IMPL>(rnd, secret_scalar_data, message_hash, 0);
+        Logic.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
         ModM.expand256(r, rnd, 64);
 
         // R = rB
@@ -366,8 +386,13 @@ public struct EdPrivateKey : IPrivateKey
         hasher.Digest(hram);
         ModM.expand256(S, hram, 64);
 
+        Logic.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
+
         // S = H(R,A,m)a
         ModM.expand256(a, secret_scalar_data, 32);
+
+        Logic.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
+
         ModM.mul256(S, S, a);
 
         // S = (r + H(R,A,m)a)
@@ -421,8 +446,14 @@ public struct EdPrivateKey : IPrivateKey
         hasher.Digest(hram);
         ModM.expand256(S, hram, 64);
 
+
+        Logic.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
+
         // S = H(R,A,m)a
         ModM.expand256(a, secret_scalar_data, 32);
+
+        Logic.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
+
         ModM.mul256(S, S, a);
 
         // S = (r + H(R,A,m)a)

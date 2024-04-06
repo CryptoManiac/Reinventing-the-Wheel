@@ -12,7 +12,7 @@ namespace Wheel.Crypto.Elliptic.EdDSA;
 
 internal struct EdCurveConfig
 {
-    public unsafe fixed ulong scrambleKey[ModM.ModM_WORDS];
+    public unsafe fixed byte scrambleKey[32];
 }
 
 #pragma warning disable CS0660
@@ -90,13 +90,13 @@ public readonly struct EdCurve : ICurve
         return new Keccak_512();
     }
 
-    public unsafe readonly ReadOnlySpan<ulong> ScrambleKey
+    public unsafe readonly ReadOnlySpan<byte> ScrambleKey
     {
         get
         {
-            fixed (ulong* ptr = &curveConfig.scrambleKey[0])
+            fixed (byte* ptr = &curveConfig.scrambleKey[0])
             {
-                return new ReadOnlySpan<ulong>(ptr, ModM.ModM_WORDS);
+                return new ReadOnlySpan<byte>(ptr, 32);
             }
         }
     }
@@ -113,9 +113,10 @@ public readonly struct EdCurve : ICurve
 
         randomId = random[0];
 
-        fixed (ulong* ptr = &curveConfig.scrambleKey[0])
+        fixed (byte* ptr = &curveConfig.scrambleKey[0])
         {
-            random[1..].CopyTo(new Span<ulong>(ptr, ModM.ModM_WORDS));
+            var src = MemoryMarshal.Cast<ulong, byte>(random);
+            src[..^32].CopyTo(new Span<byte>(ptr, 32));
         }
 
         _hasher = hasher;

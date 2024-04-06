@@ -16,4 +16,18 @@ public static class Logic
         }
         return !Convert.ToBoolean(diff);
     }
+
+    /// <summary>
+    /// Xor every byte of X with every byte of Y
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <param name="len"></param>
+    public static void ed25519_xor(Span<byte> x, ReadOnlySpan<byte> y, int len)
+    {
+        for (int i = 0; i != len; ++i)
+        {
+             x[i] ^= y[i];
+        }
+    }
 }
