@@ -1,4 +1,5 @@
-﻿using Wheel.Crypto.Elliptic.EdDSA.Internal;
+﻿using System.Globalization;
+using Wheel.Crypto.Elliptic.EdDSA.Internal;
 using Wheel.Crypto.Elliptic.EdDSA.Internal.Curve25519;
 using Wheel.Crypto.Elliptic.EdDSA.Internal.GroupElement;
 using Wheel.Crypto.Elliptic.EllipticCommon;
@@ -92,7 +93,13 @@ public struct EdPublicKey : IPublicKey
         }
     }
 
-    public bool KeyTweak(out IPublicKey result, ReadOnlySpan<byte> scalar)
+    /// <summary>
+    /// EC public key tweak by scalar
+    /// </summary>
+    /// <param name="result"></param>
+    /// <param name="scalar"></param>
+    /// <returns></returns>
+    public bool KeyTweak(out EdPublicKey result, ReadOnlySpan<byte> scalar)
     {
         result = new EdPublicKey(_curve);
 
@@ -116,6 +123,19 @@ public struct EdPublicKey : IPublicKey
         return result.Parse(res);
     }
 
+    /// <summary>
+    /// EC public key tweak by scalar
+    /// </summary>
+    /// <param name="outKey"></param>
+    /// <param name="scalar"></param>
+    /// <returns></returns>
+    public bool KeyTweak(out IPublicKey outKey, ReadOnlySpan<byte> scalar)
+    {
+        bool result = KeyTweak(out EdPublicKey generatedKey, scalar);
+        outKey = generatedKey;
+        return result;
+    }
+
     public bool Parse(ReadOnlySpan<byte> public_key)
     {
         if (public_key.Length != public_point_data.Length)
@@ -132,17 +152,27 @@ public struct EdPublicKey : IPublicKey
         public_point_data.Clear();
     }
 
-    public readonly bool Serialize(Span<byte> public_key)
+    /// <summary>
+    /// Copy the key value into byte array
+    /// </summary>
+    /// <param name="serialized"></param>
+    /// <returns>True if successful and this key is valid</returns>
+    public readonly bool Serialize(Span<byte> serialized)
     {
-        if (public_key.Length != public_point_data.Length || !IsValid)
+        if (serialized.Length != public_point_data.Length || !IsValid)
         {
             return false;
         }
 
-        public_point_data.CopyTo(public_key[..32]);
+        public_point_data.CopyTo(serialized[..32]);
         return true;
     }
 
+    /// <summary>
+    /// Synonymous for Serialize()
+    /// </summary>
+    /// <param name="compressed"></param>
+    /// <returns></returns>
     public readonly bool Compress(Span<byte> compressed) => Serialize(compressed);
 
     /// <summary>

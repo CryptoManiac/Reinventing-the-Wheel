@@ -325,7 +325,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
     /// <summary>
     /// EC public key tweak by scalar
     /// </summary>
-    /// <param name="result"></param>
+    /// <param name="outKey"></param>
     /// <param name="scalar"></param>
     /// <returns></returns>
     [SkipLocalsInit]

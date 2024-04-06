@@ -50,8 +50,16 @@ if (!resultA || !resultB)
     throw new SystemException("EdDH failure");
 }
 
-shared1.Serialize(secret_key);
-Console.WriteLine("Shared key 1: {0}", Convert.ToHexString(secret_key));
+Span<byte> shared_key_a = stackalloc byte[curve.PrivateKeySize];
+Span<byte> shared_key_b = stackalloc byte[curve.PrivateKeySize];
 
-shared2.Serialize(secret_key);
-Console.WriteLine("Shared key 2: {0}", Convert.ToHexString(secret_key));
+shared1.Serialize(shared_key_a);
+Console.WriteLine("Shared key 1: {0}", Convert.ToHexString(shared_key_a));
+
+shared2.Serialize(shared_key_b);
+Console.WriteLine("Shared key 2: {0}", Convert.ToHexString(shared_key_b));
+
+if (!shared_key_b.SequenceEqual(shared_key_a))
+{
+    throw new SystemException("EdDH shared key mismatch!");
+}

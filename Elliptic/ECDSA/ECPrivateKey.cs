@@ -621,7 +621,7 @@ public struct ECPrivateKey : IPrivateKey
         }
 
         Span<ulong> ecdh_point = stackalloc ulong[_curve.NUM_WORDS * 2];
-        if (!((ECPublicKey)public_key).UnWrap(ecdh_point))
+        if (!public_key.UnWrap(ecdh_point))
         {
             // Doesn't make any sense to
             // use invalid points
@@ -670,12 +670,12 @@ public struct ECPrivateKey : IPrivateKey
     [SkipLocalsInit]
     public readonly bool ECDH(in IPublicKey public_key, out IPrivateKey shared)
     {
-        if (public_key is not ECPublicKey)
+        if (public_key is not ECPublicKey pk)
         {
             throw new InvalidOperationException("Invalid puplic key type");
         }
 
-        bool result = ECDH((ECPublicKey)public_key, out ECPrivateKey generatedKey);
+        bool result = ECDH(pk, out ECPrivateKey generatedKey);
         shared = generatedKey;
         return result;
     }

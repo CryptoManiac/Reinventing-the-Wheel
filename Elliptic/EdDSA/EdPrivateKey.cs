@@ -130,7 +130,14 @@ public struct EdPrivateKey : IPrivateKey
         return pk.Parse(private_key);
     }
 
-
+    /// <summary>
+    /// Encode the secret into big endian format and calculate
+    ///  its hash using the provided IHasher implementation.
+    /// May be used to hash the ECDH derived shared keys.
+    /// </summary>
+    /// <typeparam name="HASHER_IMPL">Hasher to use</typeparam>
+    /// <param name="secret_hash"></param>
+    /// <returns>True if successful</returns>
     public readonly bool CalculateKeyHash<HASHER_IMPL>(Span<byte> secret_hash) where HASHER_IMPL : unmanaged, IHasher
     {
         HASHER_IMPL hasher = new();
@@ -143,6 +150,11 @@ public struct EdPrivateKey : IPrivateKey
         return false;
     }
 
+    /// <summary>
+    /// Compute the corresponding public key for a private key.
+    /// </summary>
+    /// <param name="public_key">Will be filled in with the corresponding public key</param>
+    /// <returns>True if the key was computed successfully, False if an error occurred.</returns>
     public readonly bool ComputePublicKey(out EdPublicKey public_key)
     {
         public_key = new(_curve);
@@ -222,11 +234,33 @@ public struct EdPrivateKey : IPrivateKey
         return result;
     }
 
+    /// <summary>
+    /// Compute a shared secret given your secret key and someone else's public key.
+    ///
+    /// Note: It is recommended that you hash the result of Derive() before using it for
+    /// symmetric encryption or HMAC.
+    /// </summary>
+    /// <param name="public_key">The public key of the remote party.</param>
+    /// <param name="shared">Will be filled in with the encapsulated shared secret.</param>
+    /// <returns>True if the shared secret was generated successfully, False if an error occurred.</returns>
     public readonly bool ECDH(in IPublicKey public_key, out IPrivateKey shared)
     {
-        throw new NotImplementedException();
+        if (public_key is not EdPublicKey pk)
+        {
+            throw new InvalidOperationException("Invalid puplic key type");
+        }
+
+        bool result = ECDH(pk, out EdPrivateKey generatedKey);
+        shared = generatedKey;
+        return result;
     }
 
+    /// <summary>
+    /// Private key tweak by scalar
+    /// </summary>
+    /// <param name="result"></param>
+    /// <param name="scalar"></param>
+    /// <returns></returns>
     public readonly bool KeyTweak(out IPrivateKey result, ReadOnlySpan<byte> scalar)
     {
         result = new EdPrivateKey(_curve);
@@ -250,6 +284,11 @@ public struct EdPrivateKey : IPrivateKey
         return result.IsValid;
     }
 
+    /// <summary>
+    /// Try to init using the provided bytes
+    /// </summary>
+    /// <param name="private_key">Serialized scalar data</param>
+    /// <returns>True if successful</returns>
     public bool Parse(ReadOnlySpan<byte> private_key)
     {
         if (private_key.Length != secret_scalar_data.Length)
@@ -261,11 +300,19 @@ public struct EdPrivateKey : IPrivateKey
         return IsValid;
     }
 
+    /// <summary>
+    /// Erase object state
+    /// </summary>
     public void Reset()
     {
         secret_scalar_data.Clear();
     }
 
+    /// <summary>
+    /// Serialize the key into big endian number
+    /// </summary>
+    /// <param name="secret_scalar"></param>
+    /// <returns>True if successful and this key is valid</returns>
     public readonly bool Serialize(Span<byte> secret_scalar)
     {
         if (secret_scalar.Length != secret_scalar_data.Length || !IsValid)
@@ -277,6 +324,15 @@ public struct EdPrivateKey : IPrivateKey
         return true;
     }
 
+    /// <summary>
+    /// Generate an EdDSA signature for a given hash value, using a non-deterministic algorithm
+    /// 
+    /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
+    /// </summary>
+    /// <param name="r">Will be filled in with the signature value</param>
+    /// <param name="s">Will be filled in with the signature value</param>
+    /// <param name="message_hash">The hash of the message to sign</param>
+    /// <returns>True on success</returns>
     private readonly bool SignDeterministic<HMAC_IMPL>(Span<byte> sig_r, Span<byte> sig_s, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
     {
         // Public key is used for r,s calculation
@@ -323,6 +379,15 @@ public struct EdPrivateKey : IPrivateKey
         return true;
     }
 
+    /// <summary>
+    /// Generate an EdDSA signature for a given hash value, using a non-deterministic algorithm
+    /// 
+    /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
+    /// </summary>
+    /// <param name="r">Will be filled in with the signature value</param>
+    /// <param name="s">Will be filled in with the signature value</param>
+    /// <param name="message_hash">The hash of the message to sign</param>
+    /// <returns>True on success</returns>
     private readonly bool Sign<HMAC_IMPL>(Span<byte> sig_r, Span<byte> sig_s, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
     {
         // Public key is used for r,s calculation

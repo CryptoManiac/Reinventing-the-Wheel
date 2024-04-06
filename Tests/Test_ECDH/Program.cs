@@ -56,10 +56,17 @@ foreach (var (name, algo) in curves)
         throw new SystemException("ECDH failure");
     }
 
-    shared1.Serialize(secret_key);
-    Console.WriteLine("Shared key 1: {0}", Convert.ToHexString(secret_key));
+    Span<byte> shared_key_a = new byte[algo.PrivateKeySize];
+    Span<byte> shared_key_b = new byte[algo.PrivateKeySize];
 
-    shared2.Serialize(secret_key);
-    Console.WriteLine("Shared key 2: {0}\n\n", Convert.ToHexString(secret_key));
+    shared1.Serialize(shared_key_a);
+    Console.WriteLine("Shared key 1: {0}", Convert.ToHexString(shared_key_a));
 
+    shared2.Serialize(shared_key_b);
+    Console.WriteLine("Shared key 2: {0}\n\n", Convert.ToHexString(shared_key_b));
+
+    if (!shared_key_a.SequenceEqual(shared_key_b))
+    {
+        throw new SystemException("ECDH shared key mismatch!");
+    }
 }
