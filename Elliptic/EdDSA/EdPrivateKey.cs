@@ -169,6 +169,59 @@ public struct EdPrivateKey : IPrivateKey
         return ComputePublicKey(out public_key);
     }
 
+    /// <summary>
+    /// Compute a shared secret given your secret key and someone else's public key.
+    ///
+    /// Note: It is recommended that you hash the result of Derive() before using it for
+    /// symmetric encryption or HMAC.
+    /// </summary>
+    /// <param name="public_key">The public key of the remote party.</param>
+    /// <param name="shared">Will be filled in with the encapsulated shared secret.</param>
+    /// <returns>True if the shared secret was generated successfully, False if an error occurred.</returns>
+    public readonly bool ECDH(in EdPublicKey public_key, out EdPrivateKey shared)
+    {
+        if (_curve != (EdCurve)public_key.curve)
+        {
+            // It doesn't make any sense to use points on non-matching curves
+            // This shouldn't ever happen in real life
+            throw new InvalidOperationException("Curve configuration mismatch");
+        }
+
+        // Start with empty key
+        shared = new(_curve);
+
+        Span<byte> public_bytes = stackalloc byte[32];
+        Span<byte> shared_bytes = stackalloc byte[32];
+        if (!public_key.Serialize(public_bytes))
+        {
+            // Doesn't make any sense to
+            // use uninitialized keys
+            return false;
+        }
+
+        GE25519 public_point, shared_point;
+        Span<ulong> secret_scalar = stackalloc ulong[ModM.ModM_WORDS];
+        ModM.expand256(secret_scalar, secret_scalar_data, 32);
+
+        if (!GEMath.ge25519_unpack_negative_vartime(ref public_point, public_bytes))
+        {
+            return false;
+        }
+
+        // Calculate new secret, then trim it and place into shared key instance
+        GEMath.ge25519_scalarmult_vartime(ref shared_point, public_point, secret_scalar);
+
+        GEMath.ge25519_pack(shared_bytes, shared_point);
+
+        shared_bytes[0] &= 248;
+        shared_bytes[31] &= 63;
+        shared_bytes[31] |= 64;
+
+        bool result = shared.Parse(shared_bytes);
+        shared_bytes.Clear();
+        return result;
+    }
+
     public readonly bool ECDH(in IPublicKey public_key, out IPrivateKey shared)
     {
         throw new NotImplementedException();

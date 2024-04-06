@@ -468,8 +468,7 @@ internal static class EdMath
 	/// Out: b = 2^250 - 2^0
 	/// </summary>
 	/// <param name="b"></param>
-	public static void
-	curve25519_pow_two5mtwo0_two250mtwo0(Span<ulong> b)
+	public static void curve25519_pow_two5mtwo0_two250mtwo0(Span<ulong> b)
 	{
 		Span<ulong> t0 = stackalloc ulong[ModM.ModM_WORDS];
 		Span<ulong> c = stackalloc ulong[ModM.ModM_WORDS];

@@ -361,6 +361,7 @@ internal static class GEMath
 
     /// <summary>
     /// computes [s1]p1
+    /// WARNING: This function IS NOT timing-secure
     /// </summary>
     public static void ge25519_scalarmult_vartime(ref GE25519 r, in GE25519 p1, ReadOnlySpan<ulong> s1)
     {
@@ -375,8 +376,11 @@ internal static class GEMath
 
         ge25519_double(ref d1, p1);
         ge25519_full_to_pniels(ref pre1[0], p1);
+
         for (i = 0; i < S1_TABLE_SIZE - 1; i++)
+        {
             ge25519_pnielsadd(ref pre1[i + 1], d1, pre1[i]);
+        }
 
         // set neutral
         ge25519_set_neutral(ref r);

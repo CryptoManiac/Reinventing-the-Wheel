@@ -433,6 +433,5 @@ public readonly struct EdCurve : ICurve
     /// <param name="data">Private key bytes</param>
     /// <returns>True if valid</returns>
     public bool IsValidPrivateKey(ReadOnlySpan<byte> data) => EdPrivateKey.IsValidPrivateKey(this, data);
-
 }
 
