@@ -112,6 +112,39 @@ public struct EdPrivateKey : IPrivateKey
         }
     }
 
+    /// <summary>
+    /// Check to see if a serialized private key is valid.
+    /// Note that you are not required to check for a valid private key before using any other functions.
+    /// </summary>
+    /// <param name="private_key">The private key to check.</param>
+    /// <returns>True if the private key is valid.</returns>
+    public static bool IsValidPrivateKey(ICurve curve, ReadOnlySpan<byte> private_key)
+    {
+        if (curve is not EdCurve)
+        {
+            // Shouldn't happen in real life
+            throw new InvalidOperationException("Invalid curve implementation instance");
+        }
+
+        if (private_key.Length != 32)
+        {
+            return false;
+        }
+
+        Span<byte> keyCopy = stackalloc byte[32];
+        private_key.CopyTo(keyCopy);
+
+        keyCopy[0] &= 248;
+        keyCopy[31] &= 127;
+        keyCopy[31] |= 64;
+
+        bool isValid = keyCopy.SequenceEqual(private_key);
+        keyCopy.Clear();
+
+        return isValid;
+    }
+
+
     public readonly bool CalculateKeyHash<HASHER_IMPL>(Span<byte> secret_hash) where HASHER_IMPL : unmanaged, IHasher
     {
         HASHER_IMPL hasher = new();

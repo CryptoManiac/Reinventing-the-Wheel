@@ -248,14 +248,19 @@ public readonly struct EdCurve : ICurve
         GenerateDeterministicSecret<HMAC_SHA512>(result, rnd, entropy, 0);
     }
 
-    public bool IsValidPrivateKey(ReadOnlySpan<byte> data)
-    {
-        return data.Length == 32;
-    }
+    /// <summary>
+    /// Check whether the provided byte array contains a valid public key
+    /// </summary>
+    /// <param name="data">Public key bytes</param>
+    /// <returns>True if valid</returns>
+    public bool IsValidPublicKey(ReadOnlySpan<byte> data) => EdPublicKey.IsValidPublicKey(this, data);
 
-    public bool IsValidPublicKey(ReadOnlySpan<byte> data)
-    {
-        return data.Length == 32;
-    }
+    /// <summary>
+    /// Check whether the provided byte array contains a valid private key
+    /// </summary>
+    /// <param name="data">Private key bytes</param>
+    /// <returns>True if valid</returns>
+    public bool IsValidPrivateKey(ReadOnlySpan<byte> data) => EdPrivateKey.IsValidPrivateKey(this, data);
+
 }
 

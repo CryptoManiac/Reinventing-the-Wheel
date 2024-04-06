@@ -147,6 +147,31 @@ public struct EdPublicKey : IPublicKey
     }
 
     /// <summary>
+    /// Check to see if a serialized or compressed public key is valid.
+    /// Note that you are not required to check for a valid public key before using any other 
+    /// functions. However, you may wish to avoid spending CPU time computing a shared secret or
+    /// verifying a signature using an invalid public key.
+    /// </summary>
+    /// <param name="public_key">The public key to check.</param>
+    /// <returns>True if key is valid</returns>
+    public static bool IsValidPublicKey(ICurve curve, ReadOnlySpan<byte> public_key)
+    {
+        if (curve is not EdCurve)
+        {
+            // Shouldn't happen in real life
+            throw new InvalidOperationException("Invalid curve implementation instance");
+        }
+
+        if (public_key.Length != 32)
+        {
+            return false;
+        }
+
+        GE25519 A;
+        return GEMath.ge25519_unpack_negative_vartime(ref A, public_key);
+    }
+
+    /// <summary>
     /// Verify an ECDSA signature.
     /// Usage: Compute the hash of the signed data using the same hash as the signer and
     /// pass it to this function along with the signer's public key and the signature values (r and s).
