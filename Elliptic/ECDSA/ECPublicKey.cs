@@ -217,7 +217,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
     {
         Reset();
 
-        if (compressed.Length != (1 + _curve.NUM_BYTES) || compressed[0] != 0x02 || compressed[0] != 0x03)
+        if (compressed.Length != (1 + _curve.NUM_BYTES) || (compressed[0] != 0x02 && compressed[0] != 0x03))
         {
             return false;
         }
