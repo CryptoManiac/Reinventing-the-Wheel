@@ -199,3 +199,4 @@ if (!VerifySignature(signature, message, public_key_uncompressed, curve))
     throw new SystemException("Signature verification failure");
 }
 Console.WriteLine(" OK");
+

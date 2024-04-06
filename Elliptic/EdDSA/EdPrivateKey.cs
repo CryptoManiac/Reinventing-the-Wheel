@@ -247,7 +247,7 @@ public struct EdPrivateKey : IPrivateKey
 
         // r = DRNG(secret, message_hash, message_hash_len)
         Span<byte> rnd = stackalloc byte[64];
-        _curve.GenerateDeterministicSecret<HMAC_IMPL>(rnd, data, message_hash, message_hash.Length);
+        _curve.GenerateDeterministicNonce<HMAC_IMPL>(rnd, data, message_hash, 0);
         ModM.expand256(r, rnd, 64);
 
         // R = rB
@@ -287,8 +287,7 @@ public struct EdPrivateKey : IPrivateKey
         // rnd = DRNG(secret, message_hash, message_hash_len)
         // r = RNG(rnd, message_hash)
         Span<byte> rnd = stackalloc byte[64];
-        _curve.GenerateDeterministicSecret<HMAC_IMPL>(rnd, data, message_hash, message_hash.Length);
-        _curve.GenerateRandomSecret(rnd, rnd);
+        _curve.GenerateRandomNonce(rnd, message_hash);
         ModM.expand256(r, rnd, 64);
 
         // R = rB

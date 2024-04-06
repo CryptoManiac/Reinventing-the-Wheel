@@ -31,6 +31,8 @@ public readonly struct EdCurve : ICurve
     /// </summary>
     public readonly ulong randomId { get; }
 
+    public readonly int NUM_BYTES => EdPrivateKey.GetEncodedSize(this);
+
     /// <summary>
     /// Configured hasher construct function
     /// </summary>
@@ -158,10 +160,8 @@ public readonly struct EdCurve : ICurve
     {
         Span<byte> rnd = stackalloc byte[32];
         GenerateRandomSecret(rnd, entropy);
-        rnd[0] &= 248;
-        rnd[31] &= 127;
-        rnd[31] |= 64;
         result = new(this, rnd);
+        rnd.Clear();
     }
 
     /// <summary>
@@ -177,33 +177,85 @@ public readonly struct EdCurve : ICurve
     {
         Span<byte> rnd = stackalloc byte[32];
         GenerateDeterministicSecret<HMAC_IMPL>(rnd, seed, personalization, sequence);
-        rnd[0] &= 248;
-        rnd[31] &= 127;
-        rnd[31] |= 64;
         result = new(this, rnd);
+        rnd.Clear();
     }
 
-    public readonly void GenerateDeterministicSecret<HMAC_IMPL>(Span<byte> result, ReadOnlySpan<byte> seed, ReadOnlySpan<byte> personalization, int sequence) where HMAC_IMPL : unmanaged, IMac
+    /// <summary>
+    /// "Generate" key from the common ED25519 seed by hashing
+    /// </summary>
+    /// <param name="result">Private key to be filled</param>
+    /// <param name="seed">Secret seed to generate from</param>
+    public void ExpandSeed(out EdPrivateKey result, ReadOnlySpan<byte> seed)
     {
-        Span<byte> separator_00 = stackalloc byte[1] { 0x00 };
-        Span<byte> separator_01 = stackalloc byte[1] { 0x00 };
-        Span<byte> sequence_data = stackalloc byte[sizeof(int)];
+        IHasher hasher = makeHasher();
+        Span<byte> key = stackalloc byte[hasher.HashSz];
+        hasher.Update(seed);
+        hasher.Digest(key);
+        key[0] &= 248;
+        key[31] &= 127;
+        key[31] |= 64;
+        result = new(this, key[..32]);
+        key.Clear();
+    }
+
+    /// <summary>
+    /// Deterministically generate nonce for signing
+    /// </summary>
+    /// <typeparam name="HMAC_IMPL"></typeparam>
+    public void GenerateDeterministicNonce<HMAC_IMPL>(Span<byte> result, ReadOnlySpan<byte> seed, ReadOnlySpan<byte> personalization, int sequence) where HMAC_IMPL : unmanaged, IMac
+    {
+        // See 3..2 of the RFC 6979 to get what is going on here
+        // We're not following it to the letter, but our algorithm is very similar
 
         HMAC_IMPL hmac = new();
-        hmac.Init(seed);
-        hmac.Update(personalization);
-        hmac.Update(separator_00);
+        Span<byte> separator_00 = stackalloc byte[1] { 0x00 };
+        Span<byte> separator_01 = stackalloc byte[1] { 0x01 };
+
+        Span<byte> sequence_data = stackalloc byte[sizeof(int)];
 
         // Convert sequence to bytes
         MemoryMarshal.Cast<byte, int>(sequence_data)[0] = sequence;
-
-        hmac.Update(sequence_data);
 
         // Allocate buffer for HMAC results
         Span<byte> K = stackalloc byte[hmac.HashSz];
         Span<byte> V = stackalloc byte[hmac.HashSz];
 
+        // B
+        K.Fill(0); // K = 00 00 00 ..
+
+        // C
+        V.Fill(0x01); // V = 01 01 01 ..
+
+        // D
+        hmac.Init(K); // K = HMAC_K(V || 00 || seed || 00 || personalization || 00 || sequence_data)
+        hmac.Update(V);
+        hmac.Update(separator_00);
+        hmac.Update(seed);
+        hmac.Update(separator_00);
+        hmac.Update(personalization);
+        hmac.Update(sequence_data);
         hmac.Digest(K);
+
+        // E
+        hmac.Init(K); // V = HMAC_K(V)
+        hmac.Update(V);
+        hmac.Digest(V);
+
+        // F
+        hmac.Init(K); // K = HMAC_K(V || 01 || seed || 01 || personalization || 01 || sequence_data)
+        hmac.Update(V);
+        hmac.Update(separator_01);
+        hmac.Update(seed);
+        hmac.Update(separator_01);
+        hmac.Update(personalization);
+        hmac.Update(sequence_data);
+        hmac.Digest(K);
+
+        // G
+        hmac.Init(K); // V = HMAC_K(V)
+        hmac.Update(V);
+        hmac.Digest(V);
 
         // H
         int secret_byte_index = 0;
@@ -211,13 +263,12 @@ public readonly struct EdCurve : ICurve
 
         while (true)
         {
-            hmac.Init(K);
-            hmac.Update(seed);
-            hmac.Update(separator_01);
-            hmac.Update(personalization);
-            hmac.Update(separator_01);
+            // H2
+            hmac.Init(K); // V = HMAC_K(V)
+            hmac.Update(V);
             hmac.Digest(V);
 
+            // T = T || V
             Span<byte> src = V[..Math.Min(V.Length, secret_data.Length - secret_byte_index)];
             Span<byte> target = secret_data[secret_byte_index..];
             src.CopyTo(target);
@@ -238,6 +289,120 @@ public readonly struct EdCurve : ICurve
             hmac.Update(separator_00);
             hmac.Update(personalization);
             hmac.Digest(K);
+
+            hmac.Init(K); // V = HMAC_K(V)
+            hmac.Update(V);
+            hmac.Digest(V);
+        }
+    }
+
+    /// <summary>
+    /// Deterministically generate the new private key from seed, using HMAC-based generator
+    /// </summary>
+    /// <typeparam name="HMAC_IMPL">HMAC implementation to use</typeparam>
+    /// <param name="result">Private key to be filled</param>
+    /// <param name="seed">Secret seed to generate from</param>
+    /// <param name="personalization">Personalization argument bytes (to generate more than one key from the same seed)</param>
+    /// <param name="sequence">Generation sequence number (to generate more than one key from the same seed + personalization pair)</param>
+    [SkipLocalsInit]
+    public void GenerateDeterministicSecret<HMAC_IMPL>(Span<byte> result, ReadOnlySpan<byte> seed, ReadOnlySpan<byte> personalization, int sequence) where HMAC_IMPL : unmanaged, IMac
+    {
+        // See 3..2 of the RFC 6979 to get what is going on here
+        // We're not following it to the letter, but our algorithm is very similar
+
+        HMAC_IMPL hmac = new();
+        Span<byte> separator_00 = stackalloc byte[1] { 0x00 };
+        Span<byte> separator_01 = stackalloc byte[1] { 0x01 };
+
+        Span<byte> sequence_data = stackalloc byte[sizeof(int)];
+
+        // Convert sequence to bytes
+        MemoryMarshal.Cast<byte, int>(sequence_data)[0] = sequence;
+
+        // Allocate buffer for HMAC results
+        Span<byte> K = stackalloc byte[hmac.HashSz];
+        Span<byte> V = stackalloc byte[hmac.HashSz];
+
+        // B
+        K.Fill(0); // K = 00 00 00 ..
+
+        // C
+        V.Fill(0x01); // V = 01 01 01 ..
+
+        // D
+        hmac.Init(K); // K = HMAC_K(V || 00 || seed || 00 || personalization || 00 || sequence_data)
+        hmac.Update(V);
+        hmac.Update(separator_00);
+        hmac.Update(seed);
+        hmac.Update(separator_00);
+        hmac.Update(personalization);
+        hmac.Update(sequence_data);
+        hmac.Digest(K);
+
+        // E
+        hmac.Init(K); // V = HMAC_K(V)
+        hmac.Update(V);
+        hmac.Digest(V);
+
+        // F
+        hmac.Init(K); // K = HMAC_K(V || 01 || seed || 01 || personalization || 01 || sequence_data)
+        hmac.Update(V);
+        hmac.Update(separator_01);
+        hmac.Update(seed);
+        hmac.Update(separator_01);
+        hmac.Update(personalization);
+        hmac.Update(sequence_data);
+        hmac.Digest(K);
+
+        // G
+        hmac.Init(K); // V = HMAC_K(V)
+        hmac.Update(V);
+        hmac.Digest(V);
+
+        // H
+        int secret_byte_index = 0;
+        Span<byte> secret_data = stackalloc byte[NUM_BYTES];
+
+        while (true)
+        {
+            // H2
+            hmac.Init(K); // V = HMAC_K(V)
+            hmac.Update(V);
+            hmac.Digest(V);
+
+            // T = T || V
+            Span<byte> src = V[..Math.Min(V.Length, secret_data.Length - secret_byte_index)];
+            Span<byte> target = secret_data[secret_byte_index..];
+            src.CopyTo(target);
+            secret_byte_index += src.Length;
+
+            if (secret_byte_index >= NUM_BYTES)
+            {
+                if (IsValidPrivateKey(secret_data))
+                {
+                    secret_data[..result.Length].CopyTo(result);
+                    secret_data.Clear();
+                    return;
+                }
+
+                // Doesn't meet the curve criteria,
+                // start filling from zero
+                secret_data.Clear();
+                secret_byte_index = 0;
+            }
+
+            // H3
+            hmac.Init(K);  // K = HMAC_K(V || 00 || seed || 00 || personalization)
+            hmac.Update(V);
+            hmac.Update(separator_00);
+            hmac.Update(seed);
+            hmac.Update(separator_00);
+            hmac.Update(personalization);
+            hmac.Digest(K);
+
+            hmac.Init(K); // V = HMAC_K(V)
+            hmac.Update(V);
+            hmac.Digest(V);
         }
     }
 
@@ -245,7 +410,14 @@ public readonly struct EdCurve : ICurve
     {
         Span<byte> rnd = stackalloc byte[32];
         RNG.Fill(rnd);
-        GenerateDeterministicSecret<HMAC_SHA512>(result, rnd, entropy, 0);
+        GenerateDeterministicSecret<HMAC_SHA512>(result, rnd, entropy, rnd.Length);
+    }
+
+    public void GenerateRandomNonce(Span<byte> result, ReadOnlySpan<byte> entropy)
+    {
+        Span<byte> rnd = stackalloc byte[32];
+        RNG.Fill(rnd);
+        GenerateDeterministicNonce<HMAC_SHA512>(result, rnd, entropy, rnd.Length);
     }
 
     /// <summary>
