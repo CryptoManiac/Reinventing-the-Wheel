@@ -291,12 +291,12 @@ public struct EdPrivateKey : IPrivateKey
     /// <returns>True if successful</returns>
     public bool Parse(ReadOnlySpan<byte> private_key)
     {
-        if (private_key.Length != secret_scalar_data.Length)
+        if (private_key.Length < secret_scalar_data.Length)
         {
             return false;
         }
 
-        private_key.CopyTo(secret_scalar_data);
+        private_key[..32].CopyTo(secret_scalar_data);
         return IsValid;
     }
 
@@ -315,7 +315,7 @@ public struct EdPrivateKey : IPrivateKey
     /// <returns>True if successful and this key is valid</returns>
     public readonly bool Serialize(Span<byte> secret_scalar)
     {
-        if (secret_scalar.Length != secret_scalar_data.Length || !IsValid)
+        if (secret_scalar.Length < secret_scalar_data.Length || !IsValid)
         {
             return false;
         }

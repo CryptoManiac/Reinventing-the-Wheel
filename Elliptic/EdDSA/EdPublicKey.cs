@@ -138,12 +138,12 @@ public struct EdPublicKey : IPublicKey
 
     public bool Parse(ReadOnlySpan<byte> public_key)
     {
-        if (public_key.Length != public_point_data.Length)
+        if (public_key.Length < public_point_data.Length)
         {
             return false;
         }
 
-        public_key.CopyTo(public_point_data);
+        public_key[..32].CopyTo(public_point_data);
         return IsValid;
     }
 
@@ -159,7 +159,7 @@ public struct EdPublicKey : IPublicKey
     /// <returns>True if successful and this key is valid</returns>
     public readonly bool Serialize(Span<byte> serialized)
     {
-        if (serialized.Length != public_point_data.Length || !IsValid)
+        if (serialized.Length < public_point_data.Length || !IsValid)
         {
             return false;
         }
