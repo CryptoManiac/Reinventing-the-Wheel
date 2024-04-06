@@ -51,11 +51,21 @@ foreach (var (name, algo) in curves)
 
     ECPublicKey unserializedA = new(algo, public_key);
     ECPublicKey uncompressedA = new(algo);
+
+    if (uncompressedA.Decompress(public_key))
+    {
+        throw new SystemException("Public key decompression suceeded while it shouldn't have");
+    }
+
+    if (uncompressedA.Parse(public_key_compressed))
+    {
+        throw new SystemException("Public key deserialization suceeded while it shouldn't have");
+    }
+
     if (!uncompressedA.Decompress(public_key_compressed))
     {
         throw new SystemException("Public key decompression failed");
     }
-
 
     Console.WriteLine("{0} private key A: {1}", name, Convert.ToHexString(secret_key));
     Console.WriteLine("{0} public key A uncompressed: {1}\n", name, Convert.ToHexString(public_key));
@@ -80,6 +90,16 @@ foreach (var (name, algo) in curves)
     if (!uncompressedA.VerifySignature(decoded, message_hash))
     {
         throw new SystemException("Signature validation failed (2)");
+    }
+
+    if (uncompressedA.VerifySignature(decoded, null))
+    {
+        throw new SystemException("Signature validation suceeded on null");
+    }
+
+    if (uncompressedA.VerifySignature(decoded, random_message))
+    {
+        throw new SystemException("Signature validation suceeded while it shouldn't have");
     }
 }
 
