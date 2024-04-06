@@ -50,7 +50,7 @@ internal static partial class VLI
         // Search from the end until we find a non-zero word.
         //  We do it in reverse because we expect that most digits will be nonzero.
         int i;
-        for (i = num_words - 1; i >= 0 && words[i] == 0; --i) ;
+        for (i = num_words - 1; i > 0 && words[i] == 0; --i) ;
         int used_words = i + 1;
 
         ulong digit = words[used_words - 1];
