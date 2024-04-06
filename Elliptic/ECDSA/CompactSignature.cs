@@ -39,7 +39,7 @@ public struct CompactSignature : IECDSASignature
     {
         get
         {
-            fixed (ulong* ptr = &signature_data[curve.NUM_WORDS])
+            fixed (ulong* ptr = &signature_data[_curve.NUM_WORDS])
             {
                 return new Span<ulong>(ptr, _curve.NUM_WORDS);
             }
@@ -136,7 +136,7 @@ public struct CompactSignature : IECDSASignature
     /// </summary>
     /// <param name="curve"></param>
     /// <returns></returns>
-    public static int GetEncodedSize(ICurve curve)
+    public static int GetEncodedSize(ECCurve curve)
     {
         return 2 * curve.NUM_BYTES;
     }

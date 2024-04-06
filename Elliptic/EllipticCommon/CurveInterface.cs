@@ -11,40 +11,6 @@ public interface ICurve
     /// </summary>
     public ulong randomId { get; }
 
-    #region Curve's point coordinate size
-    public int NUM_N_BITS { get; }
-
-    #region Calculated lengths
-    public int NUM_WORDS { get; }
-    public int NUM_BYTES { get; }
-    #endregion
-    #endregion
-
-    /// <summary>
-    /// Size of encoded private key in bytes
-    /// </summary>
-    public int PrivateKeySize { get; }
-
-    /// <summary>
-    /// Size of uncompressed public key in bytes
-    /// </summary>
-    public int UncompressedPublicKeySize { get; }
-
-    /// <summary>
-    /// Size of compressed public key in bytes
-    /// </summary>
-    public int CompressedPublicKeySize { get; }
-
-    /// <summary>
-    /// Maximum size of DER signature in bytes
-    /// </summary>
-    public int DERSignatureSize { get; }
-
-    /// <summary>
-    /// Size of compact signature in bytes
-    /// </summary>
-    public int CompactSignatureSize { get; }
-
     /// <summary>
     /// Check whether the provided byte array contains a valid public key
     /// </summary>

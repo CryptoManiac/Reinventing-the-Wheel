@@ -7,31 +7,6 @@ using Wheel.Hashing.HMAC.SHA2;
 
 namespace Wheel.Crypto.Elliptic.ECDSA;
 
-#region Random number generator
-internal static class RNG
-{
-    private static System.Security.Cryptography.RandomNumberGenerator gen = System.Security.Cryptography.RandomNumberGenerator.Create();
-    private static object LockGuard = new();
-
-    public static void Fill(Span<ulong> rnd)
-    {
-        lock (LockGuard)
-        {
-            Span<byte> byteView = MemoryMarshal.Cast<ulong, byte>(rnd);
-            RNG.gen.GetBytes(byteView);
-        }
-    }
-
-    public static void Fill(Span<byte> rnd)
-    {
-        lock (LockGuard)
-        {
-            RNG.gen.GetBytes(rnd);
-        }
-    }
-}
-#endregion
-
 #region Curve points
 /// <summary>
 /// A set of ECC curve points is defined as the separate structure because you can't declare fixed buffer as readonly

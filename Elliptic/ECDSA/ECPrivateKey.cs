@@ -191,7 +191,7 @@ public struct ECPrivateKey : IPrivateKey
     /// </summary>
     /// <param name="curve"></param>
     /// <returns>Number of bytes</returns>
-    public static int GetEncodedSize(ICurve curve)
+    public static int GetEncodedSize(ECCurve curve)
     {
         return curve.NUM_BYTES;
     }
@@ -224,7 +224,7 @@ public struct ECPrivateKey : IPrivateKey
     public bool Parse(ReadOnlySpan<byte> private_key)
     {
         Reset();
-        Span<ulong> native_key = stackalloc ulong[curve.NUM_WORDS];
+        Span<ulong> native_key = stackalloc ulong[_curve.NUM_WORDS];
         VLI.BytesToNative(native_key, private_key, _curve.NUM_BYTES);
         bool result = Wrap(native_key);
         VLI.Clear(native_key, _curve.NUM_WORDS);

@@ -1,4 +1,6 @@
-﻿using Wheel.Crypto.Elliptic.EllipticCommon;
+﻿using Wheel.Crypto.Elliptic.EdDSA.Internal;
+using Wheel.Crypto.Elliptic.EdDSA.Internal.GroupElement;
+using Wheel.Crypto.Elliptic.EllipticCommon;
 using Wheel.Hashing;
 using Wheel.Hashing.HMAC;
 
@@ -6,20 +8,107 @@ namespace Wheel.Crypto.Elliptic.EdDSA;
 
 public struct EdPrivateKey : IPrivateKey
 {
-    public readonly ICurve curve => throw new NotImplementedException();
+    /// <summary>
+    /// The secret key funcions are using slices that are being made from this hidden array.
+    /// </summary>
+    internal unsafe fixed byte private_key_data[32];
+
+    /// <summary>
+    /// Local copy of EC implementation instance
+    /// </summary>
+    private readonly EdCurve _curve;
+
+    /// <summary>
+    /// ECC implementation to use (exposed to users)
+    /// </summary>
+    public readonly ICurve curve => _curve;
+
+    /// <summary>
+    /// Encoded key size in bytes
+    /// </summary>
+    public readonly int EncodedSize => data.Length;
+
+    /// <summary>
+    /// Access to public point data
+    /// </summary>
+    private readonly unsafe Span<byte> data
+    {
+        get
+        {
+            fixed (byte* ptr = &private_key_data[0])
+            {
+                return new Span<byte>(ptr, 32);
+            }
+        }
+    }
 
     public readonly bool IsValid => throw new NotImplementedException();
 
-    public readonly int EncodedSize => throw new NotImplementedException();
+    /// <summary>
+    /// The default constructor should never be called
+    /// </summary>
+    /// <exception cref="SystemException"></exception>
+    public EdPrivateKey()
+    {
+        throw new SystemException("The default constructor should never be called");
+    }
+
+    /// <summary>
+    /// Construct the empty key
+    /// </summary>
+    /// <param name="_curve">ECC implementation</param>
+    public EdPrivateKey(in ICurve curve)
+    {
+        if (curve is not EdCurve)
+        {
+            // Shouldn't happen in real life
+            throw new InvalidOperationException("Invalid curve implementation instance");
+        }
+
+        _curve = (EdCurve)curve;
+
+        // Init with zeros
+        Reset();
+    }
+
+    /// <summary>
+    /// Construct the the new private key instance from the given serialized scalar
+    /// </summary>
+    /// <param name="_curve">ECC implementation</param>
+    public EdPrivateKey(in ICurve curve, ReadOnlySpan<byte> scalar) : this(curve)
+    {
+        if (!Parse(scalar))
+        {
+            throw new InvalidDataException("Provided scalar is not valid");
+        }
+    }
 
     public readonly bool CalculateKeyHash<HASHER_IMPL>(Span<byte> secret_hash) where HASHER_IMPL : unmanaged, IHasher
     {
-        throw new NotImplementedException();
+        HASHER_IMPL hasher = new();
+        if (secret_hash.Length == hasher.HashSz)
+        {
+            hasher.Update(data);
+            hasher.Digest(secret_hash);
+            return true;
+        }
+        return false;
     }
 
     public readonly bool ComputePublicKey(out IPublicKey public_key)
     {
-        throw new NotImplementedException();
+        GE25519 A;
+        IHasher hasher = _curve.makeHasher();
+        Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
+        Span<byte> public_bytes = stackalloc byte[32];
+
+        /* A = aB */
+        ModM.expand256(a, data, 32);
+        GEMath.ge25519_scalarmult_base_niels(ref A, GEMath.tables.NIELS_Base_Multiples, a);
+        GEMath.ge25519_pack(public_bytes, A);
+
+        public_key = new EdPublicKey(_curve);
+        return public_key.Parse(public_bytes);
     }
 
     public readonly bool ECDH(in IPublicKey public_key, out IPrivateKey shared)
@@ -34,27 +123,195 @@ public struct EdPrivateKey : IPrivateKey
 
     public bool Parse(ReadOnlySpan<byte> private_key)
     {
-        throw new NotImplementedException();
+        if (private_key.Length != data.Length)
+        {
+            return false;
+        }
+
+        private_key[..32].CopyTo(data);
+        return true;
     }
 
     public void Reset()
     {
-        throw new NotImplementedException();
+        data.Clear();
     }
 
     public readonly bool Serialize(Span<byte> secret_scalar)
     {
-        throw new NotImplementedException();
+        if (secret_scalar.Length != data.Length)
+        {
+            return false;
+        }
+
+        data.CopyTo(secret_scalar[..32]);
+        return true;
     }
 
-    public readonly bool Sign<HMAC_IMPL>(out ISignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+    private readonly bool SignDeterministic<HMAC_IMPL>(Span<byte> sig_r, Span<byte> sig_s, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
     {
-        throw new NotImplementedException();
+        Span<ulong> r = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> S = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
+
+        GE25519 R;
+
+        // r = DRNG(secret, message_hash, message_hash_len)
+        Span<byte> rnd = stackalloc byte[64];
+        _curve.GenerateDeterministicSecret<HMAC_IMPL>(rnd, data, message_hash, message_hash.Length);
+        ModM.expand256(r, rnd, 64);
+
+        // R = rB
+        GEMath.ge25519_scalarmult_base_niels(ref R, GEMath.tables.NIELS_Base_Multiples, r);
+        GEMath.ge25519_pack(sig_r, R);
+
+        // S = H(R,A,m)..
+        Span<byte> hram = stackalloc byte[64];
+        IHasher hasher = _curve.makeHasher();
+        hasher.Update(sig_r);
+        hasher.Update(data);
+        hasher.Update(message_hash);
+        hasher.Digest(hram);
+        ModM.expand256(S, hram, 64);
+
+        // S = H(R,A,m)a
+        ModM.expand256(a, data, 32);
+        ModM.mul256(S, S, a);
+
+        // S = (r + H(R,A,m)a)
+        ModM.add256(S, S, r);
+
+        // S = (r + H(R,A,m)a) mod L
+        ModM.contract256(sig_s, S);
+
+        return true;
     }
 
+    private readonly bool Sign<HMAC_IMPL>(Span<byte> sig_r, Span<byte> sig_s, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+    {
+        Span<ulong> r = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> S = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
+
+        GE25519 R;
+
+        // rnd = DRNG(secret, message_hash, message_hash_len)
+        // r = RNG(rnd, message_hash)
+        Span<byte> rnd = stackalloc byte[64];
+        _curve.GenerateDeterministicSecret<HMAC_IMPL>(rnd, data, message_hash, message_hash.Length);
+        _curve.GenerateRandomSecret(rnd, rnd);
+        ModM.expand256(r, rnd, 64);
+
+        // R = rB
+        GEMath.ge25519_scalarmult_base_niels(ref R, GEMath.tables.NIELS_Base_Multiples, r);
+        GEMath.ge25519_pack(sig_r, R);
+
+        // S = H(R,A,m)..
+        Span<byte> hram = stackalloc byte[64];
+        IHasher hasher = _curve.makeHasher();
+        hasher.Update(sig_r);
+        hasher.Update(data);
+        hasher.Update(message_hash);
+        hasher.Digest(hram);
+        ModM.expand256(S, hram, 64);
+
+        // S = H(R,A,m)a
+        ModM.expand256(a, data, 32);
+        ModM.mul256(S, S, a);
+
+        // S = (r + H(R,A,m)a)
+        ModM.add256(S, S, r);
+
+        // S = (r + H(R,A,m)a) mod L
+        ModM.contract256(sig_s, S);
+
+        return true;
+    }
+
+    /// <summary>
+    /// Generate an ECDSA signature for a given hash value, using a deterministic algorithm
+    /// 
+    /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
+    /// </summary>
+    /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
+    /// <param name="message_hash">The hash of the message to sign</param>
+    /// <returns></returns>
+    public readonly bool SignDeterministic<HMAC_IMPL>(out DERSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+    {
+        signature = new(_curve);
+        return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
+    }
+
+    /// <summary>
+    /// Generate an ECDSA signature for a given hash value, using a deterministic algorithm
+    /// 
+    /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
+    /// </summary>
+    /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
+    /// <param name="message_hash">The hash of the message to sign</param>
+    /// <returns></returns>
+    public readonly bool SignDeterministic<HMAC_IMPL>(out CompactSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+    {
+        signature = new(_curve);
+        return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
+    }
+
+    /// <summary>
+    /// Generate an ECDSA signature for a given hash value, using a non-deterministic algorithm
+    /// 
+    /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
+    /// </summary>
+    /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
+    /// <param name="message_hash">The hash of the message to sign</param>
+    /// <returns></returns>
     public readonly bool SignDeterministic<HMAC_IMPL>(out ISignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
     {
-        throw new NotImplementedException();
+        bool result = SignDeterministic<HMAC_IMPL>(out DERSignature generatedSig, message_hash);
+        signature = generatedSig;
+        return result;
+    }
+
+    /// <summary>
+    /// Generate an ECDSA signature for a given hash value, using a non-deterministic algorithm
+    /// 
+    /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
+    /// </summary>
+    /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
+    /// <param name="message_hash">The hash of the message to sign</param>
+    /// <returns></returns>
+    public readonly bool Sign<HMAC_IMPL>(out DERSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+    {
+        signature = new(_curve);
+        return Sign<HMAC_IMPL>(signature.r, signature.s, message_hash);
+    }
+
+    /// <summary>
+    /// Generate an ECDSA signature for a given hash value, using a non-deterministic algorithm
+    /// 
+    /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
+    /// </summary>
+    /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
+    /// <param name="message_hash">The hash of the message to sign</param>
+    /// <returns></returns>
+    public readonly bool Sign<HMAC_IMPL>(out CompactSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+    {
+        signature = new(_curve);
+        return Sign<HMAC_IMPL>(signature.r, signature.s, message_hash);
+    }
+
+    /// <summary>
+    /// Generate an ECDSA signature for a given hash value, using a non-deterministic algorithm
+    /// 
+    /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
+    /// </summary>
+    /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
+    /// <param name="message_hash">The hash of the message to sign</param>
+    /// <returns></returns>
+    public readonly bool Sign<HMAC_IMPL>(out ISignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+    {
+        bool result = Sign<HMAC_IMPL>(out CompactSignature generatedSig, message_hash);
+        signature = generatedSig;
+        return result;
     }
 }
 

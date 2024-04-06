@@ -176,7 +176,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
     /// </summary>
     /// <param name="curve"></param>
     /// <returns>Number of bytes</returns>
-    public static int GetUncompressedSize(ICurve curve)
+    public static int GetUncompressedSize(ECCurve curve)
     {
         return 2 * curve.NUM_BYTES;
     }
@@ -186,7 +186,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
     /// </summary>
     /// <param name="curve"></param>
     /// <returns>Number of bytes</returns>
-    public static int GetCompressedSize(ICurve curve)
+    public static int GetCompressedSize(ECCurve curve)
     {
         return 1 + curve.NUM_BYTES;
     }

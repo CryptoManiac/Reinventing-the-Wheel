@@ -6,7 +6,7 @@ namespace Wheel.Crypto.Elliptic.EdDSA.Internal.GroupElement;
 
 internal static class GEMath
 {
-    private static Tables tables = Tables.Get_Tables();
+    public static Tables tables = Tables.Get_Tables();
 
     #region Conversions
     public static void ge25519_p1p1_to_partial(ref GE25519 r, in GE25519 p)
@@ -208,7 +208,7 @@ internal static class GEMath
 
     #region pack & unpack
 
-    public static void ge25519_pack(Span<byte> r, in ReadOnlyGE25519 p)
+    public static void ge25519_pack(Span<byte> r, in GE25519 p)
     {
         Span<byte> parity = stackalloc byte[32];
         Span<ulong> tx = stackalloc ulong[ModM.ModM_WORDS];
@@ -355,7 +355,7 @@ internal static class GEMath
         return ((b ^ c) - 1) >> 31;
     }
 
-    public static void ge25519_scalarmult_base_choose_niels(ref GE25519_NIELS t, ReadOnlySpan<GE25519_NIELS_Packed> table, int pos, int b)
+    public static void ge25519_scalarmult_base_choose_niels(ref GE25519_NIELS t, ReadOnlySpan<ReadOnlyGE25519_NIELS_Packed> table, int pos, int b)
     {
 
         Span<ulong> neg = stackalloc ulong[ModM.ModM_WORDS];
@@ -391,7 +391,7 @@ internal static class GEMath
 
 
     /* computes [s]basepoint */
-    public static void ge25519_scalarmult_base_niels(ref GE25519 r, ReadOnlySpan<GE25519_NIELS_Packed> basepoint_table, ReadOnlySpan<ulong> s)
+    public static void ge25519_scalarmult_base_niels(ref GE25519 r, ReadOnlySpan<ReadOnlyGE25519_NIELS_Packed> basepoint_table, ReadOnlySpan<ulong> s)
     {
 
         Span<sbyte> b = stackalloc sbyte[64];

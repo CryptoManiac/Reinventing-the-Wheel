@@ -1,17 +1,16 @@
 ﻿using Wheel.Crypto.Elliptic.EllipticCommon;
-using Wheel.Crypto.Elliptic.ECDSA.Internal;
 
-namespace Wheel.Crypto.Elliptic.ECDSA;
+namespace Wheel.Crypto.Elliptic.EdDSA;
 
 /// <summary>
-/// ECDSA DER encapsulated signature value pair
+/// EdDSA DER encapsulated signature value pair
 /// </summary>
-public struct DERSignature : IECDSASignature
+public struct DERSignature : IEdSignature
 {
     /// <summary>
     /// ECC implementation to use
     /// </summary>
-    private readonly ECCurve _curve { get; }
+    private readonly EdCurve _curve { get; }
 
     /// <summary>
     /// Public property for unification purposes
@@ -19,15 +18,25 @@ public struct DERSignature : IECDSASignature
     public readonly ICurve curve => _curve;
 
     /// <summary>
+    /// Encoded data size in bytes
+    /// </summary>
+    public readonly int EncodedSize => GetEncodedSize(_curve);
+
+    /// <summary>
+    /// The r and s are sliced from this hidden array.
+    /// </summary>
+    private unsafe fixed byte signature_data[64];
+
+    /// <summary>
     /// R part of the signature
     /// </summary>
-    public readonly unsafe Span<ulong> r
+    public readonly unsafe Span<byte> r
     {
         get
         {
-            fixed (ulong* ptr = &signature_data[0])
+            fixed (byte* ptr = &signature_data[0])
             {
-                return new Span<ulong>(ptr, _curve.NUM_WORDS);
+                return new Span<byte>(ptr, 32);
             }
         }
     }
@@ -35,26 +44,16 @@ public struct DERSignature : IECDSASignature
     /// <summary>
     /// S part of the signature
     /// </summary>
-    public readonly unsafe Span<ulong> s
+    public readonly unsafe Span<byte> s
     {
         get
         {
-            fixed (ulong* ptr = &signature_data[_curve.NUM_WORDS])
+            fixed (byte* ptr = &signature_data[32])
             {
-                return new Span<ulong>(ptr, _curve.NUM_WORDS);
+                return new Span<byte>(ptr, 32);
             }
         }
     }
-
-    /// <summary>
-    /// Maximum encoded data size in bytes
-    /// </summary>
-    public readonly int EncodedSize => GetEncodedSize(_curve);
-
-    /// <summary>
-    /// The r and s are sliced from this hidden array.
-    /// </summary>
-    private unsafe fixed ulong signature_data[2 * VLI.ECC_MAX_WORDS];
 
     public DERSignature()
     {
@@ -65,15 +64,9 @@ public struct DERSignature : IECDSASignature
     /// Construct the empty signature for given curve
     /// </summary>
     /// <param name="curve">ECC implementation</param>
-    public DERSignature(ECCurve curve)
+    public DERSignature(EdCurve curve)
     {
-        // Sanity check constraint
-        if (curve.NUM_WORDS > VLI.ECC_MAX_WORDS)
-        {
-            throw new SystemException("The configured curve point coordinate size is unexpectedly big");
-        }
-
-        this._curve = curve;
+        _curve = curve;
         r.Clear();
         s.Clear();
     }
@@ -82,7 +75,7 @@ public struct DERSignature : IECDSASignature
     /// Create instance and parse provided data
     /// </summary>
     /// <param name="curve">ECC implementation</param>
-    public DERSignature(ECCurve curve, ReadOnlySpan<byte> bytes) : this(curve)
+    public DERSignature(EdCurve curve, ReadOnlySpan<byte> bytes) : this(curve)
     {
         if (!Parse(bytes))
         {
@@ -94,15 +87,9 @@ public struct DERSignature : IECDSASignature
     {
         encoded.Clear();
 
-        // Encode R and S values
-        Span<byte> r_data = stackalloc byte[_curve.NUM_BYTES];
-        Span<byte> s_data = stackalloc byte[_curve.NUM_BYTES];
-        VLI.NativeToBytes(r_data, _curve.NUM_BYTES, r);
-        VLI.NativeToBytes(s_data, _curve.NUM_BYTES, s);
-
         // Check whether we have 0x7f byte or not to add prefix
-        int lenR = r_data.Length + (r_data[0] > 0x7F ? 1 : 0);
-        int lenS = s_data.Length + (s_data[0] > 0x7F ? 1 : 0);
+        int lenR = r.Length + (r[0] > 0x7F ? 1 : 0);
+        int lenS = s.Length + (s[0] > 0x7F ? 1 : 0);
 
         // Length of R and S and their prefixes
         int seqSz = 4 + lenR + lenS;
@@ -134,15 +121,14 @@ public struct DERSignature : IECDSASignature
             encoded[pos++] = (byte) lenR;
 
             // Negative R prefix
-            if (lenR != r_data.Length)
+            if (lenR != r.Length)
             {
                 encoded[pos++] = 0x00;
             }
 
-            r_data.CopyTo(encoded.Slice(pos, r_data.Length));
+            r.CopyTo(encoded.Slice(pos, r.Length));
 
-            int rPos = pos;
-            pos += r_data.Length;
+            pos += r.Length;
 
             // Integer tag for S
             encoded[pos++] = 0x02;
@@ -151,12 +137,12 @@ public struct DERSignature : IECDSASignature
             encoded[pos++] = (byte) lenS;
 
             // Negative S prefix
-            if (lenS != s_data.Length)
+            if (lenS != s.Length)
             {
                 encoded[pos++] = 0x00;
             }
 
-            s_data.CopyTo(encoded.Slice(pos, s_data.Length));
+            s.CopyTo(encoded.Slice(pos, s.Length));
         }
 
         // Number of bytes written
@@ -168,10 +154,10 @@ public struct DERSignature : IECDSASignature
     /// </summary>
     /// <param name="curve"></param>
     /// <returns></returns>
-    public static int GetEncodedSize(ECCurve curve)
+    public static int GetEncodedSize(EdCurve curve)
     {
         // Integer tags, integer lengths and prefixes
-        int seqSz = 4 + 2 * curve.NUM_BYTES + 2;
+        int seqSz = 4 + 2 * 32 + 2;
 
         // Content type tag + content length + sequence length
         int reqSz = 2 + seqSz;
@@ -322,28 +308,28 @@ public struct DERSignature : IECDSASignature
         }
 
         // Remove r prefix
-        if ((rlen - 1) == _curve.NUM_BYTES && encoded[rpos] == 0x00)
+        if ((rlen - 1) == 32 && encoded[rpos] == 0x00)
         {
             rpos++;
             rlen--;
         }
 
         // Remove s prefix
-        if ((slen - 1) == _curve.NUM_BYTES && encoded[spos] == 0x00)
+        if ((slen - 1) == 32 && encoded[spos] == 0x00)
         {
             spos++;
             slen--;
         }
 
-        if (rlen > _curve.NUM_BYTES || slen > _curve.NUM_BYTES)
+        if (rlen > 32 || slen > 32)
         {
             // Overflow
             return false;
         }
 
         // Decode R and S values
-        VLI.BytesToNative(r, encoded.Slice(rpos, rlen), rlen);
-        VLI.BytesToNative(s, encoded.Slice(spos, slen), slen);
+        encoded.Slice(rpos, rlen).CopyTo(r);
+        encoded.Slice(spos, slen).CopyTo(s);
 
         return true;
     }
