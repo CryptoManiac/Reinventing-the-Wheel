@@ -26,7 +26,7 @@ public struct EdPrivateKey : IPrivateKey
     /// <summary>
     /// Encoded key size in bytes
     /// </summary>
-    public readonly int EncodedSize => data.Length;
+    public readonly int EncodedSize => GetEncodedSize(_curve);
 
     /// <summary>
     /// Access to public point data
@@ -42,7 +42,36 @@ public struct EdPrivateKey : IPrivateKey
         }
     }
 
-    public readonly bool IsValid => throw new NotImplementedException();
+    /// <summary>
+    /// Check the private key format
+    /// </summary>
+    public readonly bool IsValid
+    {
+        get
+        {
+            Span<byte> keyCopy = stackalloc byte[32];
+            data.CopyTo(keyCopy);
+
+            keyCopy[0] &= 248;
+            keyCopy[31] &= 127;
+            keyCopy[31] |= 64;
+
+            bool isValid = keyCopy.SequenceEqual(data);
+            keyCopy.Clear();
+
+            return isValid;
+        }
+    }
+
+    /// <summary>
+    /// Size of encoded private key for a given curve
+    /// </summary>
+    /// <param name="curve"></param>
+    /// <returns>Number of bytes</returns>
+    public static int GetEncodedSize(EdCurve curve)
+    {
+        return 32;
+    }
 
     /// <summary>
     /// The default constructor should never be called
@@ -95,10 +124,9 @@ public struct EdPrivateKey : IPrivateKey
         return false;
     }
 
-    public readonly bool ComputePublicKey(out IPublicKey public_key)
+    public readonly bool ComputePublicKey(out EdPublicKey public_key)
     {
         GE25519 A;
-        IHasher hasher = _curve.makeHasher();
         Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
         Span<byte> public_bytes = stackalloc byte[32];
 
@@ -107,8 +135,13 @@ public struct EdPrivateKey : IPrivateKey
         GEMath.ge25519_scalarmult_base_niels(ref A, GEMath.tables.NIELS_Base_Multiples, a);
         GEMath.ge25519_pack(public_bytes, A);
 
-        public_key = new EdPublicKey(_curve);
+        public_key = new(_curve);
         return public_key.Parse(public_bytes);
+    }
+
+    public readonly bool ComputePublicKey(out IPublicKey public_key)
+    {
+        return ComputePublicKey(out public_key);
     }
 
     public readonly bool ECDH(in IPublicKey public_key, out IPrivateKey shared)

@@ -17,9 +17,27 @@ public struct EdPublicKey : IPublicKey
 
     public readonly ICurve curve => _curve;
 
-    public readonly bool IsValid => throw new NotImplementedException();
+    /// <summary>
+    /// Check the public key coordinate
+    /// </summary>
+    public readonly bool IsValid
+    {
+        get
+        {
+            GE25519 A;
+            return GEMath.ge25519_unpack_negative_vartime(ref A, data);
+        }
+    }
 
-    public readonly int EncodedSize => data.Length;
+    /// <summary>
+    /// Encoded key size in bytes
+    /// </summary>
+    public readonly int EncodedSize => GetUncompressedSize(_curve);
+
+    /// <summary>
+    /// Encoded key size in bytes
+    /// </summary>
+    public readonly int CompressedSize => GetCompressedSize(_curve);
 
     /// <summary>
     /// Access to public point data
@@ -106,6 +124,28 @@ public struct EdPublicKey : IPublicKey
         return true;
     }
 
+    public readonly bool Compress(Span<byte> compressed) => Serialize(compressed);
+
+    /// <summary>
+    /// Size of uncompressed public key for a given curve
+    /// </summary>
+    /// <param name="curve"></param>
+    /// <returns>Number of bytes</returns>
+    public static int GetUncompressedSize(EdCurve curve)
+    {
+        return 32;
+    }
+
+    /// <summary>
+    /// Size of compressed public key for a given curve
+    /// </summary>
+    /// <param name="curve"></param>
+    /// <returns>Number of bytes</returns>
+    public static int GetCompressedSize(EdCurve curve)
+    {
+        return 32;
+    }
+
     /// <summary>
     /// Verify an ECDSA signature.
     /// Usage: Compute the hash of the signed data using the same hash as the signer and
@@ -117,10 +157,15 @@ public struct EdPublicKey : IPublicKey
     /// <returns></returns>
     private readonly bool VerifySignature(ReadOnlySpan<byte> r, ReadOnlySpan<byte> s, ReadOnlySpan<byte> message_hash)
     {
+        if (Convert.ToBoolean(s[31] & 224) || IsValid)
+        {
+            return false;
+        }
+
+        GE25519 R, A;
         Span<ulong> hram = stackalloc ulong[ModM.ModM_WORDS];
         Span<ulong> S = stackalloc ulong[ModM.ModM_WORDS];
         Span<byte> checkR = stackalloc byte[32];
-        GE25519 R, A;
 
         IHasher hasher = _curve.makeHasher();
         Span<byte> hash = stackalloc byte[hasher.HashSz];

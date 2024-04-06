@@ -37,6 +37,31 @@ public readonly struct EdCurve : ICurve
     private readonly unsafe delegate* managed<IHasher> _hasher;
 
     /// <summary>
+    /// Size of encoded private key in bytes
+    /// </summary>
+    public int PrivateKeySize => EdPrivateKey.GetEncodedSize(this);
+
+    /// <summary>
+    /// Size of uncompressed public key in bytes
+    /// </summary>
+    public int UncompressedPublicKeySize => EdPublicKey.GetUncompressedSize(this);
+
+    /// <summary>
+    /// Size of compressed public key in bytes
+    /// </summary>
+    public int CompressedPublicKeySize => EdPublicKey.GetCompressedSize(this);
+
+    /// <summary>
+    /// Maximum size of DER signature in bytes
+    /// </summary>
+    public int DERSignatureSize => DERSignature.GetEncodedSize(this);
+
+    /// <summary>
+    /// Size of compact signature in bytes
+    /// </summary>
+    public int CompactSignatureSize => CompactSignature.GetEncodedSize(this);
+
+    /// <summary>
     /// Returns instance of SHA-512 hasher
     /// </summary>
     /// <returns></returns>
@@ -182,7 +207,7 @@ public readonly struct EdCurve : ICurve
 
         // H
         int secret_byte_index = 0;
-        Span<byte> secret_data = stackalloc byte[32];
+        Span<byte> secret_data = stackalloc byte[result.Length];
 
         while (true)
         {
@@ -198,7 +223,7 @@ public readonly struct EdCurve : ICurve
             src.CopyTo(target);
             secret_byte_index += src.Length;
 
-            if (secret_byte_index >= 32)
+            if (secret_byte_index >= result.Length)
             {
                 secret_data[..result.Length].CopyTo(result);
                 secret_data.Clear();
