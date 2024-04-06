@@ -18,14 +18,12 @@
     <ProjectReference Include="..\..\PBKDF2\PBKDF2.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="misc\" />
     <None Remove="Internal\" />
     <None Remove="Internal\GroupElement\" />
     <None Remove="Internal\Primitives\" />
     <None Remove="Internal\Curve25519\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="misc\" />
     <Folder Include="Internal\GroupElement\" />
     <Folder Include="Internal\Primitives\" />
     <Folder Include="Internal\Curve25519\" />
