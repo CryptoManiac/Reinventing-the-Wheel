@@ -288,6 +288,17 @@ internal static class GEMath
 
     #endregion
 
+    #region Helpers
+
+    private static void ge25519_set_neutral(ref GE25519 r)
+    {
+        r.ALL.Clear();
+        r.Y[0] = 1;
+        r.Z[0] = 1;
+    }
+
+    #endregion
+
     #region Scalarmults
 
     private const int S1_SWINDOWSIZE = 5;
@@ -319,10 +330,8 @@ internal static class GEMath
             ge25519_pnielsadd(ref pre1[i + 1], d1, pre1[i]);
         }
 
-        /* set neutral */
-        r.ALL.Clear();
-        r.Y[0] = 1;
-        r.Z[0] = 1;
+        // set neutral
+        ge25519_set_neutral(ref r);
 
         i = 255;
         while ((i >= 0) && !Convert.ToBoolean(slide1[i] | slide2[i]))
@@ -344,6 +353,48 @@ internal static class GEMath
             {
                 ge25519_p1p1_to_full(ref r, t);
                 ge25519_nielsadd2_p1p1(ref t, r, tables.NIELS_Sliding_Multiples[Math.Abs(slide2[i]) / 2], (byte)slide2[i] >> 7);
+            }
+
+            ge25519_p1p1_to_partial(ref r, t);
+        }
+    }
+
+    /// <summary>
+    /// computes [s1]p1
+    /// </summary>
+    public static void ge25519_scalarmult_vartime(ref GE25519 r, in GE25519 p1, ReadOnlySpan<ulong> s1)
+    {
+
+        Span<sbyte> slide1 = stackalloc sbyte[256];
+        Span<GE25519_PNIELS> pre1 = stackalloc GE25519_PNIELS[S1_TABLE_SIZE];
+        GE25519 d1;
+        GE25519 t;
+        int i;
+
+        ModM.contract256_slidingwindow(slide1, s1, S1_SWINDOWSIZE);
+
+        ge25519_double(ref d1, p1);
+        ge25519_full_to_pniels(ref pre1[0], p1);
+        for (i = 0; i < S1_TABLE_SIZE - 1; i++)
+            ge25519_pnielsadd(ref pre1[i + 1], d1, pre1[i]);
+
+        // set neutral
+        ge25519_set_neutral(ref r);
+
+        i = 255;
+        while ((i >= 0) && !Convert.ToBoolean(slide1[i]))
+        {
+            i--;
+        }
+
+        for (; i >= 0; i--)
+        {
+            ge25519_double_p1p1(ref t, r);
+
+            if (Convert.ToBoolean(slide1[i]))
+            {
+                ge25519_p1p1_to_full(ref r, t);
+                ge25519_pnielsadd_p1p1(ref t, r, pre1[Math.Abs(slide1[i]) / 2], (byte)slide1[i] >> 7);
             }
 
             ge25519_p1p1_to_partial(ref r, t);
