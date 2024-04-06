@@ -1,4 +1,6 @@
-﻿namespace Wheel.Crypto.Elliptic.EllipticCommon;
+﻿using System.Security.Cryptography;
+
+namespace Wheel.Crypto.Elliptic.EllipticCommon;
 
 public interface IPublicKey
 {
@@ -16,6 +18,11 @@ public interface IPublicKey
     /// Encoded data size in bytes
     /// </summary>
     public int EncodedSize { get; }
+
+    /// <summary>
+    /// Encoded key size in bytes
+    /// </summary>
+    public int CompressedSize { get; }
 
     /// <summary>
     /// Erase object state
