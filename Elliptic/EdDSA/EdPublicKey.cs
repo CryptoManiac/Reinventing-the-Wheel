@@ -25,7 +25,7 @@ public struct EdPublicKey : IPublicKey
         get
         {
             GE25519 A;
-            return GEMath.ge25519_unpack_negative_vartime(ref A, data);
+            return GEMath.ge25519_unpack_negative_vartime(ref A, public_point_data);
         }
     }
 
@@ -42,7 +42,7 @@ public struct EdPublicKey : IPublicKey
     /// <summary>
     /// Access to public point data
     /// </summary>
-    private readonly unsafe Span<byte> data
+    private readonly unsafe Span<byte> public_point_data
     {
         get
         {
@@ -94,16 +94,22 @@ public struct EdPublicKey : IPublicKey
 
     public bool KeyTweak(out IPublicKey result, ReadOnlySpan<byte> scalar)
     {
-        GE25519 R, P, Q;
         result = new EdPublicKey(_curve);
-        Span<byte> res = stackalloc byte[32];
 
-        if (!GEMath.ge25519_unpack_negative_vartime(ref P, data))
+        GE25519 R, P, Q;
+
+        if (!GEMath.ge25519_unpack_negative_vartime(ref P, public_point_data))
+        {
             return false;
+        }
         if (!GEMath.ge25519_unpack_negative_vartime(ref Q, scalar))
+        {
             return false;
+        }
 
         GEMath.ge25519_add(ref R, P, Q);
+
+        Span<byte> res = stackalloc byte[32];
         GEMath.ge25519_pack(res, R);
 
         res[31] ^= 0x80;
@@ -112,28 +118,28 @@ public struct EdPublicKey : IPublicKey
 
     public bool Parse(ReadOnlySpan<byte> public_key)
     {
-        if (public_key.Length != data.Length)
+        if (public_key.Length != public_point_data.Length)
         {
             return false;
         }
 
-        public_key[..32].CopyTo(data);
-        return true;
+        public_key.CopyTo(public_point_data);
+        return IsValid;
     }
 
     public void Reset()
     {
-        data.Clear();
+        public_point_data.Clear();
     }
 
     public readonly bool Serialize(Span<byte> public_key)
     {
-        if (public_key.Length != data.Length)
+        if (public_key.Length != public_point_data.Length || !IsValid)
         {
             return false;
         }
 
-        data.CopyTo(public_key[..32]);
+        public_point_data.CopyTo(public_key[..32]);
         return true;
     }
 
@@ -175,13 +181,8 @@ public struct EdPublicKey : IPublicKey
             throw new InvalidOperationException("Invalid curve implementation instance");
         }
 
-        if (public_key.Length != 32)
-        {
-            return false;
-        }
-
-        GE25519 A;
-        return GEMath.ge25519_unpack_negative_vartime(ref A, public_key);
+        EdPublicKey pk = new(curve);
+        return pk.Parse(public_key);
     }
 
     /// <summary>
@@ -202,7 +203,7 @@ public struct EdPublicKey : IPublicKey
 
         GE25519 R, A;
 
-        if (!GEMath.ge25519_unpack_negative_vartime(ref A, data))
+        if (!GEMath.ge25519_unpack_negative_vartime(ref A, public_point_data))
         {
             return false;
         }
@@ -214,7 +215,7 @@ public struct EdPublicKey : IPublicKey
         IHasher hasher = _curve.makeHasher();
         Span<byte> hash = stackalloc byte[hasher.HashSz];
         hasher.Update(r);
-        hasher.Update(data);
+        hasher.Update(public_point_data);
         hasher.Update(message_hash);
         hasher.Digest(hash);
 

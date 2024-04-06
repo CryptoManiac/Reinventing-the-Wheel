@@ -14,11 +14,6 @@ public struct EdPrivateKey : IPrivateKey
     internal unsafe fixed byte private_key_data[32];
 
     /// <summary>
-    /// Public key is used for signing as well.
-    /// </summary>
-    internal unsafe fixed byte public_key_data[32];
-
-    /// <summary>
     /// Local copy of EC implementation instance
     /// </summary>
     private readonly EdCurve _curve;
@@ -36,25 +31,11 @@ public struct EdPrivateKey : IPrivateKey
     /// <summary>
     /// Access to public point data
     /// </summary>
-    private readonly unsafe Span<byte> data
+    private readonly unsafe Span<byte> secret_scalar_data
     {
         get
         {
             fixed (byte* ptr = &private_key_data[0])
-            {
-                return new Span<byte>(ptr, 32);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Access to public point data
-    /// </summary>
-    private readonly unsafe Span<byte> public_data
-    {
-        get
-        {
-            fixed (byte* ptr = &public_key_data[0])
             {
                 return new Span<byte>(ptr, 32);
             }
@@ -68,15 +49,15 @@ public struct EdPrivateKey : IPrivateKey
     {
         get
         {
-            Span<byte> keyCopy = stackalloc byte[32];
-            data.CopyTo(keyCopy);
+            Span<byte> keyCheck = stackalloc byte[32];
+            secret_scalar_data.CopyTo(keyCheck);
 
-            keyCopy[0] &= 248;
-            keyCopy[31] &= 127;
-            keyCopy[31] |= 64;
+            keyCheck[0] &= 248;
+            keyCheck[31] &= 127;
+            keyCheck[31] |= 64;
 
-            bool isValid = keyCopy.SequenceEqual(data);
-            keyCopy.Clear();
+            bool isValid = keyCheck.SequenceEqual(secret_scalar_data);
+            keyCheck.Clear();
 
             return isValid;
         }
@@ -145,22 +126,8 @@ public struct EdPrivateKey : IPrivateKey
             throw new InvalidOperationException("Invalid curve implementation instance");
         }
 
-        if (private_key.Length != 32)
-        {
-            return false;
-        }
-
-        Span<byte> keyCopy = stackalloc byte[32];
-        private_key.CopyTo(keyCopy);
-
-        keyCopy[0] &= 248;
-        keyCopy[31] &= 127;
-        keyCopy[31] |= 64;
-
-        bool isValid = keyCopy.SequenceEqual(private_key);
-        keyCopy.Clear();
-
-        return isValid;
+        EdPrivateKey pk = new(curve);
+        return pk.Parse(private_key);
     }
 
 
@@ -169,7 +136,7 @@ public struct EdPrivateKey : IPrivateKey
         HASHER_IMPL hasher = new();
         if (secret_hash.Length == hasher.HashSz)
         {
-            hasher.Update(data);
+            hasher.Update(secret_scalar_data);
             hasher.Digest(secret_hash);
             return true;
         }
@@ -179,10 +146,21 @@ public struct EdPrivateKey : IPrivateKey
     public readonly bool ComputePublicKey(out EdPublicKey public_key)
     {
         public_key = new(_curve);
+
         if (!IsValid)
         {
             return false;
         }
+
+        GE25519 public_point;
+        Span<ulong> secret_scalar = stackalloc ulong[ModM.ModM_WORDS];
+        Span<byte> public_data = stackalloc byte[32];
+
+        /* A = aB */
+        ModM.expand256(secret_scalar, secret_scalar_data, 32);
+        GEMath.ge25519_scalarmult_base_niels(ref public_point, GEMath.tables.NIELS_Base_Multiples, secret_scalar);
+        GEMath.ge25519_pack(public_data, public_point);
+
         return public_key.Parse(public_data);
     }
 
@@ -198,16 +176,22 @@ public struct EdPrivateKey : IPrivateKey
 
     public readonly bool KeyTweak(out IPrivateKey result, ReadOnlySpan<byte> scalar)
     {
-        Span<ulong> s1 = stackalloc ulong[ModM.ModM_WORDS];
-        Span<ulong> s2 = stackalloc ulong[ModM.ModM_WORDS];
-
-        ModM.expand256(s1, data, 32);
-        ModM.expand256(s2, scalar, 32);
-        ModM.add256(s1, s1, s2);
-
-        Span<byte> tweaked = stackalloc byte[32];
-        ModM.contract256(tweaked, s1);
         result = new EdPrivateKey(_curve);
+
+        if (!IsValid)
+        {
+            return false;
+        }
+
+        Span<ulong> sum = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> added = stackalloc ulong[ModM.ModM_WORDS];
+        Span<byte> tweaked = stackalloc byte[32];
+
+        ModM.expand256(sum, secret_scalar_data, 32);
+        ModM.expand256(added, scalar, 32);
+        ModM.add256(sum, sum, added);
+        ModM.contract256(tweaked, sum);
+
         result.Parse(tweaked);
         tweaked.Clear();
         return result.IsValid;
@@ -215,42 +199,40 @@ public struct EdPrivateKey : IPrivateKey
 
     public bool Parse(ReadOnlySpan<byte> private_key)
     {
-        if (!IsValidPrivateKey(_curve, private_key))
+        if (private_key.Length != secret_scalar_data.Length)
         {
             return false;
         }
 
-        private_key[..32].CopyTo(data);
-
-        GE25519 A;
-        Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
-
-        /* A = aB */
-        ModM.expand256(a, data, 32);
-        GEMath.ge25519_scalarmult_base_niels(ref A, GEMath.tables.NIELS_Base_Multiples, a);
-        GEMath.ge25519_pack(public_data, A);
-
-        return true;
+        private_key.CopyTo(secret_scalar_data);
+        return IsValid;
     }
 
     public void Reset()
     {
-        data.Clear();
+        secret_scalar_data.Clear();
     }
 
     public readonly bool Serialize(Span<byte> secret_scalar)
     {
-        if (secret_scalar.Length != data.Length)
+        if (secret_scalar.Length != secret_scalar_data.Length || !IsValid)
         {
             return false;
         }
 
-        data.CopyTo(secret_scalar[..32]);
+        secret_scalar_data.CopyTo(secret_scalar[..32]);
         return true;
     }
 
     private readonly bool SignDeterministic<HMAC_IMPL>(Span<byte> sig_r, Span<byte> sig_s, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
     {
+        // Public key is used for r,s calculation
+        Span<byte> public_data = stackalloc byte[32];
+        if (!ComputePublicKey(out EdPublicKey pk) || !pk.Serialize(public_data))
+        {
+            return false;
+        }
+
         Span<ulong> r = stackalloc ulong[ModM.ModM_WORDS];
         Span<ulong> S = stackalloc ulong[ModM.ModM_WORDS];
         Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
@@ -259,7 +241,7 @@ public struct EdPrivateKey : IPrivateKey
 
         // r = DRNG(secret, message_hash, message_hash_len)
         Span<byte> rnd = stackalloc byte[64];
-        _curve.GenerateDeterministicNonce<HMAC_IMPL>(rnd, data, message_hash, 0);
+        _curve.GenerateDeterministicNonce<HMAC_IMPL>(rnd, secret_scalar_data, message_hash, 0);
         ModM.expand256(r, rnd, 64);
 
         // R = rB
@@ -276,7 +258,7 @@ public struct EdPrivateKey : IPrivateKey
         ModM.expand256(S, hram, 64);
 
         // S = H(R,A,m)a
-        ModM.expand256(a, data, 32);
+        ModM.expand256(a, secret_scalar_data, 32);
         ModM.mul256(S, S, a);
 
         // S = (r + H(R,A,m)a)
@@ -290,6 +272,13 @@ public struct EdPrivateKey : IPrivateKey
 
     private readonly bool Sign<HMAC_IMPL>(Span<byte> sig_r, Span<byte> sig_s, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
     {
+        // Public key is used for r,s calculation
+        Span<byte> public_data = stackalloc byte[32];
+        if (!ComputePublicKey(out EdPublicKey pk) || !pk.Serialize(public_data))
+        {
+            return false;
+        }
+
         Span<ulong> r = stackalloc ulong[ModM.ModM_WORDS];
         Span<ulong> S = stackalloc ulong[ModM.ModM_WORDS];
         Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
@@ -316,7 +305,7 @@ public struct EdPrivateKey : IPrivateKey
         ModM.expand256(S, hram, 64);
 
         // S = H(R,A,m)a
-        ModM.expand256(a, data, 32);
+        ModM.expand256(a, secret_scalar_data, 32);
         ModM.mul256(S, S, a);
 
         // S = (r + H(R,A,m)a)
