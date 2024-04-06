@@ -20,16 +20,6 @@ internal struct GE25519_NIELS_Packed
         return new(data);
     }
 
-    public static implicit operator Span<byte>(GE25519_NIELS_Packed packed)
-    {
-        return packed.ALL;
-    }
-
-    public static implicit operator ReadOnlySpan<byte>(GE25519_NIELS_Packed packed)
-    {
-        return packed.ALL;
-    }
-
     public unsafe readonly Span<byte> ALL
     {
         get
