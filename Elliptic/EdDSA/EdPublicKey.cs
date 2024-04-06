@@ -94,7 +94,20 @@ public struct EdPublicKey : IPublicKey
 
     public bool KeyTweak(out IPublicKey result, ReadOnlySpan<byte> scalar)
     {
-        throw new NotImplementedException();
+        GE25519 R, P, Q;
+        result = new EdPublicKey(_curve);
+        Span<byte> res = stackalloc byte[32];
+
+        if (!GEMath.ge25519_unpack_negative_vartime(ref P, data))
+            return false;
+        if (!GEMath.ge25519_unpack_negative_vartime(ref Q, scalar))
+            return false;
+
+        GEMath.ge25519_add(ref R, P, Q);
+        GEMath.ge25519_pack(res, R);
+
+        res[31] ^= 0x80;
+        return result.Parse(res);
     }
 
     public bool Parse(ReadOnlySpan<byte> public_key)
