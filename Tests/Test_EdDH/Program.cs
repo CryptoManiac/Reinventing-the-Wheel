@@ -34,8 +34,8 @@ Console.WriteLine("ED25519 seed A: {0}", ed25519_seed_a);
 Console.WriteLine("ED25519 private key A: {0}", Convert.ToHexString(secret_key));
 Console.WriteLine("ED25519 public key A: {0}\n", Convert.ToHexString(public_key));
 
-secretKeyA.Serialize(secret_key);
-publicKeyA.Serialize(public_key);
+secretKeyB.Serialize(secret_key);
+publicKeyB.Serialize(public_key);
 Console.WriteLine("ED25519 seed B: {0}", ed25519_seed_b);
 Console.WriteLine("ED25519 private key B: {0}", Convert.ToHexString(secret_key));
 Console.WriteLine("ED25519 public key B: {0}\n", Convert.ToHexString(public_key));
