@@ -22,11 +22,6 @@ internal static class EdMath
 		_out[2] = _in[2];
 		_out[3] = _in[3];
 		_out[4] = _in[4];
-		_out[5] = _in[5];
-		_out[6] = _in[6];
-		_out[7] = _in[7];
-		_out[8] = _in[8];
-		_out[9] = _in[9];
 	}
 
 	/// <summary>
