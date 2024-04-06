@@ -215,7 +215,7 @@ internal static class GEMath
         Span<ulong> ty = stackalloc ulong[ModM.ModM_WORDS];
         Span<ulong> zi = stackalloc ulong[ModM.ModM_WORDS];
 
-        EdMath.curve25519_recip(zi, p.X);
+        EdMath.curve25519_recip(zi, p.Z);
         EdMath.curve25519_mul(tx, p.X, zi);
         EdMath.curve25519_mul(ty, p.Y, zi);
         EdMath.curve25519_contract(r, ty);
@@ -223,7 +223,7 @@ internal static class GEMath
         r[31] ^= (byte)((parity[0] & 1) << 7);
     }
 
-    public static int ge25519_unpack_negative_vartime(ref GE25519 r, ReadOnlySpan<byte> p)
+    public static bool ge25519_unpack_negative_vartime(ref GE25519 r, ReadOnlySpan<byte> p)
     {
 
         Span<byte> zero = stackalloc byte[32];
@@ -271,7 +271,7 @@ internal static class GEMath
             EdMath.curve25519_contract(check, t);
             if (!Logic.ed25519_verify(check, zero, 32))
             {
-                return 0;
+                return false;
             }
             EdMath.curve25519_mul(r.X, r.X, tables.SqrtNeg1);
         }
@@ -283,7 +283,7 @@ internal static class GEMath
             EdMath.curve25519_neg(r.X, t);
         }
         EdMath.curve25519_mul(r.T, r.X, r.Y);
-        return 1;
+        return true;
     }
 
     #endregion
@@ -370,12 +370,12 @@ internal static class GEMath
         packed.ALL.Clear();
 
         /* initialize to ysubx = 1, xaddy = 1, t2d = 0 */
-        packed.YsubX[31] = 1;
-        packed.XaddY[31] = 1;
+        packed.YsubX[0] = 1;
+        packed.XaddY[0] = 1;
 
         for (int i = 0; i < 8; i++)
         {
-            EdMath.curve25519_move_conditional_bytes(packed, table[(pos * 8) + i], ge25519_windowb_equal(u, (uint)i + 1));
+            EdMath.curve25519_move_conditional_bytes(packed.ALL, table[(pos * 8) + i], ge25519_windowb_equal(u, (uint)i + 1));
         }
 
         /* expand in to t */
@@ -388,7 +388,6 @@ internal static class GEMath
         EdMath.curve25519_neg(neg, t.T2D);
         EdMath.curve25519_swap_conditional(t.T2D, neg, sign);
     }
-
 
     /* computes [s]basepoint */
     public static void ge25519_scalarmult_base_niels(ref GE25519 r, ReadOnlySpan<ReadOnlyGE25519_NIELS_Packed> basepoint_table, ReadOnlySpan<ulong> s)
