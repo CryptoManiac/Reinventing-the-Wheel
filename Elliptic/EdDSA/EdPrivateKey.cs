@@ -290,6 +290,7 @@ public struct EdPrivateKey : IPrivateKey
         Logic.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
         ModM.expand256(sum, secret_scalar_data, 32);
         Logic.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
+
         ModM.expand256(added, scalar, 32);
         ModM.add256(sum, sum, added);
         ModM.contract256(tweaked, sum);

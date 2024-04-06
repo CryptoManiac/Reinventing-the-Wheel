@@ -116,7 +116,7 @@ public readonly struct EdCurve : ICurve
         fixed (byte* ptr = &curveConfig.scrambleKey[0])
         {
             var src = MemoryMarshal.Cast<ulong, byte>(random);
-            src[..^32].CopyTo(new Span<byte>(ptr, 32));
+            src.Slice(8, 32).CopyTo(new Span<byte>(ptr, 32));
         }
 
         _hasher = hasher;
