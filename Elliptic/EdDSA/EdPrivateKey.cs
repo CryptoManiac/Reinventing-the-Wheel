@@ -198,7 +198,19 @@ public struct EdPrivateKey : IPrivateKey
 
     public readonly bool KeyTweak(out IPrivateKey result, ReadOnlySpan<byte> scalar)
     {
-        throw new NotImplementedException();
+        Span<ulong> s1 = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> s2 = stackalloc ulong[ModM.ModM_WORDS];
+
+        ModM.expand256(s1, data, 32);
+        ModM.expand256(s2, scalar, 32);
+        ModM.add256(s1, s1, s2);
+
+        Span<byte> tweaked = stackalloc byte[32];
+        ModM.contract256(tweaked, s1);
+        result = new EdPrivateKey(_curve);
+        result.Parse(tweaked);
+        tweaked.Clear();
+        return result.IsValid;
     }
 
     public bool Parse(ReadOnlySpan<byte> private_key)
