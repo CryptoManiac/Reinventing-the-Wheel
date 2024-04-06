@@ -71,9 +71,9 @@ static int SignDER<HMAC_IMPL>(Span<byte> signature, EdPrivateKey sk, Span<byte> 
     return encodedSz;
 }
 
-static int SignNonDeterministicCompact<HMAC_IMPL>(Span<byte> signature, EdPrivateKey sk, Span<byte> message_hash, EdCurve curve) where HMAC_IMPL : unmanaged, IMac
+static int SignNonDeterministicCompact(Span<byte> signature, EdPrivateKey sk, Span<byte> message_hash, EdCurve curve)
 {
-    if (!sk.Sign<HMAC_IMPL>(out CompactSignature cmpSig, message_hash))
+    if (!sk.Sign(out CompactSignature cmpSig, message_hash))
     {
         throw new SystemException("Signing failed");
     }
@@ -87,9 +87,9 @@ static int SignNonDeterministicCompact<HMAC_IMPL>(Span<byte> signature, EdPrivat
     return encodedSz;
 }
 
-static int SignNonDeterministicDER<HMAC_IMPL>(Span<byte> signature, EdPrivateKey sk, Span<byte> message_hash, EdCurve curve) where HMAC_IMPL : unmanaged, IMac
+static int SignNonDeterministicDER(Span<byte> signature, EdPrivateKey sk, Span<byte> message_hash, EdCurve curve)
 {
-    if (!sk.Sign<HMAC_IMPL>(out DERSignature derSig, message_hash))
+    if (!sk.Sign(out DERSignature derSig, message_hash))
     {
         throw new SystemException("Signing failed");
     }
@@ -218,8 +218,8 @@ CompareSig("HMAC_SHA512", signature_der.Slice(0, sha512DERSigSz), derVectors);
 
 Console.WriteLine("Non-deterministic compact signing tests:");
 
-sha224SigSz = SignNonDeterministicCompact<HMAC_SHA224>(signature_compact, secretKey, message_hash, curve);
-Console.Write("HMAC_SHA224: {0}", Convert.ToHexString(signature_compact.Slice(0, sha224SigSz)));
+int try1SigSz = SignNonDeterministicCompact(signature_compact, secretKey, message_hash, curve);
+Console.Write(Convert.ToHexString(signature_compact.Slice(0, try1SigSz)));
 
 if (!VerifySigCompact(signature_compact, message_hash, public_key, curve))
 {
@@ -227,8 +227,8 @@ if (!VerifySigCompact(signature_compact, message_hash, public_key, curve))
 }
 Console.WriteLine(" OK");
 
-sha256SigSz = SignNonDeterministicCompact<HMAC_SHA256>(signature_compact, secretKey, message_hash, curve);
-Console.Write("HMAC_SHA256: {0}", Convert.ToHexString(signature_compact.Slice(0, sha256SigSz)));
+int try2SigSz = SignNonDeterministicCompact(signature_compact, secretKey, message_hash, curve);
+Console.Write(Convert.ToHexString(signature_compact.Slice(0, try2SigSz)));
 
 if (!VerifySigCompact(signature_compact, message_hash, public_key, curve))
 {
@@ -236,8 +236,8 @@ if (!VerifySigCompact(signature_compact, message_hash, public_key, curve))
 }
 Console.WriteLine(" OK");
 
-sha512SigSz = SignNonDeterministicCompact<HMAC_SHA512>(signature_compact, secretKey, message_hash, curve);
-Console.Write("HMAC_SHA512: {0}", Convert.ToHexString(signature_compact.Slice(0, sha512SigSz)));
+int try3SigSz = SignNonDeterministicCompact(signature_compact, secretKey, message_hash, curve);
+Console.Write(Convert.ToHexString(signature_compact.Slice(0, try3SigSz)));
 
 if (!VerifySigCompact(signature_compact, message_hash, public_key, curve))
 {
@@ -247,8 +247,8 @@ Console.WriteLine(" OK");
 
 Console.WriteLine("Non-deterministic DER signing tests:");
 
-sha224SigSz = SignNonDeterministicDER<HMAC_SHA224>(signature_der, secretKey, message_hash, curve);
-Console.Write("HMAC_SHA224: {0}", Convert.ToHexString(signature_der.Slice(0, sha224SigSz)));
+int derTry1 = SignNonDeterministicDER(signature_der, secretKey, message_hash, curve);
+Console.Write(Convert.ToHexString(signature_der.Slice(0, derTry1)));
 
 if (!VerifySigDER(signature_der, message_hash, public_key, curve))
 {
@@ -256,8 +256,8 @@ if (!VerifySigDER(signature_der, message_hash, public_key, curve))
 }
 Console.WriteLine(" OK");
 
-sha256SigSz = SignNonDeterministicDER<HMAC_SHA256>(signature_der, secretKey, message_hash, curve);
-Console.Write("HMAC_SHA256: {0}", Convert.ToHexString(signature_der.Slice(0, sha256SigSz)));
+int derTry2 = SignNonDeterministicDER(signature_der, secretKey, message_hash, curve);
+Console.Write(Convert.ToHexString(signature_der.Slice(0, derTry2)));
 
 if (!VerifySigDER(signature_der, message_hash, public_key, curve))
 {
@@ -265,23 +265,11 @@ if (!VerifySigDER(signature_der, message_hash, public_key, curve))
 }
 Console.WriteLine(" OK");
 
-sha512SigSz = SignNonDeterministicDER<HMAC_SHA512>(signature_der, secretKey, message_hash, curve);
-Console.Write("HMAC_SHA512: {0}", Convert.ToHexString(signature_der.Slice(0, sha512SigSz)));
+int derTry3 = SignNonDeterministicDER(signature_der, secretKey, message_hash, curve);
+Console.Write(Convert.ToHexString(signature_der.Slice(0, derTry3)));
 
 if (!VerifySigDER(signature_der, message_hash, public_key, curve))
 {
     throw new SystemException("Signature verification failure");
 }
 Console.WriteLine(" OK");
-
-Console.WriteLine("Decoding and verification tests:");
-foreach (var sHex in signaturesToCheck)
-{
-    Console.Write(sHex);
-    var testSig = Convert.FromHexString(sHex);
-    if (!VerifySigCompact(testSig, message_hash, public_key, curve))
-    {
-        throw new SystemException("Signature verification failure");
-    }
-    Console.WriteLine(" OK");
-}

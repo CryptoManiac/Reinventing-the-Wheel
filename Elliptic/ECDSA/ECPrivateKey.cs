@@ -340,7 +340,7 @@ public struct ECPrivateKey : IPrivateKey
     /// <param name="K">Random secret</param>
     /// <returns>True on success</returns>
     [SkipLocalsInit]
-    private readonly bool SignWithK<HMAC_IMPL>(Span<ulong> r, Span<ulong> s, ReadOnlySpan<byte> message_hash, ReadOnlySpan<ulong> K) where HMAC_IMPL : unmanaged, IMac
+    private readonly bool SignWithK(Span<ulong> r, Span<ulong> s, ReadOnlySpan<byte> message_hash, ReadOnlySpan<ulong> K)
     {
         Span<ulong> p = stackalloc ulong[_curve.NUM_WORDS * 2];
         Span<ulong> rnd = stackalloc ulong[_curve.NUM_WORDS];
@@ -423,7 +423,7 @@ public struct ECPrivateKey : IPrivateKey
         for (int i = 1; i != int.MaxValue; ++i)
         {
             GenerateK<HMAC_IMPL>(ref K, message_hash, i);
-            if (SignWithK<HMAC_IMPL>(r, s, message_hash, K))
+            if (SignWithK(r, s, message_hash, K))
             {
                 VLI.Clear(K, _curve.NUM_WORDS);
                 return true;
@@ -443,7 +443,7 @@ public struct ECPrivateKey : IPrivateKey
     /// <param name="message_hash">The hash of the message to sign</param>
     /// <returns>True on success</returns>
     [SkipLocalsInit]
-    private readonly bool Sign<HMAC_IMPL>(Span<ulong> r, Span<ulong> s, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+    private readonly bool Sign(Span<ulong> r, Span<ulong> s, ReadOnlySpan<byte> message_hash)
     {
         // Secret K will be written here
         Span<ulong> K = stackalloc ulong[_curve.NUM_WORDS];
@@ -455,7 +455,7 @@ public struct ECPrivateKey : IPrivateKey
         for (int i = 1; i != int.MaxValue; ++i)
         {
             // Try to sign
-            if (SignWithK<HMAC_IMPL>(r, s, message_hash, K))
+            if (SignWithK(r, s, message_hash, K))
             {
                 VLI.Clear(K, _curve.NUM_WORDS);
                 return true;
@@ -516,10 +516,10 @@ public struct ECPrivateKey : IPrivateKey
     /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
     /// <param name="message_hash">The hash of the message to sign</param>
     /// <returns></returns>
-    public readonly bool Sign<HMAC_IMPL>(out DERSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+    public readonly bool Sign(out DERSignature signature, ReadOnlySpan<byte> message_hash)
     {
         signature = new(_curve);
-        return Sign<HMAC_IMPL>(signature.r, signature.s, message_hash);
+        return Sign(signature.r, signature.s, message_hash);
     }
 
     /// <summary>
@@ -530,10 +530,10 @@ public struct ECPrivateKey : IPrivateKey
     /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
     /// <param name="message_hash">The hash of the message to sign</param>
     /// <returns></returns>
-    public readonly bool Sign<HMAC_IMPL>(out CompactSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+    public readonly bool Sign(out CompactSignature signature, ReadOnlySpan<byte> message_hash)
     {
         signature = new(_curve);
-        return Sign<HMAC_IMPL>(signature.r, signature.s, message_hash);
+        return Sign(signature.r, signature.s, message_hash);
     }
 
     /// <summary>
@@ -544,9 +544,9 @@ public struct ECPrivateKey : IPrivateKey
     /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
     /// <param name="message_hash">The hash of the message to sign</param>
     /// <returns></returns>
-    public readonly bool Sign<HMAC_IMPL>(out ISignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+    public readonly bool Sign(out ISignature signature, ReadOnlySpan<byte> message_hash)
     {
-        bool result = Sign<HMAC_IMPL>(out DERSignature generatedSig, message_hash);
+        bool result = Sign(out DERSignature generatedSig, message_hash);
         signature = generatedSig;
         return result;
     }

@@ -57,7 +57,7 @@ static int SignData<HMAC_IMPL>(Span<byte> signature, ECPrivateKey sk, string mes
     return encodedSz;
 }
 
-static int SignDataNonDeterministic<HMAC_IMPL>(Span<byte> signature, ECPrivateKey sk, string message, ECCurve curve) where HMAC_IMPL : unmanaged, IMac
+static int SignDataNonDeterministic(Span<byte> signature, ECPrivateKey sk, string message, ECCurve curve)
 {
     // Empty for tests
     Span<byte> message_hash = stackalloc byte[32];
@@ -65,7 +65,7 @@ static int SignDataNonDeterministic<HMAC_IMPL>(Span<byte> signature, ECPrivateKe
 
     // Try signing until the signing will succeed
     DERSignature derSig;
-    while (!sk.Sign<HMAC_IMPL>(out derSig, message_hash)) ;
+    while (!sk.Sign(out derSig, message_hash)) ;
 
     int encodedSz = derSig.Encode(signature);
     if (encodedSz > signature.Length)
@@ -173,8 +173,8 @@ foreach (var sHex in signaturesToCheck)
 
 Console.WriteLine("Non-deterministic signing tests:");
 
-sha224SigSz = SignDataNonDeterministic<HMAC_SHA224>(signature, secretKey, message, curve);
-Console.Write("HMAC_SHA224: {0}", Convert.ToHexString(signature.Slice(0, sha224SigSz)));
+int try1SigSz = SignDataNonDeterministic(signature, secretKey, message, curve);
+Console.Write(Convert.ToHexString(signature.Slice(0, try1SigSz)));
 
 if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 {
@@ -182,8 +182,8 @@ if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 }
 Console.WriteLine(" OK");
 
-sha256SigSz = SignDataNonDeterministic<HMAC_SHA256>(signature, secretKey, message, curve);
-Console.Write("HMAC_SHA256: {0}", Convert.ToHexString(signature.Slice(0, sha256SigSz)));
+int try2SigSz = SignDataNonDeterministic(signature, secretKey, message, curve);
+Console.Write(Convert.ToHexString(signature.Slice(0, try2SigSz)));
 
 if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 {
@@ -191,12 +191,11 @@ if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 }
 Console.WriteLine(" OK");
 
-sha512SigSz = SignDataNonDeterministic<HMAC_SHA512>(signature, secretKey, message, curve);
-Console.Write("HMAC_SHA512: {0}", Convert.ToHexString(signature.Slice(0, sha512SigSz)));
+int try3SigSz = SignDataNonDeterministic(signature, secretKey, message, curve);
+Console.Write(Convert.ToHexString(signature.Slice(0, try3SigSz)));
 
 if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 {
     throw new SystemException("Signature verification failure");
 }
 Console.WriteLine(" OK");
-

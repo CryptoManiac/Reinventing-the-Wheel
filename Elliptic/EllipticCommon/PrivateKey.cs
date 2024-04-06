@@ -69,11 +69,10 @@ public interface IPrivateKey
     /// 
     /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
     /// </summary>
-    /// <typeparam name="HMAC_IMPL">HMAC implementation to use</typeparam>
     /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
     /// <param name="message_hash">The hash of the message to sign</param>
     /// <returns></returns>
-    public bool Sign<HMAC_IMPL>(out ISignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac;
+    public bool Sign(out ISignature signature, ReadOnlySpan<byte> message_hash);
 
     /// <summary>
     /// Compute a shared secret given your secret key and someone else's public key.
