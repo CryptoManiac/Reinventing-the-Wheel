@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Wheel.Crypto.Elliptic.EdDSA.Internal;
 using Wheel.Crypto.Elliptic.EllipticCommon;
 using Wheel.Hashing;
@@ -116,6 +117,45 @@ public readonly struct EdCurve : ICurve
     public static bool operator !=(EdCurve x, EdCurve y)
     {
         return !(x == y);
+    }
+
+    /// <summary>
+    /// Generation of a random secret key on top of the .NET RandomNumberGenerator API. The security of this key will depend
+    /// on the quality of the local RNG implementation and the quality of the entropy array being used as well. I suggest that
+    /// you should treat these keys as unsecure by default, use this API with caution and never use the generated keys directly,
+    /// without hashing. It will be a good idea to use the DeriveHMAC method to derive the children keys from them.
+    /// </summary>
+    /// <param name="result">Private key to be filled</param>
+    /// <param name="entropy">Additional entropy</param>
+    /// <returns>True on success</returns>
+    [SkipLocalsInit]
+    public void GenerateRandomSecret(out EdPrivateKey result, ReadOnlySpan<byte> entropy)
+    {
+        Span<byte> rnd = stackalloc byte[32];
+        GenerateRandomSecret(rnd, entropy);
+        rnd[0] &= 248;
+        rnd[31] &= 127;
+        rnd[31] |= 64;
+        result = new(this, rnd);
+    }
+
+    /// <summary>
+    /// Deterministically generate the new private key from seed, using HMAC-based generator
+    /// </summary>
+    /// <typeparam name="HMAC_IMPL">HMAC implementation to use</typeparam>
+    /// <param name="result">Private key to be filled</param>
+    /// <param name="seed">Secret seed to generate from</param>
+    /// <param name="personalization">Personalization argument bytes (to generate more than one key from the same seed)</param>
+    /// <param name="sequence">Generation sequence number (to generate more than one key from the same seed + personalization pair)</param>
+    [SkipLocalsInit]
+    public void GenerateDeterministicSecret<HMAC_IMPL>(out EdPrivateKey result, ReadOnlySpan<byte> seed, ReadOnlySpan<byte> personalization, int sequence) where HMAC_IMPL : unmanaged, IMac
+    {
+        Span<byte> rnd = stackalloc byte[32];
+        GenerateDeterministicSecret<HMAC_IMPL>(rnd, seed, personalization, sequence);
+        rnd[0] &= 248;
+        rnd[31] &= 127;
+        rnd[31] |= 64;
+        result = new(this, rnd);
     }
 
     public readonly void GenerateDeterministicSecret<HMAC_IMPL>(Span<byte> result, ReadOnlySpan<byte> seed, ReadOnlySpan<byte> personalization, int sequence) where HMAC_IMPL : unmanaged, IMac
