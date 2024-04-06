@@ -182,12 +182,18 @@ public struct EdPublicKey : IPublicKey
     /// <returns></returns>
     private readonly bool VerifySignature(ReadOnlySpan<byte> r, ReadOnlySpan<byte> s, ReadOnlySpan<byte> message_hash)
     {
-        if (Convert.ToBoolean(s[31] & 224) || IsValid)
+        if (Convert.ToBoolean(s[31] & 224) || !IsValid)
         {
             return false;
         }
 
         GE25519 R, A;
+
+        if (!GEMath.ge25519_unpack_negative_vartime(ref A, data))
+        {
+            return false;
+        }
+
         Span<ulong> hram = stackalloc ulong[ModM.ModM_WORDS];
         Span<ulong> S = stackalloc ulong[ModM.ModM_WORDS];
         Span<byte> checkR = stackalloc byte[32];

@@ -14,6 +14,11 @@ public struct EdPrivateKey : IPrivateKey
     internal unsafe fixed byte private_key_data[32];
 
     /// <summary>
+    /// Public key is used for signing as well.
+    /// </summary>
+    internal unsafe fixed byte public_key_data[32];
+
+    /// <summary>
     /// Local copy of EC implementation instance
     /// </summary>
     private readonly EdCurve _curve;
@@ -36,6 +41,20 @@ public struct EdPrivateKey : IPrivateKey
         get
         {
             fixed (byte* ptr = &private_key_data[0])
+            {
+                return new Span<byte>(ptr, 32);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Access to public point data
+    /// </summary>
+    private readonly unsafe Span<byte> public_data
+    {
+        get
+        {
+            fixed (byte* ptr = &public_key_data[0])
             {
                 return new Span<byte>(ptr, 32);
             }
@@ -159,17 +178,12 @@ public struct EdPrivateKey : IPrivateKey
 
     public readonly bool ComputePublicKey(out EdPublicKey public_key)
     {
-        GE25519 A;
-        Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
-        Span<byte> public_bytes = stackalloc byte[32];
-
-        /* A = aB */
-        ModM.expand256(a, data, 32);
-        GEMath.ge25519_scalarmult_base_niels(ref A, GEMath.tables.NIELS_Base_Multiples, a);
-        GEMath.ge25519_pack(public_bytes, A);
-
         public_key = new(_curve);
-        return public_key.Parse(public_bytes);
+        if (!IsValid)
+        {
+            return false;
+        }
+        return public_key.Parse(public_data);
     }
 
     public readonly bool ComputePublicKey(out IPublicKey public_key)
@@ -189,12 +203,21 @@ public struct EdPrivateKey : IPrivateKey
 
     public bool Parse(ReadOnlySpan<byte> private_key)
     {
-        if (private_key.Length != data.Length)
+        if (!IsValidPrivateKey(_curve, private_key))
         {
             return false;
         }
 
         private_key[..32].CopyTo(data);
+
+        GE25519 A;
+        Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
+
+        /* A = aB */
+        ModM.expand256(a, data, 32);
+        GEMath.ge25519_scalarmult_base_niels(ref A, GEMath.tables.NIELS_Base_Multiples, a);
+        GEMath.ge25519_pack(public_data, A);
+
         return true;
     }
 
@@ -235,7 +258,7 @@ public struct EdPrivateKey : IPrivateKey
         Span<byte> hram = stackalloc byte[64];
         IHasher hasher = _curve.makeHasher();
         hasher.Update(sig_r);
-        hasher.Update(data);
+        hasher.Update(public_data);
         hasher.Update(message_hash);
         hasher.Digest(hram);
         ModM.expand256(S, hram, 64);
@@ -276,7 +299,7 @@ public struct EdPrivateKey : IPrivateKey
         Span<byte> hram = stackalloc byte[64];
         IHasher hasher = _curve.makeHasher();
         hasher.Update(sig_r);
-        hasher.Update(data);
+        hasher.Update(public_data);
         hasher.Update(message_hash);
         hasher.Digest(hram);
         ModM.expand256(S, hram, 64);
