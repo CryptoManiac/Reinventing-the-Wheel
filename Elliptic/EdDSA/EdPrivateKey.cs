@@ -384,8 +384,8 @@ public struct EdPrivateKey : IPrivateKey
     /// 
     /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
     /// </summary>
-    /// <param name="r">Will be filled in with the signature value</param>
-    /// <param name="s">Will be filled in with the signature value</param>
+    /// <param name="sig_r">Will be filled in with the signature value</param>
+    /// <param name="sig_s">Will be filled in with the signature value</param>
     /// <param name="message_hash">The hash of the message to sign</param>
     /// <returns>True on success</returns>
     private readonly bool Sign<HMAC_IMPL>(Span<byte> sig_r, Span<byte> sig_s, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
@@ -403,8 +403,7 @@ public struct EdPrivateKey : IPrivateKey
 
         GE25519 R;
 
-        // rnd = DRNG(secret, message_hash, message_hash_len)
-        // r = RNG(rnd, message_hash)
+        // r = RNG(message_hash)
         Span<byte> rnd = stackalloc byte[64];
         _curve.GenerateRandomNonce(rnd, message_hash);
         ModM.expand256(r, rnd, 64);
