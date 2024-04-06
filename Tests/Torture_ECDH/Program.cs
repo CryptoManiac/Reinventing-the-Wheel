@@ -1,9 +1,5 @@
 ﻿using System.Text;
 using Wheel.Crypto.Elliptic.ECDSA;
-using Wheel.Hashing.HMAC.SHA2;
-
-string secret_seed = "The quick brown fox jumps over the lazy dog";
-string personalization = "For ECDH tests";
 
 List<Tuple<string, ECCurve>> curves = new()
 {
@@ -16,10 +12,14 @@ List<Tuple<string, ECCurve>> curves = new()
     new("secp256k1", ECCurve.Get_SECP256K1()),
 };
 
+// Endless loop follows
+
+loop:
+
 foreach (var (name, algo) in curves)
 {
-    algo.GenerateDeterministicSecret<HMAC_SHA512>(out ECPrivateKey secretKeyA, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), 1);
-    algo.GenerateDeterministicSecret<HMAC_SHA512>(out ECPrivateKey secretKeyB, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), 2);
+    algo.GenerateRandomSecret(out ECPrivateKey secretKeyA, null);
+    algo.GenerateRandomSecret(out ECPrivateKey secretKeyB, null);
 
     if (!secretKeyA.ComputePublicKey(out ECPublicKey publicKeyA))
     {
@@ -69,3 +69,5 @@ foreach (var (name, algo) in curves)
         throw new SystemException("ECDH shared key mismatch!");
     }
 }
+
+goto loop;

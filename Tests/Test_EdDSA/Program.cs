@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using Wheel.Crypto.Elliptic.EdDSA;
-using Wheel.Crypto.Elliptic.EdDSA.Internal.Curve25519;
 using Wheel.Hashing.HMAC;
 using Wheel.Hashing.HMAC.SHA2;
 using Wheel.Hashing.SHA.SHA256;
