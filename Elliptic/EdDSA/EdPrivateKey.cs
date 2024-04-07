@@ -300,6 +300,10 @@ public struct EdPrivateKey : IPrivateKey
         ModM.add256(sum, sum, added);
         ModM.contract256(tweaked, sum);
 
+        tweaked[0] &= 248;
+        tweaked[31] &= 127;
+        tweaked[31] |= 64;
+
         result.Parse(tweaked);
         sum.Clear();
         tweaked.Clear();
