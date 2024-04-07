@@ -17,7 +17,7 @@ internal struct EdCurveConfig
 
 #pragma warning disable CS0660
 #pragma warning disable CS0661
-public readonly struct EdCurve : ICurve
+public readonly struct EdCurve : IGenericCurve
 #pragma warning restore CS0660
 #pragma warning restore CS0661
 {

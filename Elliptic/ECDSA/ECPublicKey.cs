@@ -14,12 +14,12 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
     /// <summary>
     /// Local copy of EC implementation instance
     /// </summary>
-    private readonly ECCurve _curve;
+    private readonly SECPCurve _curve;
 
     /// <summary>
     /// ECC implementation to use (exposed to users)
     /// </summary>
-    public readonly ICurve curve => _curve;
+    public readonly IGenericCurve curve => _curve;
 
     /// <summary>
     /// Encoded key size in bytes
@@ -58,15 +58,15 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
     /// Construct the empty key
     /// </summary>
     /// <param name="curve">ECC implementation</param>
-    public ECPublicKey(in ICurve curve)
+    public ECPublicKey(in IGenericCurve curve)
 		{
-        if (curve is not ECCurve)
+        if (curve is not SECPCurve)
         {
             // Shouldn't happen in real life
             throw new InvalidOperationException("Invalid curve implementation instance");
         }
 
-        _curve = (ECCurve) curve;
+        _curve = (SECPCurve) curve;
 
         // Init with zeros
         Reset();
@@ -76,7 +76,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
     /// Construct the empty key
     /// </summary>
     /// <param name="curve">ECC implementation</param>
-    public ECPublicKey(in ICurve curve, ReadOnlySpan<byte> public_key) : this(curve)
+    public ECPublicKey(in IGenericCurve curve, ReadOnlySpan<byte> public_key) : this(curve)
     {
         if (!Parse(public_key))
         {
@@ -88,7 +88,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
     /// Construct the key using VLI value
     /// </summary>
     /// <param name="curve">ECC implementation</param>
-    public ECPublicKey(in ICurve curve, ReadOnlySpan<ulong> public_point) : this(curve)
+    public ECPublicKey(in IGenericCurve curve, ReadOnlySpan<ulong> public_point) : this(curve)
     {
         if (!Wrap(public_point))
         {
@@ -159,9 +159,9 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
     /// </summary>
     /// <param name="public_key">The public key to check.</param>
     /// <returns>True if key is valid</returns>
-    public static bool IsValidPublicKey(ICurve curve, ReadOnlySpan<byte> public_key)
+    public static bool IsValidPublicKey(IGenericCurve curve, ReadOnlySpan<byte> public_key)
     {
-        if (curve is not ECCurve)
+        if (curve is not SECPCurve)
         {
             // Shouldn't happen in real life
             throw new InvalidOperationException("Invalid curve implementation instance");
@@ -176,7 +176,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
     /// </summary>
     /// <param name="curve"></param>
     /// <returns>Number of bytes</returns>
-    public static int GetUncompressedSize(ECCurve curve)
+    public static int GetUncompressedSize(SECPCurve curve)
     {
         return 2 * curve.NUM_BYTES;
     }
@@ -186,7 +186,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
     /// </summary>
     /// <param name="curve"></param>
     /// <returns>Number of bytes</returns>
-    public static int GetCompressedSize(ECCurve curve)
+    public static int GetCompressedSize(SECPCurve curve)
     {
         return 1 + curve.NUM_BYTES;
     }
@@ -438,7 +438,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
     /// <returns></returns>
     public readonly bool VerifySignature(DERSignature signature, ReadOnlySpan<byte> message_hash)
     {
-        return (_curve == (ECCurve)signature.curve) && VerifySignature(signature.r, signature.s, message_hash);
+        return (_curve == (SECPCurve)signature.curve) && VerifySignature(signature.r, signature.s, message_hash);
     }
 
     /// <summary>
@@ -451,7 +451,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
     /// <returns></returns>
     public readonly bool VerifySignature(CompactSignature signature, ReadOnlySpan<byte> message_hash)
     {
-        return (_curve == (ECCurve)signature.curve) && VerifySignature(signature.r, signature.s, message_hash);
+        return (_curve == (SECPCurve)signature.curve) && VerifySignature(signature.r, signature.s, message_hash);
     }
 
     /// <summary>
@@ -464,7 +464,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
     /// <returns></returns>
     public readonly bool VerifySignature(IECDSASignature signature, ReadOnlySpan<byte> message_hash)
     {
-        return (_curve == (ECCurve)signature.curve) && VerifySignature(signature.r, signature.s, message_hash);
+        return (_curve == (SECPCurve)signature.curve) && VerifySignature(signature.r, signature.s, message_hash);
     }
 
     /// <summary>

@@ -22,7 +22,7 @@ public class EdDSATest
     /// Calculate SHA256 of the ASCII string
     /// </summary>
     /// <param name="message"></param>
-    private byte[] GetSigningHash(string message)
+    private static byte[] GetSigningHash(string message)
     {
         // Empty for tests
         byte[] message_hash = new byte[32];

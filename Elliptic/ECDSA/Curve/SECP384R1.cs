@@ -7,14 +7,14 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
 /// SECP384R1 specific constants and implementations.
 /// NOTE: These methods are declared static on purpose, it allows us to use their addresses in the curve constructor functions.
 /// </summary>
-public readonly partial struct ECCurve
+public readonly partial struct SECPCurve
 {
     /// <summary>
     /// Construct a new instance of the secp384r1 context.
     /// <returns></returns>
-    public static unsafe ECCurve Get_SECP384R1()
+    public static unsafe SECPCurve Get_SECP384R1()
     {
-        return new ECCurve(
+        return new SECPCurve(
             stackalloc char[] { 'S', 'E', 'C', 'P', '3', '8', '4', 'R', '1' },
             384,
             stackalloc ulong[] { 0x00000000FFFFFFFF, 0xFFFFFFFF00000000, 0xFFFFFFFFFFFFFFFE, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF },
@@ -36,7 +36,7 @@ public readonly partial struct ECCurve
     /// Computes result = product % p
     /// </summary>
     [SkipLocalsInit]
-    private static void MMod_SECP384R1(in ECCurve curve, Span<ulong> result, Span<ulong> product)
+    private static void MMod_SECP384R1(in SECPCurve curve, Span<ulong> result, Span<ulong> product)
     {
         Span<ulong> tmp = stackalloc ulong[2 * curve.NUM_WORDS];
 
@@ -67,7 +67,7 @@ public readonly partial struct ECCurve
     }
 
     [SkipLocalsInit]
-    private static void OmegaMult_SECP384R1(in ECCurve curve, Span<ulong> result, Span<ulong> right)
+    private static void OmegaMult_SECP384R1(in SECPCurve curve, Span<ulong> result, Span<ulong> right)
     {
         Span<ulong> tmp = stackalloc ulong[2 * curve.NUM_WORDS];
         ulong carry, diff;

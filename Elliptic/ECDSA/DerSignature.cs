@@ -11,12 +11,12 @@ public struct DERSignature : IECDSASignature
     /// <summary>
     /// ECC implementation to use
     /// </summary>
-    private readonly ECCurve _curve { get; }
+    private readonly SECPCurve _curve { get; }
 
     /// <summary>
     /// Public property for unification purposes
     /// </summary>
-    public readonly ICurve curve => _curve;
+    public readonly IGenericCurve curve => _curve;
 
     /// <summary>
     /// R part of the signature
@@ -65,7 +65,7 @@ public struct DERSignature : IECDSASignature
     /// Construct the empty signature for given curve
     /// </summary>
     /// <param name="curve">ECC implementation</param>
-    public DERSignature(ECCurve curve)
+    public DERSignature(SECPCurve curve)
     {
         // Sanity check constraint
         if (curve.NUM_WORDS > VLI.ECC_MAX_WORDS)
@@ -82,7 +82,7 @@ public struct DERSignature : IECDSASignature
     /// Create instance and parse provided data
     /// </summary>
     /// <param name="curve">ECC implementation</param>
-    public DERSignature(ECCurve curve, ReadOnlySpan<byte> bytes) : this(curve)
+    public DERSignature(SECPCurve curve, ReadOnlySpan<byte> bytes) : this(curve)
     {
         if (!Parse(bytes))
         {
@@ -168,7 +168,7 @@ public struct DERSignature : IECDSASignature
     /// </summary>
     /// <param name="curve"></param>
     /// <returns></returns>
-    public static int GetEncodedSize(ECCurve curve)
+    public static int GetEncodedSize(SECPCurve curve)
     {
         // Integer tags, integer lengths and prefixes
         int seqSz = 4 + 2 * curve.NUM_BYTES + 2;

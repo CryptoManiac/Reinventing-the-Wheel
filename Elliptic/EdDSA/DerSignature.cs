@@ -15,7 +15,7 @@ public struct DERSignature : IEdSignature
     /// <summary>
     /// Public property for unification purposes
     /// </summary>
-    public readonly ICurve curve => _curve;
+    public readonly IGenericCurve curve => _curve;
 
     /// <summary>
     /// Encoded data size in bytes

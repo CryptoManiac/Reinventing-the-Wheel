@@ -6,7 +6,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
 /// <summary>
 /// Curve-specific arithmetic methods
 /// </summary>
-public readonly partial struct ECCurve
+public readonly partial struct SECPCurve
 {
     internal ulong RegularizeK(ReadOnlySpan<ulong> k, Span<ulong> k0, Span<ulong> k1)
     {

@@ -5,7 +5,7 @@ public interface ISignature
     /// <summary>
     /// ECC implementation to use
     /// </summary>
-    public ICurve curve { get; }
+    public IGenericCurve curve { get; }
 
     /// <summary>
     /// Encoded data size in bytes

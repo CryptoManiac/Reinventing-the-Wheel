@@ -7,7 +7,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
 /// Generic curve arithmetic (shared among some implementations).
 /// NOTE: These methods are declared static on purpose, it allows us to use their addresses in the curve constructor functions.
 /// </summary>
-public readonly partial struct ECCurve
+public readonly partial struct SECPCurve
 {
     /// <summary>
     /// Double in place
@@ -16,7 +16,7 @@ public readonly partial struct ECCurve
     /// <param name="Y1"></param>
     /// <param name="Z1"></param>
     [SkipLocalsInit]
-    private static void DoubleJacobian_Generic(in ECCurve curve, Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1)
+    private static void DoubleJacobian_Generic(in SECPCurve curve, Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1)
     {
         // t1 = X, t2 = Y, t3 = Z
         Span<ulong> t4 = stackalloc ulong[curve.NUM_WORDS];
@@ -69,7 +69,7 @@ public readonly partial struct ECCurve
     /// </summary>
     /// <param name="a"></param>
     [SkipLocalsInit]
-    private static void ModSQRT_Generic(in ECCurve curve, Span<ulong> a)
+    private static void ModSQRT_Generic(in SECPCurve curve, Span<ulong> a)
     {
         Span<ulong> p1 = stackalloc ulong[curve.NUM_WORDS];
         Span<ulong> result = stackalloc ulong[curve.NUM_WORDS];
@@ -98,7 +98,7 @@ public readonly partial struct ECCurve
     /// <param name="result"></param>
     /// <param name="x"></param>
     [SkipLocalsInit]
-    private static void XSide_Generic(in ECCurve curve, Span<ulong> result, ReadOnlySpan<ulong> x)
+    private static void XSide_Generic(in SECPCurve curve, Span<ulong> result, ReadOnlySpan<ulong> x)
     {
         Span<ulong> _3 = stackalloc ulong[curve.NUM_WORDS];
         VLI.Set(_3, 3, curve.NUM_WORDS); // -a = 3

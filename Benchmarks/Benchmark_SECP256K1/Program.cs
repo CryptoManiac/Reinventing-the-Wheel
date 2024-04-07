@@ -65,7 +65,7 @@ string secret_seed = "The quick brown fox jumps over the lazy dog";
 string personalization = "For signing tests";
 int secret_key_number = 0;
 
-ECCurve curve = ECCurve.Get_SECP256K1();
+SECPCurve curve = SECPCurve.Get_SECP256K1();
 
 // Derive new secret key
 curve.GenerateDeterministicSecret<HMAC<SHA512>>(out ECPrivateKey secretKey, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), secret_key_number);
@@ -75,7 +75,7 @@ if (!secretKey.ComputePublicKey(out IPublicKey publicKey))
     throw new SystemException("Computation of the public key has failed");
 }
 
-static void SignData<HMAC_IMPL>(Span<byte> signature, ECPrivateKey sk, string message, ICurve curve) where HMAC_IMPL : unmanaged, IMac
+static void SignData<HMAC_IMPL>(Span<byte> signature, ECPrivateKey sk, string message, IGenericCurve curve) where HMAC_IMPL : unmanaged, IMac
 {
     // Empty for tests
     Span<byte> message_hash = stackalloc byte[32];
@@ -96,7 +96,7 @@ string message = "aaa";
 byte[] message_hash = new byte[32];
 SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
 
-bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOnlySpan<byte> public_key, ECCurve curve)
+bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOnlySpan<byte> public_key, SECPCurve curve)
 {
     return new ECPublicKey(curve, public_key).VerifySignature(new DERSignature(curve, signature), message_hash);
 }

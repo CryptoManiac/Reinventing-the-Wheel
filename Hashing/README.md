@@ -8,14 +8,21 @@ The well tested implementations of the following hash functions:
 
 * RIPEMD-160
 * SHA-256, SHA-224
-* SHA-512, SHA-384, SHA-512/256, SHA-512-224
+* SHA-512, SHA-384, SHA-512/256, SHA-512/224
 * SHA3-512, SHA3-384, SHA3-256
 * Keccak-512, Keccak-384, Keccak-256
 
 ### HMAC
 
+#### Standard HMAC algorithms:
+
 * HMAC-SHA-224, HMAC-SHA-256
 * HMAC-SHA-512_224, HMAC-SHA-512_256, HMAC-SHA-384, HMAC-SHA-512
+
+#### Non-standard HMAC algorithms, but used by some people:
+
+* HMAC-SHA3-256, HMAC-SHA3-384, HMAC-SHA3-512
+* HMAC-Keccak-256, HMAC-Keccak-384, HMAC-Keccak-512
 
 ### Key derivation
 
@@ -47,7 +54,9 @@ public int HashSz;
 
 ### HMAC
 
-The HMAC implementations are derived from `IMac` interface which is defining these signatures:
+The HMAC implementation is a generig which is derived from `IMac` interface.
+
+The IMac is defining these signatures:
 
 ```csharp
 /// Initialize or re-initialize hasher with a given key
@@ -73,4 +82,10 @@ public void Dispose();
 public int HashSz;
 ```
 
-The only available implementations are currently limited by the SHA2 based ones. The `HMAC_SHA224`, `HMAC_SHA256`, `HMAC_SHA384` and `HMAC_SHA512` structures are residing in the `Wheel.Hashing.HMAC.SHA2` namespace.
+To initialize new HMAC hasher you need to provide an implementation of the underlying hash function as a generic agrument. Doing something like this will suffice:
+
+```csharp
+HMAC<SHA512> ctx = new();
+```
+
+You can replace the SHA512 with a hasher of your choice among those that are provided by the ```Hashing``` library, i.e. make it look like HMAC<SHA384>, HMAC<SHA256>, HMAC<SHA512_224> or whatever. Please note that, while theoretically any of the implemented hasher should work, so far only SHA2 functions have been throughly tested with HMAC.

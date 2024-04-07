@@ -7,7 +7,7 @@ public interface IPrivateKey
     /// <summary>
     /// ECC implementation to use
     /// </summary>
-    public ICurve curve { get; }
+    public IGenericCurve curve { get; }
 
     /// <summary>
     /// Does this instance contain a valid key or not

@@ -50,7 +50,7 @@ List<string> signaturesToCheck = new()
     "3045022100de5c6b0f4678e33a898d9ad558c7806eb6cf4bbca66d999462172422b3ce21e202200f5c9da6bf61dfbda65da5c3ca283970def56eea1c35e145c3186f08c7404c42"
 };
 
-ECCurve curve = ECCurve.Get_SECP256R1();
+SECPCurve curve = SECPCurve.Get_SECP256R1();
 ECDSATest check = new(curve, secret_seed, personalization, secret_key_number);
 
 check.ExpectedKeys(

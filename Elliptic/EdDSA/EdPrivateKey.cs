@@ -23,7 +23,7 @@ public struct EdPrivateKey : IPrivateKey
     /// <summary>
     /// ECC implementation to use (exposed to users)
     /// </summary>
-    public readonly ICurve curve => _curve;
+    public readonly IGenericCurve curve => _curve;
 
     /// <summary>
     /// Encoded key size in bytes
@@ -91,7 +91,7 @@ public struct EdPrivateKey : IPrivateKey
     /// Construct the empty key
     /// </summary>
     /// <param name="_curve">ECC implementation</param>
-    public EdPrivateKey(in ICurve curve)
+    public EdPrivateKey(in IGenericCurve curve)
     {
         if (curve is not EdCurve)
         {
@@ -109,7 +109,7 @@ public struct EdPrivateKey : IPrivateKey
     /// Construct the the new private key instance from the given serialized scalar
     /// </summary>
     /// <param name="_curve">ECC implementation</param>
-    public EdPrivateKey(in ICurve curve, ReadOnlySpan<byte> scalar) : this(curve)
+    public EdPrivateKey(in IGenericCurve curve, ReadOnlySpan<byte> scalar) : this(curve)
     {
         if (!Parse(scalar))
         {
@@ -123,7 +123,7 @@ public struct EdPrivateKey : IPrivateKey
     /// </summary>
     /// <param name="private_key">The private key to check.</param>
     /// <returns>True if the private key is valid.</returns>
-    public static bool IsValidPrivateKey(ICurve curve, ReadOnlySpan<byte> private_key)
+    public static bool IsValidPrivateKey(IGenericCurve curve, ReadOnlySpan<byte> private_key)
     {
         if (curve is not EdCurve)
         {

@@ -19,7 +19,7 @@ List<string> signaturesToCheck = new()
 {
 };
 
-ECCurve curve = ECCurve.Get_SECP160R1();
+SECPCurve curve = SECPCurve.Get_SECP160R1();
 ECDSATest check = new(curve, secret_seed, personalization, secret_key_number);
 
 check.ExpectedKeys(

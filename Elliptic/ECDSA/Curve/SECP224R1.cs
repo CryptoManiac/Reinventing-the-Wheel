@@ -7,14 +7,14 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
 /// SECP224R1 specific implementations.
 /// NOTE: These methods are declared static on purpose, it allows us to use their addresses in the curve constructor functions.
 /// </summary>
-public readonly partial struct ECCurve
+public readonly partial struct SECPCurve
 {
     /// <summary>
     /// Construct a new instance of the secp224r1 context.
     /// <returns></returns>
-    public static unsafe ECCurve Get_SECP224R1()
+    public static unsafe SECPCurve Get_SECP224R1()
     {
-        return new ECCurve(
+        return new SECPCurve(
             stackalloc char[] { 'S', 'E', 'C', 'P', '2', '2', '4', 'R', '1' },
             224,
             stackalloc ulong[] { 0x0000000000000001, 0xFFFFFFFF00000000, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFF },
@@ -34,7 +34,7 @@ public readonly partial struct ECCurve
     /// </summary>
     /// <param name="a"></param>
     [SkipLocalsInit]
-    private static void ModSQRT_SECP224R1(in ECCurve curve, Span<ulong> a)
+    private static void ModSQRT_SECP224R1(in SECPCurve curve, Span<ulong> a)
     {
         Span<ulong> e1 = stackalloc ulong[curve.NUM_WORDS];
         Span<ulong> f1 = stackalloc ulong[curve.NUM_WORDS];
@@ -65,7 +65,7 @@ public readonly partial struct ECCurve
     /// Computes result = product % p
     /// </summary>
     [SkipLocalsInit]
-    private static void MMod_SECP224R1(in ECCurve curve, Span<ulong> result, Span<ulong> product)
+    private static void MMod_SECP224R1(in SECPCurve curve, Span<ulong> result, Span<ulong> product)
     {
         Span<ulong> tmp = stackalloc ulong[curve.NUM_WORDS];
         int carry = 0;
@@ -120,7 +120,7 @@ public readonly partial struct ECCurve
     /// Routine 3.2.4 RS;  from http://www.nsa.gov/ia/_files/nist-routines.pdf
     /// </summary>
     [SkipLocalsInit]
-    private static void mod_sqrt_secp224r1_rs(in ECCurve curve, Span<ulong> d1, Span<ulong> e1, Span<ulong> f1, ReadOnlySpan<ulong> d0, ReadOnlySpan<ulong> e0, ReadOnlySpan<ulong> f0) {
+    private static void mod_sqrt_secp224r1_rs(in SECPCurve curve, Span<ulong> d1, Span<ulong> e1, Span<ulong> f1, ReadOnlySpan<ulong> d0, ReadOnlySpan<ulong> e0, ReadOnlySpan<ulong> f0) {
         Span<ulong> t = stackalloc ulong[curve.NUM_WORDS];
 
         curve.ModSquare(t, d0);                               // t <-- d0 ^ 2
@@ -135,7 +135,7 @@ public readonly partial struct ECCurve
     /// <summary>
     /// Routine 3.2.5 RSS;  from http://www.nsa.gov/ia/_files/nist-routines.pdf
     /// </summary>
-    private static void mod_sqrt_secp224r1_rss(in ECCurve curve, Span<ulong> d1, Span<ulong> e1, Span<ulong> f1, ReadOnlySpan<ulong> d0, ReadOnlySpan<ulong> e0, ReadOnlySpan<ulong> f0, int j)
+    private static void mod_sqrt_secp224r1_rss(in SECPCurve curve, Span<ulong> d1, Span<ulong> e1, Span<ulong> f1, ReadOnlySpan<ulong> d0, ReadOnlySpan<ulong> e0, ReadOnlySpan<ulong> f0, int j)
     {
         VLI.Set(d1, d0, curve.NUM_WORDS); // d1 <-- d0
         VLI.Set(e1, e0, curve.NUM_WORDS); // e1 <-- e0
@@ -150,7 +150,7 @@ public readonly partial struct ECCurve
     /// Routine 3.2.6 RM;  from http://www.nsa.gov/ia/_files/nist-routines.pdf
     /// </summary>
     [SkipLocalsInit]
-    private static void mod_sqrt_secp224r1_rm(in ECCurve curve, Span<ulong> d2, Span<ulong> e2, Span<ulong> f2, ReadOnlySpan<ulong> c, ReadOnlySpan<ulong> d0, ReadOnlySpan<ulong> e0, ReadOnlySpan<ulong> d1, ReadOnlySpan<ulong> e1)
+    private static void mod_sqrt_secp224r1_rm(in SECPCurve curve, Span<ulong> d2, Span<ulong> e2, Span<ulong> f2, ReadOnlySpan<ulong> c, ReadOnlySpan<ulong> d0, ReadOnlySpan<ulong> e0, ReadOnlySpan<ulong> d1, ReadOnlySpan<ulong> e1)
     {
         Span<ulong> t1 = stackalloc ulong[curve.NUM_WORDS];
         Span<ulong> t2 = stackalloc ulong[curve.NUM_WORDS];
@@ -175,7 +175,7 @@ public readonly partial struct ECCurve
     /// Routine 3.2.7 RP;  from http://www.nsa.gov/ia/_files/nist-routines.pdf
     /// </summary>
     [SkipLocalsInit]
-    private static void mod_sqrt_secp224r1_rp(in ECCurve curve, Span<ulong> d1, Span<ulong> e1, Span<ulong> f1, ReadOnlySpan<ulong> c, ReadOnlySpan<ulong> r)
+    private static void mod_sqrt_secp224r1_rp(in SECPCurve curve, Span<ulong> d1, Span<ulong> e1, Span<ulong> f1, ReadOnlySpan<ulong> c, ReadOnlySpan<ulong> r)
     {
         Span<ulong> d0 = stackalloc ulong[curve.NUM_WORDS];
         Span<ulong> e0 = stackalloc ulong[curve.NUM_WORDS];

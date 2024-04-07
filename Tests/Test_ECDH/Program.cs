@@ -6,15 +6,15 @@ using Wheel.Hashing.SHA.SHA512;
 string secret_seed = "The quick brown fox jumps over the lazy dog";
 string personalization = "For ECDH tests";
 
-List<Tuple<string, ECCurve>> curves = new()
+List<Tuple<string, SECPCurve>> curves = new()
 {
-    new("secp160r1", ECCurve.Get_SECP160R1()),
-    new("secp192r1", ECCurve.Get_SECP192R1()),
-    new("secp224r1", ECCurve.Get_SECP224R1()),
-    new("secp256r1", ECCurve.Get_SECP256R1()),
-    new("secp384r1", ECCurve.Get_SECP384R1()),
-    new("secp521r1", ECCurve.Get_SECP521R1()),
-    new("secp256k1", ECCurve.Get_SECP256K1()),
+    new("secp160r1", SECPCurve.Get_SECP160R1()),
+    new("secp192r1", SECPCurve.Get_SECP192R1()),
+    new("secp224r1", SECPCurve.Get_SECP224R1()),
+    new("secp256r1", SECPCurve.Get_SECP256R1()),
+    new("secp384r1", SECPCurve.Get_SECP384R1()),
+    new("secp521r1", SECPCurve.Get_SECP521R1()),
+    new("secp256k1", SECPCurve.Get_SECP256K1()),
 };
 
 foreach (var (name, algo) in curves)

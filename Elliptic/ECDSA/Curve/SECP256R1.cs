@@ -7,14 +7,14 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
 /// SECP256K1 specific implementations.
 /// NOTE: These methods are declared static on purpose, it allows us to use their addresses in the curve constructor functions.
 /// </summary>
-public readonly partial struct ECCurve
+public readonly partial struct SECPCurve
 {
     /// <summary>
     /// Construct a new instance of the secp256r1 context.
     /// <returns></returns>
-    public static unsafe ECCurve Get_SECP256R1()
+    public static unsafe SECPCurve Get_SECP256R1()
     {
-        return new ECCurve(
+        return new SECPCurve(
             stackalloc char[] { 'S', 'E', 'C', 'P', '2', '5', '6', 'R', '1' },
             256,
             stackalloc ulong[] { 0xFFFFFFFFFFFFFFFF, 0x00000000FFFFFFFF, 0x0000000000000000, 0xFFFFFFFF00000001 },
@@ -33,7 +33,7 @@ public readonly partial struct ECCurve
     /// Computes result = product % p
     /// </summary>
     [SkipLocalsInit]
-    private static void MMod_SECP256R1(in ECCurve curve, Span<ulong> result, Span<ulong> product)
+    private static void MMod_SECP256R1(in SECPCurve curve, Span<ulong> result, Span<ulong> product)
     {
         Span<ulong> tmp = stackalloc ulong[curve.NUM_WORDS];
 

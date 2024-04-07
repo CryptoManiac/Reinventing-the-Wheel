@@ -27,7 +27,7 @@ internal struct CurveBuffers
 /// <summary>
 /// Properties and methods every EC implementation must provide
 /// </summary>
-public readonly partial struct ECCurve : ICurve
+public readonly partial struct SECPCurve : IGenericCurve
 {
     /// <summary>
     /// Curve point parameters
@@ -52,10 +52,10 @@ public readonly partial struct ECCurve : ICurve
     //  and those types that are dependent on it would have been treated as the managed types and we don't want that.
     //
 
-    private readonly unsafe delegate* managed<in ECCurve, Span<ulong>, Span<ulong>, void> MMod_Impl;
-    private readonly unsafe delegate* managed<in ECCurve, Span<ulong>, void> ModSQRT_Impl;
-    private readonly unsafe delegate* managed<in ECCurve, Span<ulong>, ReadOnlySpan<ulong>, void> XSide_Impl;
-    private readonly unsafe delegate* managed<in ECCurve, Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian_Impl;
+    private readonly unsafe delegate* managed<in SECPCurve, Span<ulong>, Span<ulong>, void> MMod_Impl;
+    private readonly unsafe delegate* managed<in SECPCurve, Span<ulong>, void> ModSQRT_Impl;
+    private readonly unsafe delegate* managed<in SECPCurve, Span<ulong>, ReadOnlySpan<ulong>, void> XSide_Impl;
+    private readonly unsafe delegate* managed<in SECPCurve, Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian_Impl;
     #endregion
 
     #region Implementation wrappers
@@ -190,7 +190,7 @@ public readonly partial struct ECCurve : ICurve
     }
     #endregion
 
-    private unsafe ECCurve(ReadOnlySpan<char> name, int num_n_bits, ReadOnlySpan<ulong> p, ReadOnlySpan<ulong> n, ReadOnlySpan<ulong> half_n, ReadOnlySpan<ulong> G, ReadOnlySpan<ulong> b, delegate* managed<in ECCurve, Span<ulong>, Span<ulong>, void> MMod, delegate* managed<in ECCurve, Span<ulong>, ReadOnlySpan<ulong>, void> XSide, delegate* managed<in ECCurve, Span<ulong>, void> ModSQRT, delegate* managed<in ECCurve, Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian)
+    private unsafe SECPCurve(ReadOnlySpan<char> name, int num_n_bits, ReadOnlySpan<ulong> p, ReadOnlySpan<ulong> n, ReadOnlySpan<ulong> half_n, ReadOnlySpan<ulong> G, ReadOnlySpan<ulong> b, delegate* managed<in SECPCurve, Span<ulong>, Span<ulong>, void> MMod, delegate* managed<in SECPCurve, Span<ulong>, ReadOnlySpan<ulong>, void> XSide, delegate* managed<in SECPCurve, Span<ulong>, void> ModSQRT, delegate* managed<in SECPCurve, Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian)
     {
         Span<ulong> random = stackalloc ulong[1 + NUM_WORDS];
         RNG.Fill(random);
@@ -245,12 +245,12 @@ public readonly partial struct ECCurve : ICurve
         DoubleJacobian_Impl = DoubleJacobian;
     }
 
-    public static bool operator ==(ECCurve x, ECCurve y)
+    public static bool operator ==(SECPCurve x, SECPCurve y)
     {
         return x.randomId == y.randomId;
     }
 
-    public static bool operator !=(ECCurve x, ECCurve y)
+    public static bool operator !=(SECPCurve x, SECPCurve y)
     {
         return !(x == y);
     }

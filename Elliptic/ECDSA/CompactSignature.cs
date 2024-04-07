@@ -11,12 +11,12 @@ public struct CompactSignature : IECDSASignature
     /// <summary>
     /// ECC implementation to use
     /// </summary>
-    private readonly ECCurve _curve { get; }
+    private readonly SECPCurve _curve { get; }
 
     /// <summary>
     /// Public property for unification purposes
     /// </summary>
-    public readonly ICurve curve => _curve;
+    public readonly IGenericCurve curve => _curve;
 
     /// <summary>
     /// R part of the signature
@@ -65,7 +65,7 @@ public struct CompactSignature : IECDSASignature
     /// Construct the empty signature for given curve
     /// </summary>
     /// <param name="curve">ECC implementation</param>
-    public CompactSignature(ECCurve curve)
+    public CompactSignature(SECPCurve curve)
     {
         _curve = curve;
         // Sanity check constraint
@@ -79,7 +79,7 @@ public struct CompactSignature : IECDSASignature
     /// Create instance and parse provided data
     /// </summary>
     /// <param name="curve">ECC implementation</param>
-    public CompactSignature(ECCurve curve, ReadOnlySpan<byte> bytes) : this(curve)
+    public CompactSignature(SECPCurve curve, ReadOnlySpan<byte> bytes) : this(curve)
     {
         if (!Parse(bytes))
         {
@@ -136,7 +136,7 @@ public struct CompactSignature : IECDSASignature
     /// </summary>
     /// <param name="curve"></param>
     /// <returns></returns>
-    public static int GetEncodedSize(ECCurve curve)
+    public static int GetEncodedSize(SECPCurve curve)
     {
         return 2 * curve.NUM_BYTES;
     }

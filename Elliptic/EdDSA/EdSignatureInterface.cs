@@ -7,7 +7,7 @@ public interface IEdSignature : ISignature
     /// <summary>
     /// ECC implementation to use
     /// </summary>
-    public new ICurve curve { get; }
+    public new IGenericCurve curve { get; }
 
     /// <summary>
     /// Encoded data size in bytes

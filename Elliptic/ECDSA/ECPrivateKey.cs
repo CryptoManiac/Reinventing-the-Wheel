@@ -20,12 +20,12 @@ public struct ECPrivateKey : IPrivateKey
     /// <summary>
     /// Local copy of EC implementation instance
     /// </summary>
-    private readonly ECCurve _curve;
+    private readonly SECPCurve _curve;
 
     /// <summary>
     /// ECC implementation to use (exposed to users)
     /// </summary>
-    public readonly ICurve curve => _curve;
+    public readonly IGenericCurve curve => _curve;
 
     /// <summary>
     /// Encoded key size in bytes
@@ -64,15 +64,15 @@ public struct ECPrivateKey : IPrivateKey
     /// Construct the empty key
     /// </summary>
     /// <param name="_curve">ECC implementation</param>
-    public ECPrivateKey(in ICurve curve)
+    public ECPrivateKey(in IGenericCurve curve)
     {
-        if (curve is not ECCurve)
+        if (curve is not SECPCurve)
         {
             // Shouldn't happen in real life
             throw new InvalidOperationException("Invalid curve implementation instance");
         }
 
-        _curve = (ECCurve)curve;
+        _curve = (SECPCurve)curve;
 
         // Init with zeros
         Reset();
@@ -82,7 +82,7 @@ public struct ECPrivateKey : IPrivateKey
     /// Construct the the new private key instance from the given serialized scalar
     /// </summary>
     /// <param name="_curve">ECC implementation</param>
-    public ECPrivateKey(in ICurve curve, ReadOnlySpan<byte> scalar) : this(curve)
+    public ECPrivateKey(in IGenericCurve curve, ReadOnlySpan<byte> scalar) : this(curve)
     {
         if (!Parse(scalar))
         {
@@ -94,7 +94,7 @@ public struct ECPrivateKey : IPrivateKey
     /// Construct the the new private key instance from the given serialized scalar
     /// </summary>
     /// <param name="_curve">ECC implementation</param>
-    public ECPrivateKey(in ICurve curve, ReadOnlySpan<ulong> native_scalar) : this(curve)
+    public ECPrivateKey(in IGenericCurve curve, ReadOnlySpan<ulong> native_scalar) : this(curve)
     {
         if (!Wrap(native_scalar))
         {
@@ -174,9 +174,9 @@ public struct ECPrivateKey : IPrivateKey
     /// </summary>
     /// <param name="private_key">The private key to check.</param>
     /// <returns>True if the private key is valid.</returns>
-    public static bool IsValidPrivateKey(ICurve curve, ReadOnlySpan<byte> private_key)
+    public static bool IsValidPrivateKey(IGenericCurve curve, ReadOnlySpan<byte> private_key)
     {
-        if (curve is not ECCurve)
+        if (curve is not SECPCurve)
         {
             // Shouldn't happen in real life
             throw new InvalidOperationException("Invalid curve implementation instance");
@@ -191,7 +191,7 @@ public struct ECPrivateKey : IPrivateKey
     /// </summary>
     /// <param name="curve"></param>
     /// <returns>Number of bytes</returns>
-    public static int GetEncodedSize(ECCurve curve)
+    public static int GetEncodedSize(SECPCurve curve)
     {
         return curve.NUM_BYTES;
     }
@@ -605,7 +605,7 @@ public struct ECPrivateKey : IPrivateKey
     [SkipLocalsInit]
     public readonly bool ECDH(in ECPublicKey public_key, out ECPrivateKey shared)
     {
-        if (_curve != (ECCurve)public_key.curve)
+        if (_curve != (SECPCurve)public_key.curve)
         {
             // It doesn't make any sense to use points on non-matching curves
             // This shouldn't ever happen in real life

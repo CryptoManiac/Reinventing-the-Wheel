@@ -15,7 +15,7 @@ public struct EdPublicKey : IPublicKey
 
     private readonly EdCurve _curve { get; }
 
-    public readonly ICurve curve => _curve;
+    public readonly IGenericCurve curve => _curve;
 
     /// <summary>
     /// Check the public key coordinate
@@ -67,7 +67,7 @@ public struct EdPublicKey : IPublicKey
     /// Construct the empty key
     /// </summary>
     /// <param name="curve">ECC implementation</param>
-    public EdPublicKey(in ICurve curve)
+    public EdPublicKey(in IGenericCurve curve)
     {
         if (curve is not EdCurve)
         {
@@ -85,7 +85,7 @@ public struct EdPublicKey : IPublicKey
     /// Construct the empty key
     /// </summary>
     /// <param name="curve">ECC implementation</param>
-    public EdPublicKey(in ICurve curve, ReadOnlySpan<byte> public_key) : this(curve)
+    public EdPublicKey(in IGenericCurve curve, ReadOnlySpan<byte> public_key) : this(curve)
     {
         if (!Parse(public_key))
         {
@@ -204,7 +204,7 @@ public struct EdPublicKey : IPublicKey
     /// </summary>
     /// <param name="public_key">The public key to check.</param>
     /// <returns>True if key is valid</returns>
-    public static bool IsValidPublicKey(ICurve curve, ReadOnlySpan<byte> public_key)
+    public static bool IsValidPublicKey(IGenericCurve curve, ReadOnlySpan<byte> public_key)
     {
         if (curve is not EdCurve)
         {

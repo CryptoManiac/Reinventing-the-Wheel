@@ -4,7 +4,7 @@ namespace Wheel.Crypto.Elliptic.EllipticCommon;
 /// <summary>
 /// Some abstract ellipric curve interface
 /// </summary>
-public interface ICurve
+public interface IGenericCurve
 {
     /// <summary>
     /// Random instance identifier

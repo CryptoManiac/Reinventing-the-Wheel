@@ -14,7 +14,7 @@ namespace Wheel.Test.ECDSA;
 /// </summary>
 public class ECDSATest
 {
-    readonly ECCurve curve;
+    readonly SECPCurve curve;
     readonly ECPrivateKey secretKey;
     readonly ECPublicKey publicKey;
 
@@ -22,7 +22,7 @@ public class ECDSATest
     /// Calculate SHA256 of the ASCII string
     /// </summary>
     /// <param name="message"></param>
-    private byte[] GetSigningHash(string message)
+    private static byte[] GetSigningHash(string message)
     {
         // Empty for tests
         byte[] message_hash = new byte[32];
@@ -37,7 +37,7 @@ public class ECDSATest
     /// <param name="secret_seed">Seed to derive the secret from</param>
     /// <param name="personalization">Personalization for seed</param>
     /// <param name="secret_key_number">Secret sequence</param>
-    public ECDSATest(ECCurve curve, string secret_seed, string personalization, int secret_key_number)
+    public ECDSATest(SECPCurve curve, string secret_seed, string personalization, int secret_key_number)
     {
         this.curve = curve;
 

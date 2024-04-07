@@ -10,7 +10,7 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
 /// </summary>
 #pragma warning disable CS0660
 #pragma warning disable CS0661
-public readonly partial struct ECCurve
+public readonly partial struct SECPCurve
 #pragma warning restore CS0661
 #pragma warning restore CS0660
 {

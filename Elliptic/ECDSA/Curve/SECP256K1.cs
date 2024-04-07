@@ -7,14 +7,14 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
 /// SECP256K1 specific implementations.
 /// NOTE: These methods are declared static on purpose, it allows us to use their addresses in the curve constructor functions.
 /// </summary>
-public readonly partial struct ECCurve
+public readonly partial struct SECPCurve
 {
     /// <summary>
     /// Construct a new instance of the secp256k1 context.
     /// <returns></returns>
-    public static unsafe ECCurve Get_SECP256K1()
+    public static unsafe SECPCurve Get_SECP256K1()
     {
-        return new ECCurve(
+        return new SECPCurve(
             stackalloc char[] { 'S', 'E', 'C', 'P', '2', '5', '6', 'K', '1' },
             256,
             stackalloc ulong[] { 0xFFFFFFFEFFFFFC2F, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF },
@@ -34,7 +34,7 @@ public readonly partial struct ECCurve
     /// </summary>
     /// <param name="result"></param>
     /// <param name="x"></param>
-    public static void XSide_SECP256K1(in ECCurve curve, Span<ulong> result, ReadOnlySpan<ulong> x)
+    public static void XSide_SECP256K1(in SECPCurve curve, Span<ulong> result, ReadOnlySpan<ulong> x)
     {
         curve.ModSquare(result, x);                                // r = x^2
         curve.ModMult(result, result, x);                          // r = x^3
@@ -48,7 +48,7 @@ public readonly partial struct ECCurve
     /// <param name="Y1"></param>
     /// <param name="Z1"></param>
     [SkipLocalsInit]
-    public static void DoubleJacobian_SECP256K1(in ECCurve curve, Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1)
+    public static void DoubleJacobian_SECP256K1(in SECPCurve curve, Span<ulong> X1, Span<ulong> Y1, Span<ulong> Z1)
     {
         // t1 = X, t2 = Y, t3 = Z
         Span<ulong> t4 = stackalloc ulong[curve.NUM_WORDS];
@@ -92,7 +92,7 @@ public readonly partial struct ECCurve
     /// Computes result = product % p
     /// </summary>
     [SkipLocalsInit]
-    private static void MMod_SECP256K1(in ECCurve curve, Span<ulong> result, Span<ulong> product)
+    private static void MMod_SECP256K1(in SECPCurve curve, Span<ulong> result, Span<ulong> product)
     {
         Span<ulong> tmp = stackalloc ulong[2 * curve.NUM_WORDS];
         ulong carry;
@@ -118,7 +118,7 @@ public readonly partial struct ECCurve
         }
     }
 
-    private static void OmegaMult_SECP256K1(in ECCurve curve, Span<ulong> result, ReadOnlySpan<ulong> right)
+    private static void OmegaMult_SECP256K1(in SECPCurve curve, Span<ulong> result, ReadOnlySpan<ulong> right)
     {
         ulong r0 = 0;
         ulong r1 = 0;

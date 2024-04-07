@@ -29,7 +29,7 @@ List<string> signaturesToCheck = new()
     "308188024201374f452df60a1e1fb2361171f4b11a5d36aa3254b545430ec523052130e2697eb2b23959f815e02e2242cc62f00e94cf61465559ef4d6bfd463d609a010d693089024201360223ccd51ce08f29fb3416dd493de4ba254d92956b41f2a2a8fd51f6c08ab7c6a084ad3415d272e87c3af724229b7af5084cb052c3680c827c4034795d928732",
 };
 
-ECCurve curve = ECCurve.Get_SECP521R1();
+SECPCurve curve = SECPCurve.Get_SECP521R1();
 ECDSATest check = new(curve, secret_seed, personalization, secret_key_number);
 
 check.ExpectedKeys(
