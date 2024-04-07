@@ -242,13 +242,8 @@ public struct EdPublicKey : IPublicKey
         Span<ulong> S = stackalloc ulong[ModM.ModM_WORDS];
         Span<byte> checkR = stackalloc byte[32];
 
-        IHasher hasher = _curve.makeHasher();
-        Span<byte> hash = stackalloc byte[hasher.HashSz];
-        hasher.Update(r);
-        hasher.Update(public_point_data);
-        hasher.Update(message_hash);
-        hasher.Digest(hash);
-
+        Span<byte> hash = stackalloc byte[64];
+        _curve.GetHRAM(hash, r, public_point_data, message_hash);
         ModM.expand256(hram, hash, 64);
 
         // S

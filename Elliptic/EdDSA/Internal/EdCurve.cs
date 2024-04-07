@@ -34,9 +34,14 @@ public readonly struct EdCurve : ICurve
     public readonly int NUM_BYTES => EdPrivateKey.GetEncodedSize(this);
 
     /// <summary>
-    /// Configured hasher construct function
+    /// Configured hRAM function
     /// </summary>
-    private readonly unsafe delegate* managed<IHasher> _hasher;
+    private readonly unsafe delegate* managed<Span<byte>, ReadOnlySpan<byte>, ReadOnlySpan<byte>, ReadOnlySpan<byte>, void> _getHRAM;
+
+    /// <summary>
+    /// Configured seed expand function
+    /// </summary>
+    private readonly unsafe delegate* managed<Span<byte>, ReadOnlySpan<byte>, void> _expandSeed;
 
     /// <summary>
     /// Size of encoded private key in bytes
@@ -63,33 +68,6 @@ public readonly struct EdCurve : ICurve
     /// </summary>
     public int CompactSignatureSize => CompactSignature.GetEncodedSize(this);
 
-    /// <summary>
-    /// Returns instance of SHA-512 hasher
-    /// </summary>
-    /// <returns></returns>
-    private static IHasher getSha2()
-    {
-        return new SHA512();
-    }
-
-    /// <summary>
-    /// Returns instance of SHA3-512 hasher
-    /// </summary>
-    /// <returns></returns>
-    private static IHasher getSha3()
-    {
-        return new SHA3_512();
-    }
-
-    /// <summary>
-    /// Returns instance of Keccak-512 hasher
-    /// </summary>
-    /// <returns></returns>
-    private static IHasher getKeccak()
-    {
-        return new Keccak_512();
-    }
-
     public unsafe readonly ReadOnlySpan<byte> ScrambleKey
     {
         get
@@ -101,12 +79,7 @@ public readonly struct EdCurve : ICurve
         }
     }
 
-    /// <summary>
-    /// Construct a new instance instance of the configured hasher
-    /// </summary>
-    public unsafe readonly IHasher makeHasher() => _hasher();
-
-    private unsafe EdCurve(delegate* managed<IHasher> hasher)
+    private unsafe EdCurve(delegate* managed<Span<byte>, ReadOnlySpan<byte>, ReadOnlySpan<byte>, ReadOnlySpan<byte>, void> get_hRAM, delegate* managed<Span<byte>, ReadOnlySpan<byte>, void> expandSeed)
     {
         Span<ulong> random = stackalloc ulong[1 + ModM.ModM_WORDS];
         RNG.Fill(random);
@@ -119,23 +92,82 @@ public readonly struct EdCurve : ICurve
             src.Slice(8, 32).CopyTo(new Span<byte>(ptr, 32));
         }
 
-        _hasher = hasher;
+        _getHRAM = get_hRAM;
+        _expandSeed = expandSeed;
     }
 
     public unsafe static EdCurve Get_EdCurve_SHA2()
     {
-        return new EdCurve(&getSha2);
+        return new EdCurve(&Get_HRAM_SHA2, &Expand_Key_SHA2);
     }
 
     public unsafe static EdCurve Get_EdCurve_SHA3()
     {
-        return new EdCurve(&getSha3);
+        return new EdCurve(&Get_HRAM_SHA3, &Expand_Key_SHA3);
     }
 
     public unsafe static EdCurve Get_EdCurve_Keccak()
     {
-        return new EdCurve(&getKeccak);
+        return new EdCurve(&Get_HRAM_Keccak, &Expand_Key_Keccak);
     }
+
+    /// <summary>
+    /// Calculate S value for signature
+    /// </summary>
+    /// <param name="hram"></param>
+    /// <param name="r"></param>
+    /// <param name="a"></param>
+    /// <param name="m"></param>
+    public unsafe void GetHRAM(Span<byte> hram, ReadOnlySpan<byte> r, ReadOnlySpan<byte> a, ReadOnlySpan<byte> m) => _getHRAM(hram, r, a, m);
+
+    #region Hash function wrappers
+    private static void Get_HRAM_SHA2(Span<byte> hram, ReadOnlySpan<byte> r, ReadOnlySpan<byte> a, ReadOnlySpan<byte> m) {
+        SHA512 ctx = new();
+        ctx.Update(r);
+        ctx.Update(a);
+        ctx.Update(m);
+        ctx.Digest(hram);
+    }
+
+    private static void Get_HRAM_SHA3(Span<byte> hram, ReadOnlySpan<byte> r, ReadOnlySpan<byte> a, ReadOnlySpan<byte> m)
+    {
+        SHA3_512 ctx = new();
+        ctx.Update(r);
+        ctx.Update(a);
+        ctx.Update(m);
+        ctx.Digest(hram);
+    }
+
+    private static void Get_HRAM_Keccak(Span<byte> hram, ReadOnlySpan<byte> r, ReadOnlySpan<byte> a, ReadOnlySpan<byte> m)
+    {
+        SHA512 ctx = new();
+        ctx.Update(r);
+        ctx.Update(a);
+        ctx.Update(m);
+        ctx.Digest(hram);
+    }
+
+    private static void Expand_Key_SHA2(Span<byte> key, ReadOnlySpan<byte> seed)
+    {
+        SHA512 ctx = new();
+        ctx.Update(seed);
+        ctx.Digest(key);
+    }
+
+    private static void Expand_Key_SHA3(Span<byte> key, ReadOnlySpan<byte> seed)
+    {
+        SHA3_512 ctx = new();
+        ctx.Update(seed);
+        ctx.Digest(key);
+    }
+
+    private static void Expand_Key_Keccak(Span<byte> key, ReadOnlySpan<byte> seed)
+    {
+        SHA512 ctx = new();
+        ctx.Update(seed);
+        ctx.Digest(key);
+    }
+    #endregion
 
     public static bool operator ==(EdCurve x, EdCurve y)
     {
@@ -187,12 +219,10 @@ public readonly struct EdCurve : ICurve
     /// </summary>
     /// <param name="result">Private key to be filled</param>
     /// <param name="seed">Secret seed to generate from</param>
-    public void ExpandSeed(out EdPrivateKey result, ReadOnlySpan<byte> seed)
+    public unsafe void ExpandSeed(out EdPrivateKey result, ReadOnlySpan<byte> seed)
     {
-        IHasher hasher = makeHasher();
-        Span<byte> key = stackalloc byte[hasher.HashSz];
-        hasher.Update(seed);
-        hasher.Digest(key);
+        Span<byte> key = stackalloc byte[64];
+        _expandSeed(key, seed);
         key[0] &= 248;
         key[31] &= 127;
         key[31] |= 64;

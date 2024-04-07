@@ -380,11 +380,7 @@ public struct EdPrivateKey : IPrivateKey
 
         // S = H(R,A,m)..
         Span<byte> hram = stackalloc byte[64];
-        IHasher hasher = _curve.makeHasher();
-        hasher.Update(sig_r);
-        hasher.Update(public_data);
-        hasher.Update(message_hash);
-        hasher.Digest(hram);
+        _curve.GetHRAM(hram, sig_r, public_data, message_hash);
         ModM.expand256(S, hram, 64);
 
         Logic.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
@@ -440,11 +436,7 @@ public struct EdPrivateKey : IPrivateKey
 
         // S = H(R,A,m)..
         Span<byte> hram = stackalloc byte[64];
-        IHasher hasher = _curve.makeHasher();
-        hasher.Update(sig_r);
-        hasher.Update(public_data);
-        hasher.Update(message_hash);
-        hasher.Digest(hram);
+        _curve.GetHRAM(hram, sig_r, public_data, message_hash);
         ModM.expand256(S, hram, 64);
 
 
