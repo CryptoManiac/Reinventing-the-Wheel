@@ -97,7 +97,7 @@ public struct EdPublicKey : IPublicKey
     /// <param name="result"></param>
     /// <param name="scalar"></param>
     /// <returns></returns>
-    public bool KeyTweak(out EdPublicKey result, ReadOnlySpan<byte> scalar)
+    public readonly bool KeyTweak(out EdPublicKey result, ReadOnlySpan<byte> scalar)
     {
         result = new EdPublicKey(_curve);
 
@@ -127,7 +127,7 @@ public struct EdPublicKey : IPublicKey
     /// <param name="outKey"></param>
     /// <param name="scalar"></param>
     /// <returns></returns>
-    public bool KeyTweak(out IPublicKey outKey, ReadOnlySpan<byte> scalar)
+    public readonly bool KeyTweak(out IPublicKey outKey, ReadOnlySpan<byte> scalar)
     {
         bool result = KeyTweak(out EdPublicKey generatedKey, scalar);
         outKey = generatedKey;

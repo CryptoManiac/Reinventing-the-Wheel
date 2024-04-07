@@ -184,6 +184,11 @@ public struct EdPrivateKey : IPrivateKey
         return public_key.Parse(public_data);
     }
 
+    /// <summary>
+    /// Compute the corresponding public key for a private key.
+    /// </summary>
+    /// <param name="public_key">Will be filled in with the corresponding public key</param>
+    /// <returns>True if the key was computed successfully, False if an error occurred.</returns>
     public readonly bool ComputePublicKey(out IPublicKey public_key)
     {
         return ComputePublicKey(out public_key);
@@ -274,7 +279,7 @@ public struct EdPrivateKey : IPrivateKey
     /// <param name="result"></param>
     /// <param name="scalar"></param>
     /// <returns></returns>
-    public readonly bool KeyTweak(out IPrivateKey result, ReadOnlySpan<byte> scalar)
+    public readonly bool KeyTweak(out EdPrivateKey result, ReadOnlySpan<byte> scalar)
     {
         result = new EdPrivateKey(_curve);
 
@@ -299,6 +304,19 @@ public struct EdPrivateKey : IPrivateKey
         sum.Clear();
         tweaked.Clear();
         return result.IsValid;
+    }
+
+    /// <summary>
+    /// Private key tweak by scalar
+    /// </summary>
+    /// <param name="result"></param>
+    /// <param name="scalar"></param>
+    /// <returns></returns>
+    public readonly bool KeyTweak(out IPrivateKey result, ReadOnlySpan<byte> scalar)
+    {
+        bool success = KeyTweak(out EdPrivateKey pk, scalar);
+        result = pk;
+        return success;
     }
 
     /// <summary>
