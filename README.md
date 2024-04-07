@@ -72,6 +72,11 @@ public void Digest(Span<byte> hash)
 /// This property returns size of the 
 // result buffer for the Digest() call
 public int HashSz;
+
+/// This property is returning the block
+///  size of an underlying hash algorithm.
+/// Note: This will return ```bitrate / 8``` for Keccak/SHA3 family of hash functions.
+public int BlockSz;
 ```
 
 ### HMAC
