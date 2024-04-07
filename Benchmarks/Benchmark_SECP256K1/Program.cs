@@ -1,10 +1,11 @@
 ﻿using Wheel.Crypto.Elliptic.ECDSA;
 using System.Diagnostics;
 using System.Text;
-using Wheel.Hashing.HMAC.SHA2;
 using Wheel.Hashing.HMAC;
 using Wheel.Hashing.SHA.SHA256;
 using Wheel.Crypto.Elliptic.EllipticCommon;
+using Hashing.Hashing.HMAC;
+using Wheel.Hashing.SHA.SHA512;
 
 static void Benchmark(string name, Action action, int n)
 {
@@ -67,7 +68,7 @@ int secret_key_number = 0;
 ECCurve curve = ECCurve.Get_SECP256K1();
 
 // Derive new secret key
-curve.GenerateDeterministicSecret<HMAC_SHA512>(out ECPrivateKey secretKey, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), secret_key_number);
+curve.GenerateDeterministicSecret<HMAC<SHA512>>(out ECPrivateKey secretKey, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), secret_key_number);
 
 if (!secretKey.ComputePublicKey(out IPublicKey publicKey))
 {
@@ -102,7 +103,7 @@ bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOnlySpan<
 
 Benchmark("Sign<HMAC_SHA512>", () => {
     Span<byte> signature = stackalloc byte[curve.DERSignatureSize];
-    SignData<HMAC_SHA512>(signature, secretKey, message, curve);
+    SignData<HMAC<SHA512>>(signature, secretKey, message, curve);
 }, 1000);
 
 byte[] public_key_uncompressed = new byte[curve.UncompressedPublicKeySize];
@@ -113,6 +114,6 @@ if (!publicKey.Serialize(public_key_uncompressed))
 }
 
 byte[] signature = new byte[curve.DERSignatureSize];
-SignData<HMAC_SHA512>(signature, secretKey, message, curve);
+SignData<HMAC<SHA512>>(signature, secretKey, message, curve);
 Benchmark("Verify<HMAC_SHA512>", () => VerifySignature(signature, message, public_key_uncompressed, curve), 1000);
 

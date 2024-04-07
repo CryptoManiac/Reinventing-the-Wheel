@@ -15,6 +15,7 @@ public struct SHA3_256 : IHasher
 
     #region Pass-through methods
     public int HashSz => ctx.HashSz;
+    public int BlockSz => ctx.BlockSz;
     public byte[] Digest() => ctx.Digest();
     public void Digest(Span<byte> hash) => ctx.Digest(hash);
     public void Reset() => ctx.Reset();
@@ -53,6 +54,7 @@ public struct SHA3_384 : IHasher
 
     #region Pass-through methods
     public int HashSz => ctx.HashSz;
+    public int BlockSz => ctx.BlockSz;
     public byte[] Digest() => ctx.Digest();
     public void Digest(Span<byte> hash) => ctx.Digest(hash);
     public void Reset() => ctx.Reset();
@@ -91,6 +93,7 @@ public struct SHA3_512 : IHasher
 
     #region Pass-through methods
     public int HashSz => ctx.HashSz;
+    public int BlockSz => ctx.BlockSz;
     public byte[] Digest() => ctx.Digest();
     public void Digest(Span<byte> hash) => ctx.Digest(hash);
     public void Reset() => ctx.Reset();
@@ -129,6 +132,7 @@ public struct Keccak_256 : IHasher
 
     #region Pass-through methods
     public int HashSz => ctx.HashSz;
+    public int BlockSz => ctx.BlockSz;
     public byte[] Digest() => ctx.Digest();
     public void Digest(Span<byte> hash) => ctx.Digest(hash);
     public void Reset() => ctx.Reset();
@@ -167,6 +171,7 @@ public struct Keccak_384 : IHasher
 
     #region Pass-through methods
     public int HashSz => ctx.HashSz;
+    public int BlockSz => ctx.BlockSz;
     public byte[] Digest() => ctx.Digest();
     public void Digest(Span<byte> hash) => ctx.Digest(hash);
     public void Reset() => ctx.Reset();
@@ -205,6 +210,7 @@ public struct Keccak_512 : IHasher
 
     #region Pass-through methods
     public int HashSz => ctx.HashSz;
+    public int BlockSz => ctx.BlockSz;
     public byte[] Digest() => ctx.Digest();
     public void Digest(Span<byte> hash) => ctx.Digest(hash);
     public void Reset() => ctx.Reset();

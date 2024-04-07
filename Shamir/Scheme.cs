@@ -1,8 +1,9 @@
 ﻿using Wheel.Crypto.Symmetric.AES;
-using Wheel.Hashing.HMAC.SHA2;
 using Wheel.Hashing.Derivation;
 using Wheel.Crypto.Shamir.Internal;
 using System.Runtime.InteropServices;
+using Hashing.Hashing.HMAC;
+using Wheel.Hashing.SHA.SHA512;
 
 namespace Wheel.Crypto.Shamir;
 
@@ -58,7 +59,7 @@ public class Sharing
         SplitCombined(out Span<byte> aesIV, out Span<byte> cipherText, expanded);
 
         // IV = HMAC(seed, secret)
-        HMAC_SHA512 hasher = new();
+        HMAC<SHA512> hasher = new();
         hasher.Init(seed);
         hasher.Update(secret);
         hasher.Digest(aesIV);
@@ -66,7 +67,7 @@ public class Sharing
 
         // Key = PBKDF2(seed, IV)
         Span<byte> aesKey = stackalloc byte[32];
-        PBKDF2.Derive<HMAC_SHA512>(aesKey, seed, aesIV, 4096);
+        PBKDF2.Derive<HMAC<SHA512>>(aesKey, seed, aesIV, 4096);
 
         // IV + Encrypted secret
         EncryptSecret(cipherText, secret, aesKey, aesIV);
@@ -108,7 +109,7 @@ public class Sharing
 
         // Key = PBKDF2(seed, IV)
         Span<byte> aesKey = stackalloc byte[32];
-        PBKDF2.Derive<HMAC_SHA512>(aesKey, seed, aesIV, 4096);
+        PBKDF2.Derive<HMAC<SHA512>>(aesKey, seed, aesIV, 4096);
 
         // Decrypt and truncate padding bytes
         secretSz = DecryptSecret(plainText, cipherText, aesKey, aesIV);
@@ -118,7 +119,7 @@ public class Sharing
         // Calculate HMAC and compare it with IV for the intergity check
         // IV = HMAC(seed, secret)
         Span<byte> aesIVCheck = stackalloc byte[AESBlock.TypeByteSz];
-        HMAC_SHA512 hasher = new();
+        HMAC<SHA512> hasher = new();
         hasher.Init(seed);
         hasher.Update(plainText);
         hasher.Digest(aesIVCheck);
@@ -162,7 +163,7 @@ public class Sharing
 
         // Use PBKDF2 to generate some deterministic garbage from the secret
         // The random data is required to be uniform and unpredictable, so the PBKDF2 is just what we need here
-        PBKDF2.Derive<HMAC_SHA384>(MemoryMarshal.Cast<ShareByte, byte>(garbage), shamirTag, secret, 128);
+        PBKDF2.Derive<HMAC<SHA512>>(MemoryMarshal.Cast<ShareByte, byte>(garbage), shamirTag, secret, 128);
 
         Share[] generated = new Share[Participants];
 

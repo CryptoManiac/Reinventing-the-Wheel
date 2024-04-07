@@ -3,7 +3,8 @@ using System.Runtime.InteropServices;
 using Wheel.Crypto.Elliptic.EllipticCommon;
 using Wheel.Crypto.Elliptic.ECDSA.Internal;
 using Wheel.Hashing.HMAC;
-using Wheel.Hashing.HMAC.SHA2;
+using Hashing.Hashing.HMAC;
+using Wheel.Hashing.SHA.SHA512;
 
 namespace Wheel.Crypto.Elliptic.ECDSA;
 
@@ -358,7 +359,7 @@ public readonly partial struct ECCurve : ICurve
     {
         Span<byte> rnd = stackalloc byte[NUM_BYTES];
         RNG.Fill(rnd);
-        GenerateDeterministicSecret<HMAC_SHA512>(result, rnd, entropy, 0);
+        GenerateDeterministicSecret<HMAC<SHA512>>(result, rnd, entropy, 0);
     }
 
     /// <summary>

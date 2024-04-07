@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Net;
 using System.Runtime.CompilerServices;
+using Wheel.Hashing.SHA.SHA512.Internal;
 
 namespace Wheel.Hashing.SHA.SHA256;
 
@@ -50,7 +51,15 @@ internal struct SHA256Base : IHasher
     /// </summary>
     public const int TypeByteSz = 2 * sizeof(uint) + sizeof(ulong) + InternalSHA256Block.TypeByteSz + InternalSHA256State.TypeByteSz * 2;
 
-    public int HashSz => digestSz;
+    /// <summary>
+    /// Configured digest size
+    /// </summary>
+    public readonly int HashSz => digestSz;
+
+    /// <summary>
+    /// SHA256 block size
+    /// </summary>
+    public readonly int BlockSz => InternalSHA256Block.TypeByteSz;
 
     public SHA256Base(in InternalSHA256State constants, int outSz)
     {
@@ -218,6 +227,7 @@ public struct SHA256 : IHasher
 
     #region Pass-through methods
     public int HashSz => ctx.HashSz;
+    public int BlockSz => ctx.BlockSz;
     public byte[] Digest() => ctx.Digest();
     public void Digest(Span<byte> hash) => ctx.Digest(hash);
     public void Reset() => ctx.Reset();
@@ -261,6 +271,7 @@ public struct SHA224 : IHasher
 
     #region Pass-through methods
     public int HashSz => ctx.HashSz;
+    public int BlockSz => ctx.BlockSz;
     public byte[] Digest() => ctx.Digest();
     public void Digest(Span<byte> hash) => ctx.Digest(hash);
     public void Reset() => ctx.Reset();

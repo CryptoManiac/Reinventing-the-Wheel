@@ -1,8 +1,9 @@
 ﻿using System.Text;
+using Hashing.Hashing.HMAC;
 using Wheel.Crypto.Elliptic.EdDSA;
 using Wheel.Hashing.HMAC;
-using Wheel.Hashing.HMAC.SHA2;
 using Wheel.Hashing.SHA.SHA256;
+using Wheel.Hashing.SHA.SHA512;
 
 string message = "aaa";
 
@@ -123,7 +124,7 @@ void CompareSig(string algorithm, Span<byte> signature, SortedDictionary<string,
 EdCurve curve = EdCurve.Get_EdCurve_SHA2();
 
 // Derive new secret key
-curve.GenerateDeterministicSecret<HMAC_SHA512>(out EdPrivateKey secretKey, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), secret_key_number);
+curve.GenerateDeterministicSecret<HMAC<SHA512>>(out EdPrivateKey secretKey, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), secret_key_number);
 
 if (!secretKey.ComputePublicKey(out EdPublicKey publicKey))
 {
@@ -155,7 +156,7 @@ Span<byte> signature_der = stackalloc byte[curve.DERSignatureSize];
 
 Console.WriteLine("Deterministic ED25519 compact signatures:");
 
-int sha224SigSz = SignCompact<HMAC_SHA224>(signature_compact, secretKey, message_hash, curve);
+int sha224SigSz = SignCompact<HMAC<SHA224>>(signature_compact, secretKey, message_hash, curve);
 
 if (!VerifySigCompact(signature_compact, message_hash, public_key, curve))
 {
@@ -164,7 +165,7 @@ if (!VerifySigCompact(signature_compact, message_hash, public_key, curve))
 
 CompareSig("HMAC_SHA224", signature_compact.Slice(0, sha224SigSz), compactVectors);
 
-int sha256SigSz = SignCompact<HMAC_SHA256>(signature_compact, secretKey, message_hash, curve);
+int sha256SigSz = SignCompact<HMAC<SHA256>>(signature_compact, secretKey, message_hash, curve);
 
 if (!VerifySigCompact(signature_compact, message_hash, public_key, curve))
 {
@@ -173,7 +174,7 @@ if (!VerifySigCompact(signature_compact, message_hash, public_key, curve))
 
 CompareSig("HMAC_SHA256", signature_compact.Slice(0, sha256SigSz), compactVectors);
 
-int sha512SigSz = SignCompact<HMAC_SHA512>(signature_compact, secretKey, message_hash, curve);
+int sha512SigSz = SignCompact<HMAC<SHA512>>(signature_compact, secretKey, message_hash, curve);
 
 if (!VerifySigCompact(signature_compact, message_hash, public_key, curve))
 {
@@ -184,7 +185,7 @@ CompareSig("HMAC_SHA512", signature_compact.Slice(0, sha512SigSz), compactVector
 
 Console.WriteLine("Deterministic ED25519 DER signatures:");
 
-int sha224DERSigSz = SignDER<HMAC_SHA224>(signature_der, secretKey, message_hash, curve);
+int sha224DERSigSz = SignDER<HMAC<SHA224>>(signature_der, secretKey, message_hash, curve);
 
 if (!VerifySigDER(signature_der, message_hash, public_key, curve))
 {
@@ -193,7 +194,7 @@ if (!VerifySigDER(signature_der, message_hash, public_key, curve))
 
 CompareSig("HMAC_SHA224", signature_der.Slice(0, sha224DERSigSz), derVectors);
 
-int sha256DERSigSz = SignDER<HMAC_SHA256>(signature_der, secretKey, message_hash, curve);
+int sha256DERSigSz = SignDER<HMAC<SHA256>>(signature_der, secretKey, message_hash, curve);
 
 if (!VerifySigDER(signature_der, message_hash, public_key, curve))
 {
@@ -202,7 +203,7 @@ if (!VerifySigDER(signature_der, message_hash, public_key, curve))
 
 CompareSig("HMAC_SHA256", signature_der.Slice(0, sha256DERSigSz), derVectors);
 
-int sha512DERSigSz = SignDER<HMAC_SHA512>(signature_der, secretKey, message_hash, curve);
+int sha512DERSigSz = SignDER<HMAC<SHA512>>(signature_der, secretKey, message_hash, curve);
 
 if (!VerifySigDER(signature_der, message_hash, public_key, curve))
 {

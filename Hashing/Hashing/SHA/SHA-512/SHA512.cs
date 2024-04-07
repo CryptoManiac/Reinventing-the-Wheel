@@ -49,7 +49,15 @@ internal struct SHA512Base : IHasher
     /// </summary>
     public const int TypeByteSz = 2 * sizeof(uint) + sizeof(ulong) + InternalSHA512Block.TypeByteSz + InternalSHA512State.TypeByteSz * 2;
 
+    /// <summary>
+    /// Configured digest size
+    /// </summary>
     public readonly int HashSz => digestSz;
+
+    /// <summary>
+    /// SHA512 block size
+    /// </summary>
+    public readonly int BlockSz => InternalSHA512Block.TypeByteSz;
 
     public SHA512Base(in InternalSHA512State constants, int outSz)
     {
@@ -231,6 +239,7 @@ public struct SHA512 : IHasher
 
     #region Pass-through methods
     public int HashSz => ctx.HashSz;
+    public int BlockSz => ctx.BlockSz;
     public byte[] Digest() => ctx.Digest();
     public void Digest(Span<byte> hash) => ctx.Digest(hash);
     public void Reset() => ctx.Reset();
@@ -274,6 +283,7 @@ public struct SHA384 : IHasher
 
     #region Pass-through methods
     public int HashSz => ctx.HashSz;
+    public int BlockSz => ctx.BlockSz;
     public byte[] Digest() => ctx.Digest();
     public void Digest(Span<byte> hash) => ctx.Digest(hash);
     public void Reset() => ctx.Reset();
@@ -317,6 +327,7 @@ public struct SHA512_256 : IHasher
 
     #region Pass-through methods
     public int HashSz => ctx.HashSz;
+    public int BlockSz => ctx.BlockSz;
     public byte[] Digest() => ctx.Digest();
     public void Digest(Span<byte> hash) => ctx.Digest(hash);
     public void Reset() => ctx.Reset();
@@ -360,6 +371,7 @@ public struct SHA512_224 : IHasher
 
     #region Pass-through methods
     public int HashSz => ctx.HashSz;
+    public int BlockSz => ctx.BlockSz;
     public byte[] Digest() => ctx.Digest();
     public void Digest(Span<byte> hash) => ctx.Digest(hash);
     public void Reset() => ctx.Reset();

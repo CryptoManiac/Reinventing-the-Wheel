@@ -1,9 +1,9 @@
 ﻿using System.Text;
+using Hashing.Hashing.HMAC;
 using Wheel.Crypto.Elliptic.ECDSA;
-using Wheel.Crypto.Elliptic.EllipticCommon;
 using Wheel.Hashing.HMAC;
-using Wheel.Hashing.HMAC.SHA2;
 using Wheel.Hashing.SHA.SHA256;
+using Wheel.Hashing.SHA.SHA512;
 
 string message = "aaa";
 
@@ -89,7 +89,7 @@ void CompareSig(string algorithm, Span<byte> signature)
 ECCurve curve = ECCurve.Get_SECP224R1();
 
 // Derive new secret key
-curve.GenerateDeterministicSecret<HMAC_SHA512>(out ECPrivateKey secretKey, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), secret_key_number);
+curve.GenerateDeterministicSecret<HMAC<SHA512>>(out ECPrivateKey secretKey, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), secret_key_number);
 
 if (!secretKey.ComputePublicKey(out ECPublicKey publicKey))
 {
@@ -124,7 +124,7 @@ Span<byte> signature = stackalloc byte[curve.DERSignatureSize];
 
 Console.WriteLine("Deterministic SECP224R1 signatures:");
 
-int sha224SigSz = SignData<HMAC_SHA224>(signature, secretKey, message, curve);
+int sha224SigSz = SignData<HMAC<SHA224>>(signature, secretKey, message, curve);
 
 if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 {
@@ -133,7 +133,7 @@ if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 
 CompareSig("HMAC_SHA224", signature.Slice(0, sha224SigSz));
 
-int sha256SigSz = SignData<HMAC_SHA256>(signature, secretKey, message, curve);
+int sha256SigSz = SignData<HMAC<SHA256>>(signature, secretKey, message, curve);
 if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 {
     throw new SystemException("Signature verification failure");
@@ -141,7 +141,7 @@ if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 
 CompareSig("HMAC_SHA256", signature.Slice(0, sha256SigSz));
 
-int sha512SigSz = SignData<HMAC_SHA512>(signature, secretKey, message, curve);
+int sha512SigSz = SignData<HMAC<SHA512>>(signature, secretKey, message, curve);
 
 if (!VerifySignature(signature, message, public_key_uncompressed, curve))
 {

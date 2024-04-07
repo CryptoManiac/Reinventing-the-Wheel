@@ -26,6 +26,12 @@ public struct RIPEMD160 : IHasher
 
     public readonly int HashSz => 20;
 
+    /// <summary>
+    /// RIPEMD160 block size
+    /// </summary>
+    public readonly int BlockSz => InternalRIPEMDBlock.TypeByteSz;
+
+
     public byte[] Digest()
     {
         byte[] hash = new byte[20];

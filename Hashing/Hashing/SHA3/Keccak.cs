@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Wheel.Hashing.SHA.SHA512.Internal;
 
 namespace Wheel.Hashing.SHA3.Internal;
 
@@ -77,7 +78,20 @@ internal struct Keccak : IHasher
 
     public const int SHA3_SPONGE_WORDS = 25; // Calculated as 1600 / 8 / sizeof(ulong)
 
+    /// <summary>
+    /// Configured digest size
+    /// </summary>
     public readonly int HashSz => capacityWords * 4;
+
+    /// <summary>
+    /// SHA3 bitrate
+    /// </summary>
+    public readonly int Rate => 1600 - capacityWords * 32;
+
+    /// <summary>
+    /// Keep in mind that there is no "block size" for SHA3 in classic sense
+    /// </summary>
+    public readonly int BlockSz => Rate / 8;
 
     public Keccak(int bitSize, bool isKeccak)
     {

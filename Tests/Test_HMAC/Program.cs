@@ -1,6 +1,8 @@
 ﻿using Wheel.Hashing.HMAC;
-using Wheel.Hashing.HMAC.SHA2;
 using System.Text;
+using Hashing.Hashing.HMAC;
+using Wheel.Hashing.SHA.SHA256;
+using Wheel.Hashing.SHA.SHA512;
 
 static string CalculateHMAC(string key, string message, int mac_length, Func<IMac> algorithm)
 {
@@ -36,10 +38,10 @@ static string CalculateHMAC(string key, string message, int mac_length, Func<IMa
 
 SortedDictionary<string, Func<IMac>> mac_algorithms = new()
 {
-    { "HMAC-SHA-224", () => new HMAC_SHA224() },
-    { "HMAC-SHA-256", () => new HMAC_SHA256() },
-    { "HMAC-SHA-384", () => new HMAC_SHA384() },
-    { "HMAC-SHA-512", () => new HMAC_SHA512() },
+    { "HMAC-SHA-224", () => new HMAC<SHA224>() },
+    { "HMAC-SHA-256", () => new HMAC<SHA256>() },
+    { "HMAC-SHA-384", () => new HMAC<SHA384>() },
+    { "HMAC-SHA-512", () => new HMAC<SHA512>() },
 };
 
 /**

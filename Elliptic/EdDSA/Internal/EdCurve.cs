@@ -1,10 +1,10 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Hashing.Hashing.HMAC;
 using Wheel.Crypto.Elliptic.EdDSA.Internal;
 using Wheel.Crypto.Elliptic.EllipticCommon;
 using Wheel.Hashing;
 using Wheel.Hashing.HMAC;
-using Wheel.Hashing.HMAC.SHA2;
 using Wheel.Hashing.SHA.SHA512;
 using Wheel.Hashing.SHA3;
 
@@ -411,14 +411,14 @@ public readonly struct EdCurve : ICurve
     {
         Span<byte> rnd = stackalloc byte[32];
         RNG.Fill(rnd);
-        GenerateDeterministicSecret<HMAC_SHA512>(result, rnd, entropy, rnd.Length);
+        GenerateDeterministicSecret<HMAC<SHA512>>(result, rnd, entropy, rnd.Length);
     }
 
     public void GenerateRandomNonce(Span<byte> result, ReadOnlySpan<byte> entropy)
     {
         Span<byte> rnd = stackalloc byte[32];
         RNG.Fill(rnd);
-        GenerateDeterministicNonce<HMAC_SHA512>(result, rnd, entropy, rnd.Length);
+        GenerateDeterministicNonce<HMAC<SHA512>>(result, rnd, entropy, rnd.Length);
     }
 
     /// <summary>

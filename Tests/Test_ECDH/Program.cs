@@ -1,6 +1,7 @@
 ﻿using System.Text;
+using Hashing.Hashing.HMAC;
 using Wheel.Crypto.Elliptic.ECDSA;
-using Wheel.Hashing.HMAC.SHA2;
+using Wheel.Hashing.SHA.SHA512;
 
 string secret_seed = "The quick brown fox jumps over the lazy dog";
 string personalization = "For ECDH tests";
@@ -18,8 +19,8 @@ List<Tuple<string, ECCurve>> curves = new()
 
 foreach (var (name, algo) in curves)
 {
-    algo.GenerateDeterministicSecret<HMAC_SHA512>(out ECPrivateKey secretKeyA, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), 1);
-    algo.GenerateDeterministicSecret<HMAC_SHA512>(out ECPrivateKey secretKeyB, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), 2);
+    algo.GenerateDeterministicSecret<HMAC<SHA512>>(out ECPrivateKey secretKeyA, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), 1);
+    algo.GenerateDeterministicSecret<HMAC<SHA512>>(out ECPrivateKey secretKeyB, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), 2);
 
     if (!secretKeyA.ComputePublicKey(out ECPublicKey publicKeyA))
     {
