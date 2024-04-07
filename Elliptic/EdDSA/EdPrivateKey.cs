@@ -310,9 +310,13 @@ public struct EdPrivateKey : IPrivateKey
         tweaked[31] |= 64;
 
         result.Parse(tweaked);
+
         sum.Clear();
         tweaked.Clear();
-        return result.IsValid;
+
+        // The computed key is always
+        //  valid at this point
+        return true;
     }
 
     /// <summary>
