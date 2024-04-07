@@ -400,28 +400,17 @@ public static class ModM
     /// <param name="r">64 bytes long</param>
     /// <param name=""></param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe static void contract256_window4(Span<sbyte> r, ReadOnlySpan<ulong> @in)
-    {
-        fixed (sbyte* ptr = &r[0])
-        {
-            contract256_window4(ptr, @in);
-        }
-    }
-
-    /// TODO: Consider reimplementing from scratch
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private unsafe static void contract256_window4(sbyte* r, ReadOnlySpan<ulong> @in)
+    public static void contract256_window4(Span<sbyte> r, ReadOnlySpan<ulong> @in)
     {
         sbyte carry;
-        sbyte* quads = r;
 
-        for (int i = 0; i < 5; i++)
+        for (int i = 0, k = 0; i < 5; i++)
         {
             ulong v = @in[i];
             int m = (i == 4) ? 8 : 14;
             for (int j = 0; j < m; j++)
             {
-                *quads++ = (sbyte)(v & 15);
+                r[k++] = (sbyte)(v & 15);
                 v >>= 4;
             }
         }
