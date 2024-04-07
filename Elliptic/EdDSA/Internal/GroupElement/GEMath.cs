@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using Wheel.Crypto.Elliptic.EdDSA.Internal.Curve25519;
 using Wheel.Crypto.Elliptic.EllipticCommon;
 
@@ -9,6 +10,7 @@ internal static class GEMath
     public static Tables tables = Tables.Get_Tables();
 
     #region Conversions
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ge25519_p1p1_to_partial(ref GE25519 r, in GE25519 p)
     {
 
@@ -17,6 +19,7 @@ internal static class GEMath
         EdMath.curve25519_mul(r.Z, p.Z, p.T);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ge25519_p1p1_to_full(ref GE25519 r, in GE25519 p)
     {
         EdMath.curve25519_mul(r.X, p.X, p.T);
@@ -25,6 +28,7 @@ internal static class GEMath
         EdMath.curve25519_mul(r.T, p.X, p.Y);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ge25519_full_to_pniels(ref GE25519_PNIELS p, in GE25519 r)
     {
         EdMath.curve25519_sub(p.YsubX, r.Y, r.X);
@@ -36,6 +40,8 @@ internal static class GEMath
 
     #region Adding and doubling
 
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ge25519_add_p1p1(ref GE25519 r, in GE25519 p, in GE25519 q)
     {
         Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
@@ -63,6 +69,8 @@ internal static class GEMath
     }
 
 
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ge25519_double_p1p1(ref GE25519 r, in GE25519 p)
     {
         Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
@@ -81,6 +89,8 @@ internal static class GEMath
         EdMath.curve25519_sub_after_basic(r.T, c, r.Z);
     }
 
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ge25519_nielsadd2_p1p1(ref GE25519 r, in GE25519 p, in GE25519_NIELS q, int signbit)
     {
         Picker rb = new(r.Z, r.T);
@@ -103,6 +113,8 @@ internal static class GEMath
         EdMath.curve25519_sub(rb[signbit ^ 1], rb[signbit ^ 1], c); /* t for +, z for - */
     }
 
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ge25519_pnielsadd_p1p1(ref GE25519 r, in GE25519 p, in GE25519_PNIELS q, int signbit)
     {
         Picker rb = new(r.Z, r.T);
@@ -126,6 +138,8 @@ internal static class GEMath
         EdMath.curve25519_sub(rb[signbit ^ 1], rb[signbit ^ 1], c); /* t for +, z for - */
     }
 
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ge25519_double_partial(ref GE25519 r, in GE25519 p)
     {
         GE25519 t;
@@ -133,6 +147,8 @@ internal static class GEMath
         ge25519_p1p1_to_partial(ref r, t);
     }
 
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ge25519_double(ref GE25519 r, in GE25519 p)
     {
         GE25519 t;
@@ -140,6 +156,8 @@ internal static class GEMath
         ge25519_p1p1_to_full(ref r, t);
     }
 
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ge25519_add(ref GE25519 r, in GE25519 p, in GE25519 q)
     {
         GE25519 t;
@@ -147,6 +165,8 @@ internal static class GEMath
         ge25519_p1p1_to_full(ref r, t);
     }
 
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ge25519_nielsadd2(ref GE25519 r, in GE25519_NIELS q)
     {
         Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
@@ -173,6 +193,8 @@ internal static class GEMath
         EdMath.curve25519_mul(r.T, e, h);
     }
 
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ge25519_pnielsadd(ref GE25519_PNIELS r, in GE25519 p, in GE25519_PNIELS q)
     {
         Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
@@ -208,6 +230,8 @@ internal static class GEMath
 
     #region pack & unpack
 
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ge25519_pack(Span<byte> r, in GE25519 p)
     {
         Span<byte> parity = stackalloc byte[32];
@@ -223,6 +247,7 @@ internal static class GEMath
         r[31] ^= (byte)((parity[0] & 1) << 7);
     }
 
+    [SkipLocalsInit]
     public static bool ge25519_unpack_negative_vartime(ref GE25519 r, ReadOnlySpan<byte> p)
     {
 
@@ -290,6 +315,7 @@ internal static class GEMath
 
     #region Helpers
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void ge25519_set_neutral(ref GE25519 r)
     {
         r.ALL.Clear();
@@ -307,6 +333,8 @@ internal static class GEMath
     private const int S2_TABLE_SIZE = (1 << (S2_SWINDOWSIZE - 2));
 
     /* computes [s1]p1 + [s2]basepoint */
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ge25519_double_scalarmult_vartime(ref GE25519 r, in GE25519 p1, ReadOnlySpan<ulong> s1, ReadOnlySpan<ulong> s2)
     {
 
@@ -363,6 +391,8 @@ internal static class GEMath
     /// computes [s1]p1
     /// WARNING: This function IS NOT timing-secure
     /// </summary>
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ge25519_scalarmult_vartime(ref GE25519 r, in GE25519 p1, ReadOnlySpan<ulong> s1)
     {
 
@@ -405,11 +435,14 @@ internal static class GEMath
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static uint ge25519_windowb_equal(uint b, uint c)
     {
         return ((b ^ c) - 1) >> 31;
     }
 
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ge25519_scalarmult_base_choose_niels(ref GE25519_NIELS t, ReadOnlySpan<ReadOnlyGE25519_NIELS_Packed> table, int pos, int b)
     {
 
@@ -445,6 +478,8 @@ internal static class GEMath
     }
 
     /* computes [s]basepoint */
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ge25519_scalarmult_base_niels(ref GE25519 r, ReadOnlySpan<ReadOnlyGE25519_NIELS_Packed> basepoint_table, ReadOnlySpan<ulong> s)
     {
 
