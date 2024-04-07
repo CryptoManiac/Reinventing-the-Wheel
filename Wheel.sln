@@ -51,6 +51,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmark_SECP256K1", "Benchmarks\Benchmark_SECP256K1\Benchmark_SECP256K1.csproj", "{8B62C36F-4DE1-464E-8C25-880FD553A467}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Elliptic", "Elliptic", "{BC7EC33F-F51D-4295-9963-E40594FD1747}"
+	ProjectSection(SolutionItems) = preProject
+		Elliptic\README.md = Elliptic\README.md
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EllipticCommon", "Elliptic\EllipticCommon\EllipticCommon.csproj", "{D916FE15-90B5-48CF-ADBF-2D08F521E9F8}"
 EndProject
