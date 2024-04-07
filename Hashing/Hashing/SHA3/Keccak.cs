@@ -86,7 +86,7 @@ internal struct Keccak : IHasher
     /// <summary>
     /// SHA3 bitrate
     /// </summary>
-    public readonly int Rate => 1600 - capacityWords * 32;
+    public readonly int Rate => 1600 - 2 * capacityWords * 32;
 
     /// <summary>
     /// Keep in mind that there is no "block size" for SHA3 in classic sense
