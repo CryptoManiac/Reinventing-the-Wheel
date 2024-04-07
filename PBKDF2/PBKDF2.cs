@@ -10,7 +10,7 @@ public static class PBKDF2
 	/// <summary>
 	/// Derive new key using provided HMAC function
 	/// </summary>
-	/// <param name="key">Span where generated private key will be written. Its length is used by algorithm as key length parameter.</param>
+	/// <param name="key">Span where generated private key will be written. Its length is used by algorithm as the key length parameter.</param>
 	/// <param name="password"></param>
 	/// <param name="salt"></param>
 	/// <param name="c">Number of hashing iterations</param>
@@ -28,7 +28,7 @@ public static class PBKDF2
     /// <summary>
 	/// Derive new key using provided HMAC function
 	/// </summary>
-	/// <param name="key">Span where generated private key will be written. Its length is used by algorithm as key length parameter.</param>
+	/// <param name="key">Span where generated private key will be written. Its length is used by algorithm as the key length parameter.</param>
 	/// <param name="password_bytes"></param>
 	/// <param name="salt_bytes"></param>
 	/// <param name="c">Number of hashing iterations</param>
