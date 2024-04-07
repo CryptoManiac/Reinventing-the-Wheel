@@ -518,7 +518,7 @@ public struct EdPrivateKey : IPrivateKey
     }
 
     /// <summary>
-    /// Generate an ECDSA signature for a given hash value, using a non-deterministic algorithm
+    /// Generate an ECDSA signature for a given hash value, using a deterministic algorithm
     /// 
     /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
     /// </summary>
