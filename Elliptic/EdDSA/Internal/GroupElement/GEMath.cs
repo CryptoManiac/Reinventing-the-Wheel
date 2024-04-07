@@ -443,7 +443,7 @@ internal static class GEMath
 
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ge25519_scalarmult_base_choose_niels(ref GE25519_NIELS t, ReadOnlySpan<ReadOnlyGE25519_NIELS_Packed> table, int pos, int b)
+    public static void ge25519_scalarmult_base_choose_niels(ref GE25519_NIELS t, ReadOnlySpan<GE25519_NIELS_Packed> table, int pos, int b)
     {
 
         Span<ulong> neg = stackalloc ulong[ModM.ModM_WORDS];
@@ -463,7 +463,7 @@ internal static class GEMath
 
         for (int i = 0; i < 8; i++)
         {
-            EdMath.curve25519_move_conditional_bytes(packed.ALL, table[(pos * 8) + i], ge25519_windowb_equal(u, (uint)i + 1));
+            EdMath.curve25519_move_conditional_bytes(packed.ALL, table[(pos * 8) + i].ALL, ge25519_windowb_equal(u, (uint)i + 1));
         }
 
         /* expand in to t */
@@ -480,7 +480,7 @@ internal static class GEMath
     /* computes [s]basepoint */
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ge25519_scalarmult_base_niels(ref GE25519 r, ReadOnlySpan<ReadOnlyGE25519_NIELS_Packed> basepoint_table, ReadOnlySpan<ulong> s)
+    public static void ge25519_scalarmult_base_niels(ref GE25519 r, ReadOnlySpan<GE25519_NIELS_Packed> basepoint_table, ReadOnlySpan<ulong> s)
     {
 
         Span<sbyte> b = stackalloc sbyte[64];
