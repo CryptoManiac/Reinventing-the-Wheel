@@ -1,4 +1,5 @@
-﻿using Wheel.Crypto.Elliptic.EdDSA.Internal;
+﻿using System.Runtime.CompilerServices;
+using Wheel.Crypto.Elliptic.EdDSA.Internal;
 using Wheel.Crypto.Elliptic.EdDSA.Internal.Curve25519;
 using Wheel.Crypto.Elliptic.EdDSA.Internal.GroupElement;
 using Wheel.Crypto.Elliptic.EllipticCommon;
@@ -48,6 +49,7 @@ public struct EdPrivateKey : IPrivateKey
     /// </summary>
     public readonly bool IsValid
     {
+        [SkipLocalsInit]
         get
         {
             KeyScramble();
@@ -160,6 +162,7 @@ public struct EdPrivateKey : IPrivateKey
     /// </summary>
     /// <param name="public_key">Will be filled in with the corresponding public key</param>
     /// <returns>True if the key was computed successfully, False if an error occurred.</returns>
+    [SkipLocalsInit]
     public readonly bool ComputePublicKey(out EdPublicKey public_key)
     {
         public_key = new(_curve);
@@ -203,6 +206,7 @@ public struct EdPrivateKey : IPrivateKey
     /// <param name="public_key">The public key of the remote party.</param>
     /// <param name="shared">Will be filled in with the encapsulated shared secret.</param>
     /// <returns>True if the shared secret was generated successfully, False if an error occurred.</returns>
+    [SkipLocalsInit]
     public readonly bool ECDH(in EdPublicKey public_key, out EdPrivateKey shared)
     {
         if (_curve != (EdCurve)public_key.curve)
@@ -279,6 +283,7 @@ public struct EdPrivateKey : IPrivateKey
     /// <param name="result"></param>
     /// <param name="scalar"></param>
     /// <returns></returns>
+    [SkipLocalsInit]
     public readonly bool KeyTweak(out EdPrivateKey result, ReadOnlySpan<byte> scalar)
     {
         result = new EdPrivateKey(_curve);
@@ -374,6 +379,7 @@ public struct EdPrivateKey : IPrivateKey
     /// <param name="s">Will be filled in with the signature value</param>
     /// <param name="message_hash">The hash of the message to sign</param>
     /// <returns>True on success</returns>
+    [SkipLocalsInit]
     private readonly bool SignDeterministic<HMAC_IMPL>(Span<byte> sig_r, Span<byte> sig_s, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
     {
         // Public key is used for r,s calculation
@@ -437,6 +443,7 @@ public struct EdPrivateKey : IPrivateKey
     /// <param name="sig_s">Will be filled in with the signature value</param>
     /// <param name="message_hash">The hash of the message to sign</param>
     /// <returns>True on success</returns>
+    [SkipLocalsInit]
     private readonly bool Sign(Span<byte> sig_r, Span<byte> sig_s, ReadOnlySpan<byte> message_hash)
     {
         // Public key is used for r,s calculation

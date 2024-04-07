@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using Wheel.Crypto.Elliptic.EdDSA.Internal.Platform;
 
 namespace Wheel.Crypto.Elliptic.EdDSA.Internal;
@@ -24,12 +25,15 @@ public static class ModM
     ];
 
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ulong lt(ulong a, ulong b)
     {
         return (a - b) >> 63;
     }
 
 
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void reduce256(Span<ulong> r)
     {
         Span<ulong> t = stackalloc ulong[ModM_WORDS];
@@ -53,6 +57,7 @@ public static class ModM
         r[4] ^= mask & (r[4] ^ t[4]);
     }
 
+    [SkipLocalsInit]
     public static void barrett_reduce256(Span<ulong> r, ReadOnlySpan<ulong> q1, ReadOnlySpan<ulong> r1) {
 
         Span<ulong> q3 = stackalloc ulong[ModM_WORDS];
@@ -180,6 +185,8 @@ public static class ModM
         reduce256(r);
     }
 
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void add256(Span<ulong> r, ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y) {
 
         ulong c;
@@ -206,6 +213,7 @@ public static class ModM
         reduce256(r);
     }
 
+    [SkipLocalsInit]
     public static void mul256(Span<ulong> r, ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y) {
 
         Span<ulong> q1 = stackalloc ulong[ModM_WORDS];
@@ -304,6 +312,7 @@ public static class ModM
         barrett_reduce256(r, q1, r1);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void expand256(Span<ulong> @out, ReadOnlySpan<byte> @in, int len) {
 
         Span<byte> work = stackalloc byte[64] {
@@ -354,6 +363,8 @@ public static class ModM
     }
 
 
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void expand_raw256(Span<ulong> @out, ReadOnlySpan<byte> @in) {
         Span<ulong> x = stackalloc ulong[4];
 
@@ -374,6 +385,7 @@ public static class ModM
     /// </summary>
     /// <param name="out"></param>
     /// <param name="in">32 bytes long</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void contract256(Span<byte> @out, ReadOnlySpan<ulong> @in) {
 
         Conv.U64TO8_LE(@out[0..], (@in[0]) | (@in[1] << 56));
@@ -387,6 +399,7 @@ public static class ModM
     /// </summary>
     /// <param name="r">64 bytes long</param>
     /// <param name=""></param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public unsafe static void contract256_window4(Span<sbyte> r, ReadOnlySpan<ulong> @in)
     {
         fixed (sbyte* ptr = &r[0])
@@ -396,6 +409,7 @@ public static class ModM
     }
 
     /// TODO: Consider reimplementing from scratch
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private unsafe static void contract256_window4(sbyte* r, ReadOnlySpan<ulong> @in)
     {
         sbyte carry;
@@ -431,6 +445,7 @@ public static class ModM
     /// <param name="r">256 bytes long</param>
     /// <param name="s"></param>
     /// <param name="windowsize"></param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static unsafe void contract256_slidingwindow(Span<sbyte> r, ReadOnlySpan<ulong> s, int windowsize)
     {
         fixed (sbyte* ptr = &r[0])
@@ -502,6 +517,7 @@ public static class ModM
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <param name="limbsize"></param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void sub256_modm_batch(Span<ulong> @out, ReadOnlySpan<ulong> a, ReadOnlySpan<ulong> b, int limbsize) {
         int i = 0;
         ulong carry = 0;
@@ -522,6 +538,7 @@ public static class ModM
     }
 
     /// is a < b
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int lt256_modm_batch(ReadOnlySpan<ulong> a, ReadOnlySpan<ulong> b, int limbsize)
     {
         int i = 0;
@@ -543,6 +560,7 @@ public static class ModM
     }
 
     /// is a <= b
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool lte256_modm_batch(ReadOnlySpan<ulong> a, ReadOnlySpan<ulong> b, int limbsize)
     {
         int i = 0;
@@ -568,6 +586,7 @@ public static class ModM
     /// </summary>
     /// <param name="a"></param>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool iszero256_batch(ReadOnlySpan<ulong> a)
     {
         for (int i = 0; i < 5; i++)
@@ -585,6 +604,7 @@ public static class ModM
     /// </summary>
     /// <param name="a"></param>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool isone256_batch(ReadOnlySpan<ulong> a)
     {
         for (int i = 0; i < 5; i++)
@@ -598,6 +618,7 @@ public static class ModM
     }
 
     /* can a fit in to (at most) 128 bits */
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool isatmost128bits256_batch(ReadOnlySpan<ulong> a)
     {
         ulong mask =

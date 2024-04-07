@@ -1,4 +1,6 @@
-﻿namespace Wheel.Crypto.Elliptic.EdDSA.Internal.Curve25519;
+﻿using System.Runtime.CompilerServices;
+
+namespace Wheel.Crypto.Elliptic.EdDSA.Internal.Curve25519;
 
 public static class Logic
 {
@@ -7,6 +9,7 @@ public static class Logic
     /// Timing safe memory compare
     /// </summary>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool ed25519_verify(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, int len)
     {
         int diff = 0;
@@ -23,6 +26,7 @@ public static class Logic
     /// <param name="x"></param>
     /// <param name="y"></param>
     /// <param name="len"></param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ed25519_xor(Span<byte> x, ReadOnlySpan<byte> y, int len)
     {
         for (int i = 0; i != len; ++i)

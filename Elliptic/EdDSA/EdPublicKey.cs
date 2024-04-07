@@ -1,4 +1,5 @@
-﻿using Wheel.Crypto.Elliptic.EdDSA.Internal;
+﻿using System.Runtime.CompilerServices;
+using Wheel.Crypto.Elliptic.EdDSA.Internal;
 using Wheel.Crypto.Elliptic.EdDSA.Internal.Curve25519;
 using Wheel.Crypto.Elliptic.EdDSA.Internal.GroupElement;
 using Wheel.Crypto.Elliptic.EllipticCommon;
@@ -21,6 +22,7 @@ public struct EdPublicKey : IPublicKey
     /// </summary>
     public readonly bool IsValid
     {
+        [SkipLocalsInit]
         get
         {
             GE25519 A;
@@ -97,6 +99,7 @@ public struct EdPublicKey : IPublicKey
     /// <param name="result"></param>
     /// <param name="scalar"></param>
     /// <returns></returns>
+    [SkipLocalsInit]
     public readonly bool KeyTweak(out EdPublicKey result, ReadOnlySpan<byte> scalar)
     {
         result = new EdPublicKey(_curve);
@@ -222,6 +225,7 @@ public struct EdPublicKey : IPublicKey
     /// <param name="s"></param>
     /// <param name="message_hash"></param>
     /// <returns></returns>
+    [SkipLocalsInit]
     private readonly bool VerifySignature(ReadOnlySpan<byte> r, ReadOnlySpan<byte> s, ReadOnlySpan<byte> message_hash)
     {
         if (Convert.ToBoolean(s[31] & 224))
