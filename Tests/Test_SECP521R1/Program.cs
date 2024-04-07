@@ -1,10 +1,9 @@
-﻿using System.Text;
+﻿// Message for signing
 using Hashing.Hashing.HMAC;
 using Wheel.Crypto.Elliptic.ECDSA;
-using Wheel.Crypto.Elliptic.EllipticCommon;
-using Wheel.Hashing.HMAC;
 using Wheel.Hashing.SHA.SHA256;
 using Wheel.Hashing.SHA.SHA512;
+using Wheel.Test.ECDSA;
 
 string message = "aaa";
 
@@ -15,14 +14,6 @@ string message = "aaa";
 string secret_seed = "The quick brown fox jumps over the lazy dog";
 string personalization = "For signing tests";
 int secret_key_number = 0;
-
-// Must be valid, check here: http://kjur.github.io/jsrsasign/sample/sample-ecdsa.html (select SECP521R1 curve and SHA256withECDSA algorithm)
-SortedDictionary<string, string> vectors = new()
-{
-    {  "HMAC_SHA224", "3081880242014B11A301320466281DD974DF5A4C827163FA5AE00E497399A309CA1980D245C79BAA78EF45E3E48FA3992A2A08FD4C9D413D2886919B6515F4521CA39FC1CAE5210242008399EC3A31F5EF1A8BD4070336DBF70AAB262910DAA45DE72784A46C99F40C8307DFF297F8103B90A81ACDF68D1D25C432FD51979B6C6277854A8F0A7A9225061B"},
-    {  "HMAC_SHA256", "308188024200231B04A26F33CC2D55E9A791280679C30D0CBCE1D69D9D0F9F663CAC9865F26F5D69C7BFDCDBF76B1764C6630E705DEE1FC905309AE912D34A7FDB0DFB1963B877024200D32B44E80AB659C19A12B90C7B0DD8A5251F9D30D0B253403A90ED2A370C33BD22FB2B3F2A953F4610D3EA8ACC9F96065AF3DB288D25444FC37167548C51075D09"},
-    {  "HMAC_SHA512", "3081880242008E6003B44091EF2D33C0BAC733DD860B9A682F43BDF154766C223177290DD31F6F0560C53B9E1B48FB371A2512415A650693D0B873F805DFA98B15B5DCB1B034A2024200A92566F098B5754F5684529A0326B811E1370FE0EBDB36D1A0ABFB8BC307097AC5CBF5F903A7F853669E07049107CCEEC122CEBA85217B2973F168308C09320330"},
-};
 
 // Some signatures which have been made by this script: http://kjur.github.io/jsrsasign/sample/sample-ecdsa.html
 List<string> signaturesToCheck = new()
@@ -38,166 +29,26 @@ List<string> signaturesToCheck = new()
     "308188024201374f452df60a1e1fb2361171f4b11a5d36aa3254b545430ec523052130e2697eb2b23959f815e02e2242cc62f00e94cf61465559ef4d6bfd463d609a010d693089024201360223ccd51ce08f29fb3416dd493de4ba254d92956b41f2a2a8fd51f6c08ab7c6a084ad3415d272e87c3af724229b7af5084cb052c3680c827c4034795d928732",
 };
 
-static int SignData<HMAC_IMPL>(Span<byte> signature, ECPrivateKey sk, string message, ECCurve curve) where HMAC_IMPL : unmanaged, IMac
-{
-    // Empty for tests
-    Span<byte> message_hash = stackalloc byte[32];
-    SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
-
-    if (!sk.SignDeterministic<HMAC_IMPL>(out DERSignature derSig, message_hash))
-    {
-        throw new SystemException("Signing failed");
-    }
-
-    int encodedSz = derSig.Encode(signature);
-    if (encodedSz > signature.Length)
-    {
-        throw new Exception("Signature buffer is too short");
-    }
-
-    return encodedSz;
-}
-
-static int SignDataNonDeterministic(Span<byte> signature, ECPrivateKey sk, string message, ECCurve curve)
-{
-    // Empty for tests
-    Span<byte> message_hash = stackalloc byte[32];
-    SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
-
-    // Try signing until the signing will succeed
-    DERSignature derSig;
-    while (!sk.Sign(out derSig, message_hash)) ;
-
-    int encodedSz = derSig.Encode(signature);
-    if (encodedSz > signature.Length)
-    {
-        throw new Exception("Signature buffer is too short");
-    }
-
-    return encodedSz;
-}
-
-static bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOnlySpan<byte> public_key, ECCurve curve)
-{
-    Span<byte> message_hash = stackalloc byte[32];
-    SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
-    return new ECPublicKey(curve, public_key).VerifySignature(new DERSignature(curve, signature), message_hash);
-}
-
-void CompareSig(string algorithm, Span<byte> signature)
-{
-    var oldColour = Console.ForegroundColor;
-    string signatureHex = Convert.ToHexString(signature);
-    string expectedHex = vectors[algorithm];
-    bool isOk = expectedHex == signatureHex;
-
-    Console.ForegroundColor = isOk ? ConsoleColor.Green : ConsoleColor.Red;
-    Console.WriteLine("{0}: {1} {2}", algorithm, signatureHex, isOk ? "OK" : expectedHex);
-    Console.ForegroundColor = oldColour;
-}
-
 ECCurve curve = ECCurve.Get_SECP521R1();
+ECDSATest check = new(curve, secret_seed, personalization, secret_key_number);
 
-// Derive new secret key
-curve.GenerateDeterministicSecret<HMAC<SHA512>>(out ECPrivateKey secretKey, Encoding.ASCII.GetBytes(secret_seed), Encoding.ASCII.GetBytes(personalization), secret_key_number);
+check.ExpectedKeys(
+    curve.name.ToString(),
+    "01A3D607E4D8C8333F3F00364003773A6153A449E2284133448984B366B79E4C37B01B74CEB11E27A20383F17087292381653E31EAF8E217653084E1E83A2FF8E2FF",
+    "02006575A24E2EBDA0A4570AB50B95BA0495AFD88EC56BBA246CC3416730B650AA22460BCB7458E698534D7B147D243C7A77A130DB384561F8E5649EC1C7B2281C2EBD",
+    "04006575A24E2EBDA0A4570AB50B95BA0495AFD88EC56BBA246CC3416730B650AA22460BCB7458E698534D7B147D243C7A77A130DB384561F8E5649EC1C7B2281C2EBD00545EC495DA16B62B063D29824A4D278F1ED213363AFB0EEABB31439B58E1847279E00CCFDA2CB90617A05806C19685CC19C1468AD24629D67A487FC9D0FC91315A"
+);
 
-if (!secretKey.ComputePublicKey(out ECPublicKey publicKey))
+// Must be valid, check here: http://kjur.github.io/jsrsasign/sample/sample-ecdsa.html (select SECP521R1 curve and SHA256withECDSA algorithm)
+check.ExpectedSignature<HMAC<SHA224>>("HMAC_SHA224", message, "3081880242014B11A301320466281DD974DF5A4C827163FA5AE00E497399A309CA1980D245C79BAA78EF45E3E48FA3992A2A08FD4C9D413D2886919B6515F4521CA39FC1CAE5210242008399EC3A31F5EF1A8BD4070336DBF70AAB262910DAA45DE72784A46C99F40C8307DFF297F8103B90A81ACDF68D1D25C432FD51979B6C6277854A8F0A7A9225061B");
+check.ExpectedSignature<HMAC<SHA256>>("HMAC_SHA256", message, "308188024200231B04A26F33CC2D55E9A791280679C30D0CBCE1D69D9D0F9F663CAC9865F26F5D69C7BFDCDBF76B1764C6630E705DEE1FC905309AE912D34A7FDB0DFB1963B877024200D32B44E80AB659C19A12B90C7B0DD8A5251F9D30D0B253403A90ED2A370C33BD22FB2B3F2A953F4610D3EA8ACC9F96065AF3DB288D25444FC37167548C51075D09");
+check.ExpectedSignature<HMAC<SHA512>>("HMAC_SHA512", message, "3081880242008E6003B44091EF2D33C0BAC733DD860B9A682F43BDF154766C223177290DD31F6F0560C53B9E1B48FB371A2512415A650693D0B873F805DFA98B15B5DCB1B034A2024200A92566F098B5754F5684529A0326B811E1370FE0EBDB36D1A0ABFB8BC307097AC5CBF5F903A7F853669E07049107CCEEC122CEBA85217B2973F168308C09320330");
+
+check.CheckNonDeterministic(message);
+check.CheckNonDeterministic(message);
+check.CheckNonDeterministic(message);
+
+foreach (var toCheck in signaturesToCheck)
 {
-    throw new SystemException("Computation of the public key has failed");
+    check.VerifySignature(toCheck, message);
 }
-
-Span<byte> secret_key = stackalloc byte[curve.PrivateKeySize];
-Span<byte> public_key_uncompressed = stackalloc byte[curve.UncompressedPublicKeySize];
-Span<byte> public_key_compressed = stackalloc byte[curve.CompressedPublicKeySize];
-
-if (!secretKey.Serialize(secret_key))
-{
-    throw new SystemException("Serialization of the secret key has failed");
-}
-
-if (!publicKey.Compress(public_key_compressed))
-{
-    throw new SystemException("Compression of the public key has failed");
-}
-
-if (!publicKey.Serialize(public_key_uncompressed))
-{
-    throw new SystemException("Serialization of the public key has failed");
-}
-
-Console.WriteLine("SECP521R1 private key: {0}", Convert.ToHexString(secret_key));
-Console.WriteLine("SECP521R1 private key entropy: {0}", Entropy.Estimate(secret_key));
-Console.WriteLine("SECP521R1 public key: 04{0}", Convert.ToHexString(public_key_uncompressed));
-Console.WriteLine("SECP521R1 compressed public key: {0}", Convert.ToHexString(public_key_compressed));
-Console.WriteLine("Message to sign: {0}", message);
-
-Span<byte> signature = stackalloc byte[curve.DERSignatureSize];
-
-Console.WriteLine("Deterministic SECP521R1 signatures:");
-
-int sha224SigSz = SignData<HMAC<SHA224>>(signature, secretKey, message, curve);
-
-if (!VerifySignature(signature, message, public_key_uncompressed, curve))
-{
-    throw new SystemException("Signature verification failure");
-}
-
-CompareSig("HMAC_SHA224", signature.Slice(0, sha224SigSz));
-
-int sha256SigSz = SignData<HMAC<SHA256>>(signature, secretKey, message, curve);
-if (!VerifySignature(signature, message, public_key_uncompressed, curve))
-{
-    throw new SystemException("Signature verification failure");
-}
-
-CompareSig("HMAC_SHA256", signature.Slice(0, sha256SigSz));
-
-int sha512SigSz = SignData<HMAC<SHA512>>(signature, secretKey, message, curve);
-
-if (!VerifySignature(signature, message, public_key_uncompressed, curve))
-{
-    throw new SystemException("Signature verification failure");
-}
-
-CompareSig("HMAC_SHA512", signature.Slice(0, sha512SigSz));
-
-Console.WriteLine("DER decoding and verification tests:");
-foreach (var sHex in signaturesToCheck)
-{
-    Console.Write(sHex);
-    var testSig = Convert.FromHexString(sHex);
-    if (!VerifySignature(testSig, message, public_key_uncompressed, curve))
-    {
-        throw new SystemException("Signature verification failure");
-    }
-    Console.WriteLine(" OK");
-}
-
-Console.WriteLine("Non-deterministic signing tests:");
-
-int try1SigSz = SignDataNonDeterministic(signature, secretKey, message, curve);
-Console.Write(Convert.ToHexString(signature.Slice(0, try1SigSz)));
-
-if (!VerifySignature(signature, message, public_key_uncompressed, curve))
-{
-    throw new SystemException("Signature verification failure");
-}
-Console.WriteLine(" OK");
-
-int try2SigSz = SignDataNonDeterministic(signature, secretKey, message, curve);
-Console.Write(Convert.ToHexString(signature.Slice(0, try2SigSz)));
-
-if (!VerifySignature(signature, message, public_key_uncompressed, curve))
-{
-    throw new SystemException("Signature verification failure");
-}
-Console.WriteLine(" OK");
-
-int try3SigSz = SignDataNonDeterministic(signature, secretKey, message, curve);
-Console.Write(Convert.ToHexString(signature.Slice(0, try3SigSz)));
-
-if (!VerifySignature(signature, message, public_key_uncompressed, curve))
-{
-    throw new SystemException("Signature verification failure");
-}
-Console.WriteLine(" OK");

@@ -15,6 +15,7 @@ public readonly partial struct ECCurve
     public static unsafe ECCurve Get_SECP224R1()
     {
         return new ECCurve(
+            stackalloc char[] { 'S', 'E', 'C', 'P', '2', '2', '4', 'R', '1' },
             224,
             stackalloc ulong[] { 0x0000000000000001, 0xFFFFFFFF00000000, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFF },
             stackalloc ulong[] { 0x13DD29455C5C2A3D, 0xFFFF16A2E0B8F03E, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFF },

@@ -12,6 +12,11 @@ public interface ICurve
     public ulong randomId { get; }
 
     /// <summary>
+    /// Elliptic curve coloquial name
+    /// </summary>
+    public ReadOnlySpan<char> name { get; }
+
+    /// <summary>
     /// Check whether the provided byte array contains a valid public key
     /// </summary>
     /// <param name="data">Public key bytes</param>

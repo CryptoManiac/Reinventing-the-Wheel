@@ -12,6 +12,7 @@ namespace Wheel.Crypto.Elliptic.EdDSA;
 internal struct EdCurveConfig
 {
     public unsafe fixed byte scrambleKey[32];
+    public unsafe fixed char name[16];
 }
 
 #pragma warning disable CS0660
@@ -78,12 +79,28 @@ public readonly struct EdCurve : ICurve
         }
     }
 
-    private unsafe EdCurve(delegate* managed<Span<byte>, ReadOnlySpan<byte>, ReadOnlySpan<byte>, ReadOnlySpan<byte>, void> get_hRAM, delegate* managed<Span<byte>, ReadOnlySpan<byte>, void> expandSeed)
+    public unsafe readonly ReadOnlySpan<char> name
+    {
+        get
+        {
+            fixed (char* ptr = &curveConfig.name[0])
+            {
+                return new Span<char>(ptr, 12);
+            }
+        }
+    }
+
+    private unsafe EdCurve(ReadOnlySpan<char> name, delegate* managed<Span<byte>, ReadOnlySpan<byte>, ReadOnlySpan<byte>, ReadOnlySpan<byte>, void> get_hRAM, delegate* managed<Span<byte>, ReadOnlySpan<byte>, void> expandSeed)
     {
         Span<ulong> random = stackalloc ulong[1 + ModM.ModM_WORDS];
         RNG.Fill(random);
 
         randomId = random[0];
+
+        fixed (char* ptr = &curveConfig.name[0])
+        {
+            name.CopyTo(new Span<char>(ptr, 12));
+        }
 
         fixed (byte* ptr = &curveConfig.scrambleKey[0])
         {
@@ -97,17 +114,23 @@ public readonly struct EdCurve : ICurve
 
     public unsafe static EdCurve Get_EdCurve_SHA2()
     {
-        return new EdCurve(&Get_HRAM_SHA2, &Expand_Key_SHA2);
+        return new EdCurve(
+            stackalloc char[] { 'E', 'D', '2', '5', '5', '1', '1', '9' },
+            &Get_HRAM_SHA2, &Expand_Key_SHA2);
     }
 
     public unsafe static EdCurve Get_EdCurve_SHA3()
     {
-        return new EdCurve(&Get_HRAM_SHA3, &Expand_Key_SHA3);
+        return new EdCurve(
+            stackalloc char[] { 'E', 'D', '2', '5', '5', '1', '1', '9', '-', 'S', 'H', 'A', '3' },
+            &Get_HRAM_SHA3, &Expand_Key_SHA3);
     }
 
     public unsafe static EdCurve Get_EdCurve_Keccak()
     {
-        return new EdCurve(&Get_HRAM_Keccak, &Expand_Key_Keccak);
+        return new EdCurve(
+            stackalloc char[] { 'E', 'D', '2', '5', '5', '1', '1', '9', '-', 'K', 'E', 'C', 'C', 'A', 'K' },
+            &Get_HRAM_Keccak, &Expand_Key_Keccak);
     }
 
     /// <summary>

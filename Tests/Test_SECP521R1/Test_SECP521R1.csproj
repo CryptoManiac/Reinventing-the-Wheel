@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Elliptic\ECDSA\ECDSA.csproj" />
+    <ProjectReference Include="..\ECDSA_Tests\ECDSA_Tests.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\.editorconfig" />

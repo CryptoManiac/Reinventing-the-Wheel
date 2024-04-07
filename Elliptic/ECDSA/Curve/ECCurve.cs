@@ -20,9 +20,7 @@ internal struct CurveBuffers
     public unsafe fixed ulong half_n[VLI.ECC_MAX_WORDS];
     public unsafe fixed ulong b[VLI.ECC_MAX_WORDS];
     public unsafe fixed ulong G[2 * VLI.ECC_MAX_WORDS];
-    private const int BuferSize = VLI.ECC_MAX_WORDS * VLI.WORD_SIZE;
-    private const int DoubleBuferSize = 2 * VLI.ECC_MAX_WORDS * VLI.WORD_SIZE;
-    public const int TotalSize = 5 * BuferSize + DoubleBuferSize;
+    public unsafe fixed char name[16];
 }
 #endregion
 
@@ -179,9 +177,20 @@ public readonly partial struct ECCurve : ICurve
             }
         }
     }
+
+    public unsafe readonly ReadOnlySpan<char> name
+    {
+        get
+        {
+            fixed (char* ptr = &curveBuffers.name[0])
+            {
+                return new Span<char>(ptr, 12);
+            }
+        }
+    }
     #endregion
 
-    private unsafe ECCurve(int num_n_bits, ReadOnlySpan<ulong> p, ReadOnlySpan<ulong> n, ReadOnlySpan<ulong> half_n, ReadOnlySpan<ulong> G, ReadOnlySpan<ulong> b, delegate* managed<in ECCurve, Span<ulong>, Span<ulong>, void> MMod, delegate* managed<in ECCurve, Span<ulong>, ReadOnlySpan<ulong>, void> XSide, delegate* managed<in ECCurve, Span<ulong>, void> ModSQRT, delegate* managed<in ECCurve, Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian)
+    private unsafe ECCurve(ReadOnlySpan<char> name, int num_n_bits, ReadOnlySpan<ulong> p, ReadOnlySpan<ulong> n, ReadOnlySpan<ulong> half_n, ReadOnlySpan<ulong> G, ReadOnlySpan<ulong> b, delegate* managed<in ECCurve, Span<ulong>, Span<ulong>, void> MMod, delegate* managed<in ECCurve, Span<ulong>, ReadOnlySpan<ulong>, void> XSide, delegate* managed<in ECCurve, Span<ulong>, void> ModSQRT, delegate* managed<in ECCurve, Span<ulong>, Span<ulong>, Span<ulong>, void> DoubleJacobian)
     {
         Span<ulong> random = stackalloc ulong[1 + NUM_WORDS];
         RNG.Fill(random);
@@ -192,6 +201,12 @@ public readonly partial struct ECCurve : ICurve
         NUM_N_BITS = num_n_bits;
         NUM_WORDS = VLI.BitsToWords(num_n_bits);
         NUM_BYTES = VLI.BitsToBytes(num_n_bits);
+
+
+        fixed (char* ptr = &curveBuffers.name[0])
+        {
+            name.CopyTo(new Span<char>(ptr, 12));
+        }
 
         fixed (ulong* ptr = &curveBuffers.scrambleKey[0])
         {
