@@ -435,46 +435,42 @@ public static class ModM
     /// <param name="s"></param>
     /// <param name="windowsize"></param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static unsafe void contract256_slidingwindow(Span<sbyte> r, ReadOnlySpan<ulong> s, int windowsize)
+    public static void contract256_slidingwindow(Span<sbyte> r, ReadOnlySpan<ulong> s, int windowsize)
     {
-        fixed (sbyte* ptr = &r[0])
-        {
-            contract256_slidingwindow(ptr, s, windowsize);
-        }
-    }
-
-    /// TODO: Consider reimplementing from scratch
-    private unsafe static void contract256_slidingwindow(sbyte* r, ReadOnlySpan<ulong> s, int windowsize) {
-
         int i, j, k, b;
         int m = (1 << (windowsize - 1)) - 1, soplen = 256;
-        sbyte* bits = r;
         ulong v;
 
+        int l = 0;
+
         /* first put the binary expansion into r  */
-        for (i = 0; i < 4; i++) {
+        for (i = 0; i < 4; i++)
+        {
             v = s[i];
             for (j = 0; j < 56; j++, v >>= 1)
-                *bits++ = (sbyte)(v & 1);
+                r[l++] = (sbyte)(v & 1);
         }
 
         v = s[4];
 
         for (j = 0; j < 32; j++, v >>= 1)
         {
-            *bits++ = (sbyte)(v & 1);
+            r[l++] = (sbyte)(v & 1);
         }
 
         /* Making it sliding window */
-        for (j = 0; j < soplen; j++) {
+        for (j = 0; j < soplen; j++)
+        {
 
             if (!Convert.ToBoolean(r[j]))
             {
                 continue;
             }
 
-            for (b = 1; (b < (soplen - j)) && (b <= 6); b++) {
-                if ((r[j] + (r[j + b] << b)) <= m) {
+            for (b = 1; (b < (soplen - j)) && (b <= 6); b++)
+            {
+                if ((r[j] + (r[j + b] << b)) <= m)
+                {
                     r[j] += (sbyte)(r[j + b] << b);
                     r[j + b] = 0;
                 }
