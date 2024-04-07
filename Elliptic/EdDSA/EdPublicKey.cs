@@ -224,7 +224,7 @@ public struct EdPublicKey : IPublicKey
     /// <returns></returns>
     private readonly bool VerifySignature(ReadOnlySpan<byte> r, ReadOnlySpan<byte> s, ReadOnlySpan<byte> message_hash)
     {
-        if (Convert.ToBoolean(s[31] & 224) || !IsValid)
+        if (Convert.ToBoolean(s[31] & 224))
         {
             return false;
         }
