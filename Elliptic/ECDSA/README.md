@@ -1,4 +1,4 @@
-## Elliptic cryptography
+# Elliptic curve cryptography
 
 ## The memory-safe reimplementation of the uECC library
 
