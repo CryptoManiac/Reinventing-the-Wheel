@@ -147,7 +147,7 @@ static void CompareWithExpected(string expected, string calculated)
         Console.Write("BAD");
         Console.ForegroundColor = oldColour;
         Console.WriteLine(" {0} is not {1}", calculated, expected);
-        return;
+        throw new SystemException("Hash musmatch");
     }
 
     Console.ForegroundColor = ConsoleColor.Green;

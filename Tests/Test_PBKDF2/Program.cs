@@ -188,6 +188,11 @@ foreach (var (password, salt, iterations, keySize, expected) in vectors_256)
 
     Console.WriteLine("Derived key with hmac-sha256, vector {0}: ", ++i);
     Console.WriteLine("Calculated:\t{0}\nExpected:\t{1}", Convert.ToHexString(secret), expected);
+
+    if (Convert.ToHexString(secret) != expected)
+    {
+        throw new SystemException("Derived key mismatch");
+    }
 }
 
 Console.WriteLine("Testing PBKDF2-HMAC-SHA-512 against test vectors:");
@@ -201,4 +206,9 @@ foreach (var (password, salt, iterations, keySize, expected) in vectors_512)
 
     Console.WriteLine("Derived key with hmac-sha512, vector {0}: ", ++j);
     Console.WriteLine("Calculated:\t{0}\nExpected:\t{1}", Convert.ToHexString(secret), expected);
+
+    if (Convert.ToHexString(secret) != expected)
+    {
+        throw new SystemException("Derived key mismatch");
+    }
 }
