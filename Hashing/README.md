@@ -88,4 +88,4 @@ To initialize new HMAC hasher you need to provide an implementation of the under
 HMAC<SHA512> ctx = new();
 ```
 
-You can replace the SHA512 with a hasher of your choice among those that are provided by the ```Hashing``` library, i.e. make it look like HMAC<SHA384>, HMAC<SHA256>, HMAC<SHA512_224> or whatever. Please note that, while theoretically any of the implemented hasher should work, so far only SHA2 functions have been throughly tested with HMAC.
+You can replace the SHA512 with a hasher of your choice among those that are provided by the ```Hashing``` library, i.e. make it look like ```HMAC<SHA384>```, ```HMAC<SHA256>```, ```HMAC<SHA512_224>``` or whatever. Please note that, while theoretically any of the implemented hasher should work, so far only SHA2 functions have been throughly tested with HMAC.
