@@ -349,6 +349,10 @@ foreach (var (key, message, mac_length, hmac_vectors) in vectors)
     {
         string calculated = CalculateHMAC(key, message, mac_length, mac_algorithms[name]);
         Console.WriteLine("- {0}\nExpected:\t{1}\nCalculated:\t{2}\n", name, expected, calculated);
+        if (expected != calculated)
+        {
+            throw new SystemException("HMAC mismatch");
+        }
     }
 
     Console.WriteLine("");
