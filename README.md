@@ -76,7 +76,9 @@ public int HashSz;
 
 ### HMAC
 
-The HMAC implementations are derived from `IMac` interface which is defining these signatures:
+The HMAC implementation is a generic which is derived from `IMac` interface.
+
+The IMac is defining these signatures:
 
 ```csharp
 /// Initialize or re-initialize hasher with a given key
@@ -102,8 +104,15 @@ public void Dispose();
 public int HashSz;
 ```
 
-The only available implementations are currently limited by the SHA2 based ones. The `HMAC_SHA224`, `HMAC_SHA256`, `HMAC_SHA384` and `HMAC_SHA512` structures are residing in the `Wheel.Hashing.HMAC.SHA2` namespace.
+To initialize new HMAC hasher you need to provide an implementation of the underlying hash function as a generic agrument. Doing something like this will suffice:
+
+```csharp
+HMAC<SHA512> ctx = new();
+```
+
+You can replace the SHA512 with a hasher of your choice among those that are provided by the ```Hashing``` library, i.e. make it look like HMAC<SHA384>, HMAC<SHA256>, HMAC<SHA512_224> or whatever. Please note that, while theoretically any of the implemented hasher should work, so far only SHA2 functions have been throughly tested with HMAC.
 
 ## Notable features
 
 All hashers are implemented as structures of the deterministic size, which is designed to be known at the compile time. This allows you to allocate them on stack. This can be done either directly, using `stackalloc` operator, or indirectly by letting the compiler to decide. Stack allocated structures are avoiding the garbage collecting overhead since their living cycle is limited by that of the function's stack memory. The fact that they're not placed in the CLR heap is a good thing as well, especially for security.
+

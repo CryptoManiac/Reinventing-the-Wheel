@@ -54,7 +54,7 @@ public int HashSz;
 
 ### HMAC
 
-The HMAC implementation is a generig which is derived from `IMac` interface.
+The HMAC implementation is a generic which is derived from `IMac` interface.
 
 The IMac is defining these signatures:
 
