@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Wheel.Crypto.Elliptic.EllipticCommon;
 
@@ -16,7 +17,7 @@ public static class RNG
         lock (LockGuard)
         {
             Span<byte> byteView = MemoryMarshal.Cast<ulong, byte>(rnd);
-            RNG.gen.GetBytes(byteView);
+            gen.GetBytes(byteView);
         }
     }
 
@@ -24,7 +25,49 @@ public static class RNG
     {
         lock (LockGuard)
         {
-            RNG.gen.GetBytes(rnd);
+            gen.GetBytes(rnd);
         }
     }
+}
+
+/// <summary>
+/// Estimation of Shannon's entropy of
+///  input in a memory-secure manner
+/// </summary>
+public static class Entropy
+{
+    private static double LogTwo(double v)
+    {
+        return Math.Log(v) / Math.Log(2);
+    }
+
+    public static double Estimate(Span<byte> input)
+    {
+        double frequency, compression = 0;
+
+        Span<double> Table = stackalloc double[256];
+
+        // Clear table
+        Table.Clear();
+
+        foreach (var c in input)
+        {
+            Table[c] += 1;
+        }
+
+        foreach (var f in Table)
+        {
+            if (f != 0)
+            {
+                frequency = f / input.Length;
+                compression += frequency * LogTwo(frequency);
+            }
+        }
+
+        // Clear table
+        Table.Clear();
+
+        return compression * -1;
+    }
+
 }

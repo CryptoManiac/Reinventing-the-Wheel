@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Hashing.Hashing.HMAC;
 using Wheel.Crypto.Elliptic.EdDSA;
+using Wheel.Crypto.Elliptic.EllipticCommon;
 using Wheel.Hashing.HMAC;
 using Wheel.Hashing.SHA.SHA256;
 using Wheel.Hashing.SHA.SHA512;
@@ -147,6 +148,7 @@ if (!publicKey.Compress(public_key))
 Span<byte> message_hash = GetSigningHash(message);
 
 Console.WriteLine("ED25519 private key: {0}", Convert.ToHexString(secret_key));
+Console.WriteLine("ED25519 private key entropy: {0}", Entropy.Estimate(secret_key));
 Console.WriteLine("ED25519 public key: {0}", Convert.ToHexString(public_key));
 Console.WriteLine("Message to sign: {0}", message);
 Console.WriteLine("Message hash to be signed: {0}", Convert.ToHexString(message_hash));

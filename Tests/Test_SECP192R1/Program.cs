@@ -117,6 +117,7 @@ if (!publicKey.Serialize(public_key_uncompressed))
 }
 
 Console.WriteLine("SECP192R1 private key: {0}", Convert.ToHexString(secret_key));
+Console.WriteLine("SECP192R1 private key entropy: {0}", Entropy.Estimate(secret_key));
 Console.WriteLine("SECP192R1 public key: 04{0}", Convert.ToHexString(public_key_uncompressed));
 Console.WriteLine("SECP192R1 compressed public key: {0}", Convert.ToHexString(public_key_compressed));
 Console.WriteLine("Message to sign: {0}", message);
