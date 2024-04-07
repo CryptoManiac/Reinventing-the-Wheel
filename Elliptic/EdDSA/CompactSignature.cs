@@ -92,7 +92,7 @@ public struct CompactSignature : IEdSignature
 
     public int Encode(Span<byte> encoded)
     {
-        if (encoded.Length != 64)
+        if (encoded.Length < 64)
         {
             return 64;
         }
