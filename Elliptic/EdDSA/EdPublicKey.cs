@@ -1,9 +1,7 @@
-﻿using System.Globalization;
-using Wheel.Crypto.Elliptic.EdDSA.Internal;
+﻿using Wheel.Crypto.Elliptic.EdDSA.Internal;
 using Wheel.Crypto.Elliptic.EdDSA.Internal.Curve25519;
 using Wheel.Crypto.Elliptic.EdDSA.Internal.GroupElement;
 using Wheel.Crypto.Elliptic.EllipticCommon;
-using Wheel.Hashing;
 
 namespace Wheel.Crypto.Elliptic.EdDSA;
 

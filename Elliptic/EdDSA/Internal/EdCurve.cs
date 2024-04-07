@@ -3,7 +3,6 @@ using System.Runtime.InteropServices;
 using Hashing.Hashing.HMAC;
 using Wheel.Crypto.Elliptic.EdDSA.Internal;
 using Wheel.Crypto.Elliptic.EllipticCommon;
-using Wheel.Hashing;
 using Wheel.Hashing.HMAC;
 using Wheel.Hashing.SHA.SHA512;
 using Wheel.Hashing.SHA3;
