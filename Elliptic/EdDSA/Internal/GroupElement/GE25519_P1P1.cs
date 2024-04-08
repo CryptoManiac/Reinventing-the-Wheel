@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Wheel.Crypto.Elliptic.EdDSA.Internal.Curve25519;
+using Wheel.Crypto.Elliptic.EllipticCommon;
 
 namespace Wheel.Crypto.Elliptic.EdDSA.Internal.GroupElement;
 
@@ -32,6 +32,106 @@ internal struct GE25519_P1P1
     public GE25519_P1P1() {
         throw new InvalidOperationException("Constructor shouldn't be called");
     }
+
+    #region Adding and doubling
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ge25519_add_p1p1(in GE25519 p, in GE25519 q)
+    {
+        Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> b = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> c = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> d = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> t = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> u = stackalloc ulong[ModM.ModM_WORDS];
+
+
+        Curve25519.curve25519_sub(a, p.Y, p.X);
+        Curve25519.curve25519_add(b, p.Y, p.X);
+        Curve25519.curve25519_sub(t, q.Y, q.X);
+        Curve25519.curve25519_add(u, q.Y, q.X);
+        Curve25519.curve25519_mul(a, a, t);
+        Curve25519.curve25519_mul(b, b, u);
+        Curve25519.curve25519_mul(c, p.T, q.T);
+        Curve25519.curve25519_mul(c, c, Curve25519.tables.EC2D);
+        Curve25519.curve25519_mul(d, p.Z, q.Z);
+        Curve25519.curve25519_add(d, d, d);
+        Curve25519.curve25519_sub(X, b, a);
+        Curve25519.curve25519_add(Y, b, a);
+        Curve25519.curve25519_add_after_basic(Z, d, c);
+        Curve25519.curve25519_sub_after_basic(T, d, c);
+    }
+
+
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ge25519_double_p1p1(in GE25519 p)
+    {
+        Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> b = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> c = stackalloc ulong[ModM.ModM_WORDS];
+
+        Curve25519.curve25519_square(a, p.X);
+        Curve25519.curve25519_square(b, p.Y);
+        Curve25519.curve25519_square(c, p.Z);
+        Curve25519.curve25519_add_reduce(c, c, c);
+        Curve25519.curve25519_add(X, p.X, p.Y);
+        Curve25519.curve25519_square(X, X);
+        Curve25519.curve25519_add(Y, b, a);
+        Curve25519.curve25519_sub(Z, b, a);
+        Curve25519.curve25519_sub_after_basic(X, X, Y);
+        Curve25519.curve25519_sub_after_basic(T, c, Z);
+    }
+
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ge25519_nielsadd2_p1p1(in GE25519 p, in GE25519_NIELS q, int signbit)
+    {
+        Picker rb = new(Z, T);
+        ReadOnlyPicker qb = new(q.YsubX, q.XaddY);
+
+        Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> b = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> c = stackalloc ulong[ModM.ModM_WORDS];
+
+        Curve25519.curve25519_sub(a, p.Y, p.X);
+        Curve25519.curve25519_add(b, p.Y, p.X);
+        Curve25519.curve25519_mul(a, a, qb[signbit]); /* x for +, y for - */
+        Curve25519.curve25519_mul(X, b, qb[signbit ^ 1]); /* y for +, x for - */
+        Curve25519.curve25519_add(Y, X, a);
+        Curve25519.curve25519_sub(X, X, a);
+        Curve25519.curve25519_mul(c, p.T, q.T2D);
+        Curve25519.curve25519_add_reduce(T, p.Z, p.Z);
+        Curve25519.curve25519_copy(Z, T);
+        Curve25519.curve25519_add(rb[signbit], rb[signbit], c); /* z for +, t for - */
+        Curve25519.curve25519_sub(rb[signbit ^ 1], rb[signbit ^ 1], c); /* t for +, z for - */
+    }
+
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ge25519_pnielsadd_p1p1(in GE25519 p, in GE25519_PNIELS q, int signbit)
+    {
+        Picker rb = new(Z, T);
+        ReadOnlyPicker qb = new(q.YsubX, q.XaddY);
+
+        Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> b = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> c = stackalloc ulong[ModM.ModM_WORDS];
+
+        Curve25519.curve25519_sub(a, p.Y, p.X);
+        Curve25519.curve25519_add(b, p.Y, p.X);
+        Curve25519.curve25519_mul(a, a, qb[signbit]); /* ysubx for +, xaddy for - */
+        Curve25519.curve25519_mul(X, b, qb[signbit ^ 1]); /* xaddy for +, ysubx for - */
+        Curve25519.curve25519_add(Y, X, a);
+        Curve25519.curve25519_sub(X, X, a);
+        Curve25519.curve25519_mul(c, p.T, q.T2D);
+        Curve25519.curve25519_mul(T, p.Z, q.Z);
+        Curve25519.curve25519_add_reduce(T, T, T);
+        Curve25519.curve25519_copy(Z, T);
+        Curve25519.curve25519_add(rb[signbit], rb[signbit], c); /* z for +, t for - */
+        Curve25519.curve25519_sub(rb[signbit ^ 1], rb[signbit ^ 1], c); /* t for +, z for - */
+    }
+    #endregion
 
     #region Coordinate accessors
     public readonly unsafe Span<ulong> X

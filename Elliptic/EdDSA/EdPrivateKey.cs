@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using Wheel.Crypto.Elliptic.EdDSA.Internal;
-using Wheel.Crypto.Elliptic.EdDSA.Internal.Curve25519;
 using Wheel.Crypto.Elliptic.EdDSA.Internal.GroupElement;
 using Wheel.Crypto.Elliptic.EllipticCommon;
 using Wheel.Hashing;
@@ -180,8 +179,8 @@ public struct EdPrivateKey : IPrivateKey
         KeyScramble();
         ModM.expand256(secret_scalar, secret_scalar_data, 32);
         KeyScramble();
-        GEMath.ge25519_scalarmult_base_niels(ref public_point, GEMath.tables.NIELS_Base_Multiples, secret_scalar);
-        GEMath.ge25519_pack(public_data, public_point);
+        GEMath.ge25519_scalarmult_base_niels(ref public_point, Curve25519.tables.NIELS_Base_Multiples, secret_scalar);
+        public_point.ge25519_pack(public_data);
         secret_scalar.Clear();
 
         return public_key.Parse(public_data);
@@ -236,7 +235,7 @@ public struct EdPrivateKey : IPrivateKey
         ModM.expand256(secret_scalar, secret_scalar_data, 32);
         KeyScramble();
 
-        if (!GEMath.ge25519_unpack_negative_vartime(ref public_point, public_bytes))
+        if (!public_point.ge25519_unpack_negative_vartime(public_bytes))
         {
             return false;
         }
@@ -244,7 +243,7 @@ public struct EdPrivateKey : IPrivateKey
         // Calculate new secret, then trim it and place into shared key instance
         GEMath.ge25519_scalarmult_vartime(ref shared_point, public_point, secret_scalar);
 
-        GEMath.ge25519_pack(shared_bytes, shared_point);
+        shared_point.ge25519_pack(shared_bytes);
 
         shared_bytes[0] &= 248;
         shared_bytes[31] &= 63;
@@ -370,7 +369,7 @@ public struct EdPrivateKey : IPrivateKey
         }
 
         secret_scalar_data.CopyTo(secret_scalar[..32]);
-        Logic.ed25519_xor(secret_scalar, _curve.ScrambleKey, 32);
+        Curve25519.ed25519_xor(secret_scalar, _curve.ScrambleKey, 32);
         return true;
     }
 
@@ -410,8 +409,8 @@ public struct EdPrivateKey : IPrivateKey
         KeyScramble();
 
         // R = rB
-        GEMath.ge25519_scalarmult_base_niels(ref R, GEMath.tables.NIELS_Base_Multiples, r);
-        GEMath.ge25519_pack(sig_r, R);
+        GEMath.ge25519_scalarmult_base_niels(ref R, Curve25519.tables.NIELS_Base_Multiples, r);
+        R.ge25519_pack(sig_r);
 
         // S = H(R,A,m)..
         _curve.GetHRAM(hram, sig_r, public_data, message_hash);
@@ -435,7 +434,7 @@ public struct EdPrivateKey : IPrivateKey
     /// </summary>
     private readonly void KeyScramble()
     {
-        Logic.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
+        Curve25519.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
     }
 
     /// <summary>
@@ -470,8 +469,8 @@ public struct EdPrivateKey : IPrivateKey
         ModM.expand256(r, rnd, 64);
 
         // R = rB
-        GEMath.ge25519_scalarmult_base_niels(ref R, GEMath.tables.NIELS_Base_Multiples, r);
-        GEMath.ge25519_pack(sig_r, R);
+        GEMath.ge25519_scalarmult_base_niels(ref R, Curve25519.tables.NIELS_Base_Multiples, r);
+        R.ge25519_pack(sig_r);
 
         // S = H(R,A,m)..
         _curve.GetHRAM(hram, sig_r, public_data, message_hash);

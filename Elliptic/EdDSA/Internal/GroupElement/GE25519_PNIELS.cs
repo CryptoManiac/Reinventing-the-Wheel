@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Wheel.Crypto.Elliptic.EdDSA.Internal.GroupElement;
 
@@ -18,6 +19,54 @@ internal struct GE25519_PNIELS
     [FieldOffset(3 * ModM.ModM_WORDS * sizeof(ulong))]
     private unsafe fixed ulong _T2D[ModM.ModM_WORDS];
 
+    #region Conversions
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ge25519_full_to_pniels(in GE25519 r)
+    {
+        Curve25519.curve25519_sub(YsubX, r.Y, r.X);
+        Curve25519.curve25519_add(XaddY, r.Y, r.X);
+        Curve25519.curve25519_copy(Z, r.Z);
+        Curve25519.curve25519_mul(T2D, r.T, Curve25519.tables.EC2D);
+    }
+    #endregion
+
+
+    #region Adding and doubling
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ge25519_pnielsadd(in GE25519 p, in GE25519_PNIELS q)
+    {
+        Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> b = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> c = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> x = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> y = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> z = stackalloc ulong[ModM.ModM_WORDS];
+        Span<ulong> t = stackalloc ulong[ModM.ModM_WORDS];
+
+        Curve25519.curve25519_sub(a, p.Y, p.X);
+        Curve25519.curve25519_add(b, p.Y, p.X);
+        Curve25519.curve25519_mul(a, a, q.YsubX);
+        Curve25519.curve25519_mul(x, b, q.XaddY);
+        Curve25519.curve25519_add(y, x, a);
+        Curve25519.curve25519_sub(x, x, a);
+        Curve25519.curve25519_mul(c, p.T, q.T2D);
+        Curve25519.curve25519_mul(t, p.Z, q.Z);
+        Curve25519.curve25519_add(t, t, t);
+        Curve25519.curve25519_add_after_basic(z, t, c);
+        Curve25519.curve25519_sub_after_basic(t, t, c);
+        Curve25519.curve25519_mul(XaddY, x, t);
+        Curve25519.curve25519_mul(YsubX, y, z);
+        Curve25519.curve25519_mul(Z, z, t);
+        Curve25519.curve25519_mul(T2D, x, y);
+        Curve25519.curve25519_copy(y, YsubX);
+        Curve25519.curve25519_sub(YsubX, YsubX, XaddY);
+        Curve25519.curve25519_add(XaddY, XaddY, y);
+        Curve25519.curve25519_mul(T2D, T2D, Curve25519.tables.EC2D);
+    }
+    #endregion
+
+    #region Data accessors
     /// <summary>
     /// All integers at once, used by constructor
     /// </summary>
@@ -85,4 +134,5 @@ internal struct GE25519_PNIELS
             }
         }
     }
+    #endregion
 }

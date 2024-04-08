@@ -1,8 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace Wheel.Crypto.Elliptic.EdDSA.Internal.Curve25519;
+namespace Wheel.Crypto.Elliptic.EdDSA.Internal;
 
-public static class Logic
+internal static partial class Curve25519
 {
 
     /// <summary>

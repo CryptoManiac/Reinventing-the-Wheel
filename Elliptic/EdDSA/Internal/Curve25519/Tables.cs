@@ -1,10 +1,10 @@
 ﻿using System.Runtime.InteropServices;
 using Wheel.Crypto.Elliptic.EdDSA.Internal.GroupElement;
 
-namespace Wheel.Crypto.Elliptic.EdDSA.Internal.Curve25519;
+namespace Wheel.Crypto.Elliptic.EdDSA.Internal;
 
 [StructLayout(LayoutKind.Explicit)]
-internal struct Tables
+internal struct Curve25519Tables
 {
     [FieldOffset(0 * ModM.ModM_WORDS * sizeof(ulong))]
     private unsafe fixed ulong _ECD_[ModM.ModM_WORDS];
@@ -107,7 +107,7 @@ internal struct Tables
     }
     #endregion
 
-    private Tables(ReadOnlySpan<ulong> ecd, ReadOnlySpan<ulong> ec2d, ReadOnlySpan<ulong> sqrtNeg1, in GE25519 basePoint, ReadOnlySpan<GE25519_NIELS> niels_sliding_multiples, ReadOnlySpan<GE25519_NIELS_Packed> niels_base_multiples)
+    private Curve25519Tables(ReadOnlySpan<ulong> ecd, ReadOnlySpan<ulong> ec2d, ReadOnlySpan<ulong> sqrtNeg1, in GE25519 basePoint, ReadOnlySpan<GE25519_NIELS> niels_sliding_multiples, ReadOnlySpan<GE25519_NIELS_Packed> niels_base_multiples)
     {
         ecd[..ModM.ModM_WORDS].CopyTo(__ECD);
         ec2d[..ModM.ModM_WORDS].CopyTo(__EC2D);
@@ -120,7 +120,7 @@ internal struct Tables
     /// <summary>
     /// Returns a new copy of the object containing the precalculated Curve25519 tables data
     /// </summary>
-    public static Tables Get_Tables()
+    public static Curve25519Tables Get_Tables()
     {
         return new(
             // ECD

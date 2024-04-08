@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using Wheel.Crypto.Elliptic.EdDSA.Internal;
-using Wheel.Crypto.Elliptic.EdDSA.Internal.Curve25519;
 using Wheel.Crypto.Elliptic.EdDSA.Internal.GroupElement;
 using Wheel.Crypto.Elliptic.EllipticCommon;
 
@@ -26,7 +25,7 @@ public struct EdPublicKey : IPublicKey
         get
         {
             GE25519 A;
-            return GEMath.ge25519_unpack_negative_vartime(ref A, public_point_data);
+            return A.ge25519_unpack_negative_vartime(public_point_data);
         }
     }
 
@@ -106,19 +105,19 @@ public struct EdPublicKey : IPublicKey
 
         GE25519 R, P, Q;
 
-        if (!GEMath.ge25519_unpack_negative_vartime(ref P, public_point_data))
+        if (!P.ge25519_unpack_negative_vartime(public_point_data))
         {
             return false;
         }
-        if (!GEMath.ge25519_unpack_negative_vartime(ref Q, scalar))
+        if (!Q.ge25519_unpack_negative_vartime(scalar))
         {
             return false;
         }
 
-        GEMath.ge25519_add(ref R, P, Q);
+        R.ge25519_add(P, Q);
 
         Span<byte> res = stackalloc byte[32];
-        GEMath.ge25519_pack(res, R);
+        R.ge25519_pack(res);
 
         res[31] ^= 0x80;
         return result.Parse(res);
@@ -235,7 +234,7 @@ public struct EdPublicKey : IPublicKey
 
         GE25519 R, A;
 
-        if (!GEMath.ge25519_unpack_negative_vartime(ref A, public_point_data))
+        if (!A.ge25519_unpack_negative_vartime(public_point_data))
         {
             return false;
         }
@@ -253,10 +252,10 @@ public struct EdPublicKey : IPublicKey
 
         // SB - H(R,A,m)A
         GEMath.ge25519_double_scalarmult_vartime(ref R, A, hram, S);
-        GEMath.ge25519_pack(checkR, R);
+        R.ge25519_pack(checkR);
 
         // check that R = SB - H(R,A,m)A
-        return Logic.ed25519_verify(r, checkR, 32);
+        return Curve25519.ed25519_verify(r, checkR, 32);
     }
 
     /// <summary>
