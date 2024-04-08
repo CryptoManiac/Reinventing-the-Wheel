@@ -33,7 +33,7 @@ internal struct GE25519
     }
 
     #region Precalculated data
-    private static readonly Curve25519Tables tables = Curve25519Tables.Get_Tables();
+    private static readonly Ed25519Tables tables = Ed25519Tables.Get_Tables();
     #endregion
 
     #region Helpers
