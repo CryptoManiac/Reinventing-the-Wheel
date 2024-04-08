@@ -10,7 +10,7 @@ internal static partial class Curve25519
     /// </summary>
     /// <returns></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool ed25519_verify(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, int len)
+    public static bool Equals(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, int len)
     {
         int diff = 0;
         for (int i = 0; i != len; ++i)
@@ -27,7 +27,7 @@ internal static partial class Curve25519
     /// <param name="y"></param>
     /// <param name="len"></param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ed25519_xor(Span<byte> x, ReadOnlySpan<byte> y, int len)
+    public static void Xor(Span<byte> x, ReadOnlySpan<byte> y, int len)
     {
         for (int i = 0; i != len; ++i)
         {

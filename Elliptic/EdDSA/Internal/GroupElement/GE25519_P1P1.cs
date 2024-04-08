@@ -46,20 +46,20 @@ internal struct GE25519_P1P1
         Span<ulong> u = stackalloc ulong[ModM.ModM_WORDS];
 
 
-        Curve25519.curve25519_sub(a, p.Y, p.X);
-        Curve25519.curve25519_add(b, p.Y, p.X);
-        Curve25519.curve25519_sub(t, q.Y, q.X);
-        Curve25519.curve25519_add(u, q.Y, q.X);
-        Curve25519.curve25519_mul(a, a, t);
-        Curve25519.curve25519_mul(b, b, u);
-        Curve25519.curve25519_mul(c, p.T, q.T);
-        Curve25519.curve25519_mul(c, c, Curve25519.tables.EC2D);
-        Curve25519.curve25519_mul(d, p.Z, q.Z);
-        Curve25519.curve25519_add(d, d, d);
-        Curve25519.curve25519_sub(X, b, a);
-        Curve25519.curve25519_add(Y, b, a);
-        Curve25519.curve25519_add_after_basic(Z, d, c);
-        Curve25519.curve25519_sub_after_basic(T, d, c);
+        Curve25519.Sub(a, p.Y, p.X);
+        Curve25519.Add(b, p.Y, p.X);
+        Curve25519.Sub(t, q.Y, q.X);
+        Curve25519.Add(u, q.Y, q.X);
+        Curve25519.Mul(a, a, t);
+        Curve25519.Mul(b, b, u);
+        Curve25519.Mul(c, p.T, q.T);
+        Curve25519.Mul(c, c, Curve25519.tables.EC2D);
+        Curve25519.Mul(d, p.Z, q.Z);
+        Curve25519.Add(d, d, d);
+        Curve25519.Sub(X, b, a);
+        Curve25519.Add(Y, b, a);
+        Curve25519.Add_after_basic(Z, d, c);
+        Curve25519.Sub_after_basic(T, d, c);
     }
 
 
@@ -71,16 +71,16 @@ internal struct GE25519_P1P1
         Span<ulong> b = stackalloc ulong[ModM.ModM_WORDS];
         Span<ulong> c = stackalloc ulong[ModM.ModM_WORDS];
 
-        Curve25519.curve25519_square(a, p.X);
-        Curve25519.curve25519_square(b, p.Y);
-        Curve25519.curve25519_square(c, p.Z);
-        Curve25519.curve25519_add_reduce(c, c, c);
-        Curve25519.curve25519_add(X, p.X, p.Y);
-        Curve25519.curve25519_square(X, X);
-        Curve25519.curve25519_add(Y, b, a);
-        Curve25519.curve25519_sub(Z, b, a);
-        Curve25519.curve25519_sub_after_basic(X, X, Y);
-        Curve25519.curve25519_sub_after_basic(T, c, Z);
+        Curve25519.Square(a, p.X);
+        Curve25519.Square(b, p.Y);
+        Curve25519.Square(c, p.Z);
+        Curve25519.Add_reduce(c, c, c);
+        Curve25519.Add(X, p.X, p.Y);
+        Curve25519.Square(X, X);
+        Curve25519.Add(Y, b, a);
+        Curve25519.Sub(Z, b, a);
+        Curve25519.Sub_after_basic(X, X, Y);
+        Curve25519.Sub_after_basic(T, c, Z);
     }
 
     [SkipLocalsInit]
@@ -94,17 +94,17 @@ internal struct GE25519_P1P1
         Span<ulong> b = stackalloc ulong[ModM.ModM_WORDS];
         Span<ulong> c = stackalloc ulong[ModM.ModM_WORDS];
 
-        Curve25519.curve25519_sub(a, p.Y, p.X);
-        Curve25519.curve25519_add(b, p.Y, p.X);
-        Curve25519.curve25519_mul(a, a, qb[signbit]); /* x for +, y for - */
-        Curve25519.curve25519_mul(X, b, qb[signbit ^ 1]); /* y for +, x for - */
-        Curve25519.curve25519_add(Y, X, a);
-        Curve25519.curve25519_sub(X, X, a);
-        Curve25519.curve25519_mul(c, p.T, q.T2D);
-        Curve25519.curve25519_add_reduce(T, p.Z, p.Z);
-        Curve25519.curve25519_copy(Z, T);
-        Curve25519.curve25519_add(rb[signbit], rb[signbit], c); /* z for +, t for - */
-        Curve25519.curve25519_sub(rb[signbit ^ 1], rb[signbit ^ 1], c); /* t for +, z for - */
+        Curve25519.Sub(a, p.Y, p.X);
+        Curve25519.Add(b, p.Y, p.X);
+        Curve25519.Mul(a, a, qb[signbit]); /* x for +, y for - */
+        Curve25519.Mul(X, b, qb[signbit ^ 1]); /* y for +, x for - */
+        Curve25519.Add(Y, X, a);
+        Curve25519.Sub(X, X, a);
+        Curve25519.Mul(c, p.T, q.T2D);
+        Curve25519.Add_reduce(T, p.Z, p.Z);
+        Curve25519.Copy(Z, T);
+        Curve25519.Add(rb[signbit], rb[signbit], c); /* z for +, t for - */
+        Curve25519.Sub(rb[signbit ^ 1], rb[signbit ^ 1], c); /* t for +, z for - */
     }
 
     [SkipLocalsInit]
@@ -118,18 +118,18 @@ internal struct GE25519_P1P1
         Span<ulong> b = stackalloc ulong[ModM.ModM_WORDS];
         Span<ulong> c = stackalloc ulong[ModM.ModM_WORDS];
 
-        Curve25519.curve25519_sub(a, p.Y, p.X);
-        Curve25519.curve25519_add(b, p.Y, p.X);
-        Curve25519.curve25519_mul(a, a, qb[signbit]); /* ysubx for +, xaddy for - */
-        Curve25519.curve25519_mul(X, b, qb[signbit ^ 1]); /* xaddy for +, ysubx for - */
-        Curve25519.curve25519_add(Y, X, a);
-        Curve25519.curve25519_sub(X, X, a);
-        Curve25519.curve25519_mul(c, p.T, q.T2D);
-        Curve25519.curve25519_mul(T, p.Z, q.Z);
-        Curve25519.curve25519_add_reduce(T, T, T);
-        Curve25519.curve25519_copy(Z, T);
-        Curve25519.curve25519_add(rb[signbit], rb[signbit], c); /* z for +, t for - */
-        Curve25519.curve25519_sub(rb[signbit ^ 1], rb[signbit ^ 1], c); /* t for +, z for - */
+        Curve25519.Sub(a, p.Y, p.X);
+        Curve25519.Add(b, p.Y, p.X);
+        Curve25519.Mul(a, a, qb[signbit]); /* ysubx for +, xaddy for - */
+        Curve25519.Mul(X, b, qb[signbit ^ 1]); /* xaddy for +, ysubx for - */
+        Curve25519.Add(Y, X, a);
+        Curve25519.Sub(X, X, a);
+        Curve25519.Mul(c, p.T, q.T2D);
+        Curve25519.Mul(T, p.Z, q.Z);
+        Curve25519.Add_reduce(T, T, T);
+        Curve25519.Copy(Z, T);
+        Curve25519.Add(rb[signbit], rb[signbit], c); /* z for +, t for - */
+        Curve25519.Sub(rb[signbit ^ 1], rb[signbit ^ 1], c); /* t for +, z for - */
     }
     #endregion
 

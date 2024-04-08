@@ -7,7 +7,7 @@ namespace Wheel.Crypto.Elliptic.EdDSA.Internal;
 
 internal static partial class Curve25519
 {
-    public static Curve25519Tables tables = Curve25519Tables.Get_Tables();
+    public readonly static Curve25519Tables tables = Curve25519Tables.Get_Tables();
 
     private const ulong reduce_mask_40 = ((ulong)1 << 40) - 1;
 	private const ulong reduce_mask_51 = ((ulong)1 << 51) - 1;
@@ -19,7 +19,7 @@ internal static partial class Curve25519
     /// <param name="_out"></param>
     /// <param name="_in"></param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void curve25519_copy(Span<ulong> _out, ReadOnlySpan<ulong> _in)
+    public static void Copy(Span<ulong> _out, ReadOnlySpan<ulong> _in)
 	{
 		_out[0] = _in[0];
 		_out[1] = _in[1];
@@ -35,7 +35,7 @@ internal static partial class Curve25519
     /// <param name="a"></param>
     /// <param name="b"></param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void curve25519_add(Span<ulong> _out, ReadOnlySpan<ulong> a, ReadOnlySpan<ulong> b)
+    public static void Add(Span<ulong> _out, ReadOnlySpan<ulong> a, ReadOnlySpan<ulong> b)
 	{
 		_out[0] = a[0] + b[0];
 		_out[1] = a[1] + b[1];
@@ -51,7 +51,7 @@ internal static partial class Curve25519
     /// <param name="a"></param>
     /// <param name="b"></param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void curve25519_add_after_basic(Span<ulong> _out, ReadOnlySpan<ulong> a, ReadOnlySpan<ulong> b)
+    public static void Add_after_basic(Span<ulong> _out, ReadOnlySpan<ulong> a, ReadOnlySpan<ulong> b)
 	{
 		_out[0] = a[0] + b[0];
 		_out[1] = a[1] + b[1];
@@ -62,7 +62,7 @@ internal static partial class Curve25519
 
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void curve25519_add_reduce(Span<ulong> _out, ReadOnlySpan<ulong> a, ReadOnlySpan<ulong> b)
+    public static void Add_reduce(Span<ulong> _out, ReadOnlySpan<ulong> a, ReadOnlySpan<ulong> b)
 	{
 		ulong c;
 		_out[0] = a[0] + b[0]; c = (_out[0] >> 51); _out[0] &= reduce_mask_51;
@@ -86,7 +86,7 @@ internal static partial class Curve25519
     /// <param name="a"></param>
     /// <param name="b"></param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void curve25519_sub(Span<ulong> _out, ReadOnlySpan<ulong> a, ReadOnlySpan<ulong> b)
+    public static void Sub(Span<ulong> _out, ReadOnlySpan<ulong> a, ReadOnlySpan<ulong> b)
 	{
 		_out[0] = a[0] + twoP0 - b[0];
 		_out[1] = a[1] + twoP1234 - b[1];
@@ -102,7 +102,7 @@ internal static partial class Curve25519
     /// <param name="a"></param>
     /// <param name="b"></param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void curve25519_sub_after_basic(Span<ulong> _out, ReadOnlySpan<ulong> a, ReadOnlySpan<ulong> b)
+    public static void Sub_after_basic(Span<ulong> _out, ReadOnlySpan<ulong> a, ReadOnlySpan<ulong> b)
 	{
 		_out[0] = a[0] + fourP0 - b[0];
 		_out[1] = a[1] + fourP1234 - b[1];
@@ -113,7 +113,7 @@ internal static partial class Curve25519
 
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void curve25519_sub_reduce(Span<ulong> _out, ReadOnlySpan<ulong> a, ReadOnlySpan<ulong> b)
+    public static void Sub_reduce(Span<ulong> _out, ReadOnlySpan<ulong> a, ReadOnlySpan<ulong> b)
 	{
 		ulong c;
 		_out[0] = a[0] + fourP0 - b[0]; c = (_out[0] >> 51); _out[0] &= reduce_mask_51;
@@ -131,7 +131,7 @@ internal static partial class Curve25519
     /// <param name="a"></param>
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void curve25519_neg(Span<ulong> _out, ReadOnlySpan<ulong> a)
+    public static void Neg(Span<ulong> _out, ReadOnlySpan<ulong> a)
 	{
 		ulong c;
 		_out[0] = twoP0 - a[0]; c = (_out[0] >> 51); _out[0] &= reduce_mask_51;
@@ -150,7 +150,7 @@ internal static partial class Curve25519
     /// <param name="_in"></param>
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void curve25519_mul(Span<ulong> _out, ReadOnlySpan<ulong> _in2, ReadOnlySpan<ulong> _in)
+    public static void Mul(Span<ulong> _out, ReadOnlySpan<ulong> _in2, ReadOnlySpan<ulong> _in)
 	{
 		Span<UInt128> t = stackalloc UInt128[5];
 		ulong r0, r1, r2, r3, r4, s0, s1, s2, s3, s4, c;
@@ -218,7 +218,7 @@ internal static partial class Curve25519
     /// <param name="count"></param>
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void curve25519_square_times(Span<ulong> _out, ReadOnlySpan<ulong> _in, ulong count)
+    public static void Square_times(Span<ulong> _out, ReadOnlySpan<ulong> _in, ulong count)
 	{
 		Span<UInt128> t = stackalloc UInt128[5];
 		ulong r0, r1, r2, r3, r4, c;
@@ -271,7 +271,7 @@ internal static partial class Curve25519
 
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void curve25519_square(Span<ulong> _out, ReadOnlySpan<ulong> _in)
+    public static void Square(Span<ulong> _out, ReadOnlySpan<ulong> _in)
 	{
 		Span<UInt128> t = stackalloc UInt128[5];
 
@@ -328,7 +328,7 @@ internal static partial class Curve25519
     /// <param name="_in"></param>
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void curve25519_expand(Span<ulong> _out, ReadOnlySpan<byte> _in)
+    public static void Expand(Span<ulong> _out, ReadOnlySpan<byte> _in)
 	{
 		ReadOnlySpan<ulong> data = MemoryMarshal.Cast<byte, ulong>(_in);
 
@@ -357,7 +357,7 @@ internal static partial class Curve25519
     /// <param name="input"></param>
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void curve25519_contract(Span<byte> _out, ReadOnlySpan<ulong> input)
+    public static void Contract(Span<byte> _out, ReadOnlySpan<ulong> input)
 	{
 		ulong f, i;
 		Span<ulong> t = stackalloc ulong[ModM.ModM_WORDS];
@@ -449,7 +449,7 @@ internal static partial class Curve25519
     /// <param name="flag"></param>
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void curve25519_move_conditional_bytes(Span<byte> _out, ReadOnlySpan<byte> _in, ulong flag)
+    public static void Move_conditional_bytes(Span<byte> _out, ReadOnlySpan<byte> _in, ulong flag)
 	{
 
 		ulong nb = flag - 1, b = ~nb;
@@ -479,7 +479,7 @@ internal static partial class Curve25519
     /// <param name="iswap"></param>
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void curve25519_swap_conditional(Span<ulong> a, Span<ulong> b, ulong iswap)
+    public static void Swap_conditional(Span<ulong> a, Span<ulong> b, ulong iswap)
 	{
 		ulong swap = (ulong)(-(long)iswap);
 		ulong x0, x1, x2, x3, x4;
@@ -498,40 +498,40 @@ internal static partial class Curve25519
     /// <param name="b"></param>
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void curve25519_pow_two5mtwo0_two250mtwo0(Span<ulong> b)
+    private static void Pow_two5mtwo0_two250mtwo0(Span<ulong> b)
 	{
 		Span<ulong> t0 = stackalloc ulong[ModM.ModM_WORDS];
 		Span<ulong> c = stackalloc ulong[ModM.ModM_WORDS];
 
 		/* 2^5  - 2^0 */ /* b */
 		/* 2^10 - 2^5 */
-		curve25519_square_times(t0, b, 5);
+		Square_times(t0, b, 5);
 		/* 2^10 - 2^0 */
-		curve25519_mul(b, t0, b);
+		Mul(b, t0, b);
 		/* 2^20 - 2^10 */
-		curve25519_square_times(t0, b, 10);
+		Square_times(t0, b, 10);
 		/* 2^20 - 2^0 */
-		curve25519_mul(c, t0, b);
+		Mul(c, t0, b);
 		/* 2^40 - 2^20 */
-		curve25519_square_times(t0, c, 20);
+		Square_times(t0, c, 20);
 		/* 2^40 - 2^0 */
-		curve25519_mul(t0, t0, c);
+		Mul(t0, t0, c);
 		/* 2^50 - 2^10 */
-		curve25519_square_times(t0, t0, 10);
+		Square_times(t0, t0, 10);
 		/* 2^50 - 2^0 */
-		curve25519_mul(b, t0, b);
+		Mul(b, t0, b);
 		/* 2^100 - 2^50 */
-		curve25519_square_times(t0, b, 50);
+		Square_times(t0, b, 50);
 		/* 2^100 - 2^0 */
-		curve25519_mul(c, t0, b);
+		Mul(c, t0, b);
 		/* 2^200 - 2^100 */
-		curve25519_square_times(t0, c, 100);
+		Square_times(t0, c, 100);
 		/* 2^200 - 2^0 */
-		curve25519_mul(t0, t0, c);
+		Mul(t0, t0, c);
 		/* 2^250 - 2^50 */
-		curve25519_square_times(t0, t0, 50);
+		Square_times(t0, t0, 50);
 		/* 2^250 - 2^0 */
-		curve25519_mul(b, t0, b);
+		Mul(b, t0, b);
 	}
 
     /// <summary>
@@ -541,30 +541,30 @@ internal static partial class Curve25519
     /// <param name="z"></param>
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void curve25519_recip(Span<ulong> _out, ReadOnlySpan<ulong> z)
+    public static void Recip(Span<ulong> _out, ReadOnlySpan<ulong> z)
 	{
 		Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
 		Span<ulong> t0 = stackalloc ulong[ModM.ModM_WORDS];
 		Span<ulong> b = stackalloc ulong[ModM.ModM_WORDS];
 
 		/* 2 */
-		curve25519_square_times(a, z, 1); /* a = 2 */
+		Square_times(a, z, 1); /* a = 2 */
 		/* 8 */
-		curve25519_square_times(t0, a, 2);
+		Square_times(t0, a, 2);
 		/* 9 */
-		curve25519_mul(b, t0, z); /* b = 9 */
+		Mul(b, t0, z); /* b = 9 */
 		/* 11 */
-		curve25519_mul(a, b, a); /* a = 11 */
+		Mul(a, b, a); /* a = 11 */
 		/* 22 */
-		curve25519_square_times(t0, a, 1);
+		Square_times(t0, a, 1);
 		/* 2^5 - 2^0 = 31 */
-		curve25519_mul(b, t0, b);
+		Mul(b, t0, b);
 		/* 2^250 - 2^0 */
-		curve25519_pow_two5mtwo0_two250mtwo0(b);
+		Pow_two5mtwo0_two250mtwo0(b);
 		/* 2^255 - 2^5 */
-		curve25519_square_times(b, b, 5);
+		Square_times(b, b, 5);
 		/* 2^255 - 21 */
-		curve25519_mul(_out, b, a);
+		Mul(_out, b, a);
 	}
 
     /// <summary>
@@ -574,7 +574,7 @@ internal static partial class Curve25519
     /// <param name="z"></param>
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void curve25519_pow_two252m3(Span<ulong> two252m3, ReadOnlySpan<ulong> z)
+    public static void Pow_two252m3(Span<ulong> two252m3, ReadOnlySpan<ulong> z)
 	{
 
 		Span<ulong> b = stackalloc ulong[ModM.ModM_WORDS];
@@ -582,22 +582,22 @@ internal static partial class Curve25519
 		Span<ulong> t0 = stackalloc ulong[ModM.ModM_WORDS];
 
 		/* 2 */
-		curve25519_square_times(c, z, 1); /* c = 2 */
+		Square_times(c, z, 1); /* c = 2 */
 		/* 8 */
-		curve25519_square_times(t0, c, 2); /* t0 = 8 */
+		Square_times(t0, c, 2); /* t0 = 8 */
 		/* 9 */
-		curve25519_mul(b, t0, z); /* b = 9 */
+		Mul(b, t0, z); /* b = 9 */
 		/* 11 */
-		curve25519_mul(c, b, c); /* c = 11 */
+		Mul(c, b, c); /* c = 11 */
 		/* 22 */
-		curve25519_square_times(t0, c, 1);
+		Square_times(t0, c, 1);
 		/* 2^5 - 2^0 = 31 */
-		curve25519_mul(b, t0, b);
+		Mul(b, t0, b);
 		/* 2^250 - 2^0 */
-		curve25519_pow_two5mtwo0_two250mtwo0(b);
+		Pow_two5mtwo0_two250mtwo0(b);
 		/* 2^252 - 2^2 */
-		curve25519_square_times(b, b, 2);
+		Square_times(b, b, 2);
 		/* 2^252 - 3 */
-		curve25519_mul(two252m3, b, z);
+		Mul(two252m3, b, z);
 	}
 }

@@ -23,10 +23,10 @@ internal struct GE25519_PNIELS
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ge25519_full_to_pniels(in GE25519 r)
     {
-        Curve25519.curve25519_sub(YsubX, r.Y, r.X);
-        Curve25519.curve25519_add(XaddY, r.Y, r.X);
-        Curve25519.curve25519_copy(Z, r.Z);
-        Curve25519.curve25519_mul(T2D, r.T, Curve25519.tables.EC2D);
+        Curve25519.Sub(YsubX, r.Y, r.X);
+        Curve25519.Add(XaddY, r.Y, r.X);
+        Curve25519.Copy(Z, r.Z);
+        Curve25519.Mul(T2D, r.T, Curve25519.tables.EC2D);
     }
     #endregion
 
@@ -44,25 +44,25 @@ internal struct GE25519_PNIELS
         Span<ulong> z = stackalloc ulong[ModM.ModM_WORDS];
         Span<ulong> t = stackalloc ulong[ModM.ModM_WORDS];
 
-        Curve25519.curve25519_sub(a, p.Y, p.X);
-        Curve25519.curve25519_add(b, p.Y, p.X);
-        Curve25519.curve25519_mul(a, a, q.YsubX);
-        Curve25519.curve25519_mul(x, b, q.XaddY);
-        Curve25519.curve25519_add(y, x, a);
-        Curve25519.curve25519_sub(x, x, a);
-        Curve25519.curve25519_mul(c, p.T, q.T2D);
-        Curve25519.curve25519_mul(t, p.Z, q.Z);
-        Curve25519.curve25519_add(t, t, t);
-        Curve25519.curve25519_add_after_basic(z, t, c);
-        Curve25519.curve25519_sub_after_basic(t, t, c);
-        Curve25519.curve25519_mul(XaddY, x, t);
-        Curve25519.curve25519_mul(YsubX, y, z);
-        Curve25519.curve25519_mul(Z, z, t);
-        Curve25519.curve25519_mul(T2D, x, y);
-        Curve25519.curve25519_copy(y, YsubX);
-        Curve25519.curve25519_sub(YsubX, YsubX, XaddY);
-        Curve25519.curve25519_add(XaddY, XaddY, y);
-        Curve25519.curve25519_mul(T2D, T2D, Curve25519.tables.EC2D);
+        Curve25519.Sub(a, p.Y, p.X);
+        Curve25519.Add(b, p.Y, p.X);
+        Curve25519.Mul(a, a, q.YsubX);
+        Curve25519.Mul(x, b, q.XaddY);
+        Curve25519.Add(y, x, a);
+        Curve25519.Sub(x, x, a);
+        Curve25519.Mul(c, p.T, q.T2D);
+        Curve25519.Mul(t, p.Z, q.Z);
+        Curve25519.Add(t, t, t);
+        Curve25519.Add_after_basic(z, t, c);
+        Curve25519.Sub_after_basic(t, t, c);
+        Curve25519.Mul(XaddY, x, t);
+        Curve25519.Mul(YsubX, y, z);
+        Curve25519.Mul(Z, z, t);
+        Curve25519.Mul(T2D, x, y);
+        Curve25519.Copy(y, YsubX);
+        Curve25519.Sub(YsubX, YsubX, XaddY);
+        Curve25519.Add(XaddY, XaddY, y);
+        Curve25519.Mul(T2D, T2D, Curve25519.tables.EC2D);
     }
     #endregion
 

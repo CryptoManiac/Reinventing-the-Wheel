@@ -144,18 +144,18 @@ internal static class GEMath
 
         for (int i = 0; i < 8; i++)
         {
-            Curve25519.curve25519_move_conditional_bytes(packed.ALL, table[(pos * 8) + i].ALL, ge25519_windowb_equal(u, (uint)i + 1));
+            Curve25519.Move_conditional_bytes(packed.ALL, table[(pos * 8) + i].ALL, ge25519_windowb_equal(u, (uint)i + 1));
         }
 
         /* expand in to t */
-        Curve25519.curve25519_expand(t.YsubX, packed.YsubX);
-        Curve25519.curve25519_expand(t.XaddY, packed.XaddY);
-        Curve25519.curve25519_expand(t.T2D, packed.T2D);
+        Curve25519.Expand(t.YsubX, packed.YsubX);
+        Curve25519.Expand(t.XaddY, packed.XaddY);
+        Curve25519.Expand(t.T2D, packed.T2D);
 
         /* adjust for sign */
-        Curve25519.curve25519_swap_conditional(t.YsubX, t.XaddY, sign);
-        Curve25519.curve25519_neg(neg, t.T2D);
-        Curve25519.curve25519_swap_conditional(t.T2D, neg, sign);
+        Curve25519.Swap_conditional(t.YsubX, t.XaddY, sign);
+        Curve25519.Neg(neg, t.T2D);
+        Curve25519.Swap_conditional(t.T2D, neg, sign);
     }
 
     /* computes [s]basepoint */
@@ -170,10 +170,10 @@ internal static class GEMath
         ModM.contract256_window4(b, s);
 
         ge25519_scalarmult_base_choose_niels(ref t, basepoint_table, 0, b[1]);
-        Curve25519.curve25519_sub_reduce(r.X, t.XaddY, t.YsubX);
-        Curve25519.curve25519_add_reduce(r.Y, t.XaddY, t.YsubX);
+        Curve25519.Sub_reduce(r.X, t.XaddY, t.YsubX);
+        Curve25519.Add_reduce(r.Y, t.XaddY, t.YsubX);
         r.Z.Clear();
-        Curve25519.curve25519_copy(r.T, t.T2D);
+        Curve25519.Copy(r.T, t.T2D);
         r.Z[0] = 2;
 
         for (int i = 3; i < 64; i += 2)
@@ -187,7 +187,7 @@ internal static class GEMath
         r.ge25519_double_partial(r);
         r.ge25519_double(r);
         ge25519_scalarmult_base_choose_niels(ref t, basepoint_table, 0, b[0]);
-        Curve25519.curve25519_mul(t.T2D, t.T2D, Curve25519.tables.ECD);
+        Curve25519.Mul(t.T2D, t.T2D, Curve25519.tables.ECD);
         r.ge25519_nielsadd2(t);
         for (int i = 2; i < 64; i += 2)
         {

@@ -369,7 +369,7 @@ public struct EdPrivateKey : IPrivateKey
         }
 
         secret_scalar_data.CopyTo(secret_scalar[..32]);
-        Curve25519.ed25519_xor(secret_scalar, _curve.ScrambleKey, 32);
+        Curve25519.Xor(secret_scalar, _curve.ScrambleKey, 32);
         return true;
     }
 
@@ -434,7 +434,7 @@ public struct EdPrivateKey : IPrivateKey
     /// </summary>
     private readonly void KeyScramble()
     {
-        Curve25519.ed25519_xor(secret_scalar_data, _curve.ScrambleKey, 32);
+        Curve25519.Xor(secret_scalar_data, _curve.ScrambleKey, 32);
     }
 
     /// <summary>

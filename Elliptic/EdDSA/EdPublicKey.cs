@@ -255,7 +255,7 @@ public struct EdPublicKey : IPublicKey
         R.ge25519_pack(checkR);
 
         // check that R = SB - H(R,A,m)A
-        return Curve25519.ed25519_verify(r, checkR, 32);
+        return Curve25519.Equals(r, checkR, 32);
     }
 
     /// <summary>
