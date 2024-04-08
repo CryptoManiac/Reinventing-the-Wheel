@@ -11,7 +11,7 @@ internal static class GEMath
 
     #region Conversions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ge25519_p1p1_to_partial(ref GE25519 r, in GE25519 p)
+    public static void ge25519_p1p1_to_partial(ref GE25519 r, in GE25519_P1P1 p)
     {
 
         EdMath.curve25519_mul(r.X, p.X, p.T);
@@ -20,7 +20,7 @@ internal static class GEMath
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ge25519_p1p1_to_full(ref GE25519 r, in GE25519 p)
+    public static void ge25519_p1p1_to_full(ref GE25519 r, in GE25519_P1P1 p)
     {
         EdMath.curve25519_mul(r.X, p.X, p.T);
         EdMath.curve25519_mul(r.Y, p.Y, p.Z);
@@ -42,7 +42,7 @@ internal static class GEMath
 
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ge25519_add_p1p1(ref GE25519 r, in GE25519 p, in GE25519 q)
+    public static void ge25519_add_p1p1(ref GE25519_P1P1 r, in GE25519 p, in GE25519 q)
     {
         Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
         Span<ulong> b = stackalloc ulong[ModM.ModM_WORDS];
@@ -71,7 +71,7 @@ internal static class GEMath
 
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ge25519_double_p1p1(ref GE25519 r, in GE25519 p)
+    public static void ge25519_double_p1p1(ref GE25519_P1P1 r, in GE25519 p)
     {
         Span<ulong> a = stackalloc ulong[ModM.ModM_WORDS];
         Span<ulong> b = stackalloc ulong[ModM.ModM_WORDS];
@@ -91,7 +91,7 @@ internal static class GEMath
 
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ge25519_nielsadd2_p1p1(ref GE25519 r, in GE25519 p, in GE25519_NIELS q, int signbit)
+    public static void ge25519_nielsadd2_p1p1(ref GE25519_P1P1 r, in GE25519 p, in GE25519_NIELS q, int signbit)
     {
         Picker rb = new(r.Z, r.T);
         ReadOnlyPicker qb = new(q.YsubX, q.XaddY);
@@ -115,7 +115,7 @@ internal static class GEMath
 
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ge25519_pnielsadd_p1p1(ref GE25519 r, in GE25519 p, in GE25519_PNIELS q, int signbit)
+    public static void ge25519_pnielsadd_p1p1(ref GE25519_P1P1 r, in GE25519 p, in GE25519_PNIELS q, int signbit)
     {
         Picker rb = new(r.Z, r.T);
         ReadOnlyPicker qb = new(q.YsubX, q.XaddY);
@@ -142,7 +142,7 @@ internal static class GEMath
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ge25519_double_partial(ref GE25519 r, in GE25519 p)
     {
-        GE25519 t;
+        GE25519_P1P1 t;
         ge25519_double_p1p1(ref t, p);
         ge25519_p1p1_to_partial(ref r, t);
     }
@@ -151,7 +151,7 @@ internal static class GEMath
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ge25519_double(ref GE25519 r, in GE25519 p)
     {
-        GE25519 t;
+        GE25519_P1P1 t;
         ge25519_double_p1p1(ref t, p);
         ge25519_p1p1_to_full(ref r, t);
     }
@@ -160,7 +160,7 @@ internal static class GEMath
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ge25519_add(ref GE25519 r, in GE25519 p, in GE25519 q)
     {
-        GE25519 t;
+        GE25519_P1P1 t;
         ge25519_add_p1p1(ref t, p, q);
         ge25519_p1p1_to_full(ref r, t);
     }
@@ -344,7 +344,7 @@ internal static class GEMath
         Span<GE25519_PNIELS> pre1 = stackalloc GE25519_PNIELS[S1_TABLE_SIZE];
 
         GE25519 d1;
-        GE25519 t;
+        GE25519_P1P1 t;
 
         int i;
 
@@ -399,7 +399,7 @@ internal static class GEMath
         Span<sbyte> slide1 = stackalloc sbyte[256];
         Span<GE25519_PNIELS> pre1 = stackalloc GE25519_PNIELS[S1_TABLE_SIZE];
         GE25519 d1;
-        GE25519 t;
+        GE25519_P1P1 t;
         int i;
 
         ModM.contract256_slidingwindow(slide1, s1, S1_SWINDOWSIZE);
