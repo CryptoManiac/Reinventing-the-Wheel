@@ -179,7 +179,7 @@ public struct EdPrivateKey : IPrivateKey
         KeyScramble();
         ModM.expand256(secret_scalar, secret_scalar_data, 32);
         KeyScramble();
-        GEMath.ge25519_scalarmult_base_niels(ref public_point, Curve25519.tables.NIELS_Base_Multiples, secret_scalar);
+        public_point.ge25519_scalarmult_base_niels(secret_scalar);
         public_point.ge25519_pack(public_data);
         secret_scalar.Clear();
 
@@ -241,7 +241,7 @@ public struct EdPrivateKey : IPrivateKey
         }
 
         // Calculate new secret, then trim it and place into shared key instance
-        GEMath.ge25519_scalarmult_vartime(ref shared_point, public_point, secret_scalar);
+        shared_point.ge25519_scalarmult_vartime(public_point, secret_scalar);
 
         shared_point.ge25519_pack(shared_bytes);
 
@@ -409,7 +409,7 @@ public struct EdPrivateKey : IPrivateKey
         KeyScramble();
 
         // R = rB
-        GEMath.ge25519_scalarmult_base_niels(ref R, Curve25519.tables.NIELS_Base_Multiples, r);
+        R.ge25519_scalarmult_base_niels(r);
         R.ge25519_pack(sig_r);
 
         // S = H(R,A,m)..
@@ -469,7 +469,7 @@ public struct EdPrivateKey : IPrivateKey
         ModM.expand256(r, rnd, 64);
 
         // R = rB
-        GEMath.ge25519_scalarmult_base_niels(ref R, Curve25519.tables.NIELS_Base_Multiples, r);
+        R.ge25519_scalarmult_base_niels(r);
         R.ge25519_pack(sig_r);
 
         // S = H(R,A,m)..

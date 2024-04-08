@@ -19,6 +19,10 @@ internal struct GE25519_PNIELS
     [FieldOffset(3 * ModM.ModM_WORDS * sizeof(ulong))]
     private unsafe fixed ulong _T2D[ModM.ModM_WORDS];
 
+    #region Precalculated data
+    private static readonly Curve25519Tables tables = Curve25519Tables.Get_Tables();
+    #endregion
+
     #region Conversions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ge25519_full_to_pniels(in GE25519 r)
@@ -26,7 +30,7 @@ internal struct GE25519_PNIELS
         Curve25519.Sub(YsubX, r.Y, r.X);
         Curve25519.Add(XaddY, r.Y, r.X);
         Curve25519.Copy(Z, r.Z);
-        Curve25519.Mul(T2D, r.T, Curve25519.tables.EC2D);
+        Curve25519.Mul(T2D, r.T, tables.EC2D);
     }
     #endregion
 
@@ -62,7 +66,7 @@ internal struct GE25519_PNIELS
         Curve25519.Copy(y, YsubX);
         Curve25519.Sub(YsubX, YsubX, XaddY);
         Curve25519.Add(XaddY, XaddY, y);
-        Curve25519.Mul(T2D, T2D, Curve25519.tables.EC2D);
+        Curve25519.Mul(T2D, T2D, tables.EC2D);
     }
     #endregion
 

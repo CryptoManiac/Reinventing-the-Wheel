@@ -33,6 +33,10 @@ internal struct GE25519_P1P1
         throw new InvalidOperationException("Constructor shouldn't be called");
     }
 
+    #region Precalculated data
+    private static readonly Curve25519Tables tables = Curve25519Tables.Get_Tables();
+    #endregion
+
     #region Adding and doubling
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -53,7 +57,7 @@ internal struct GE25519_P1P1
         Curve25519.Mul(a, a, t);
         Curve25519.Mul(b, b, u);
         Curve25519.Mul(c, p.T, q.T);
-        Curve25519.Mul(c, c, Curve25519.tables.EC2D);
+        Curve25519.Mul(c, c, tables.EC2D);
         Curve25519.Mul(d, p.Z, q.Z);
         Curve25519.Add(d, d, d);
         Curve25519.Sub(X, b, a);

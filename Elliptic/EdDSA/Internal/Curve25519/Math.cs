@@ -7,8 +7,6 @@ namespace Wheel.Crypto.Elliptic.EdDSA.Internal;
 
 internal static partial class Curve25519
 {
-    public readonly static Curve25519Tables tables = Curve25519Tables.Get_Tables();
-
     private const ulong reduce_mask_40 = ((ulong)1 << 40) - 1;
 	private const ulong reduce_mask_51 = ((ulong)1 << 51) - 1;
 	private const ulong reduce_mask_56 = ((ulong)1 << 56) - 1;

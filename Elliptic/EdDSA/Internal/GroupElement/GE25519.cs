@@ -32,6 +32,10 @@ internal struct GE25519
         throw new InvalidOperationException("Constructor shouldn't be called");
     }
 
+    #region Precalculated data
+    private static readonly Curve25519Tables tables = Curve25519Tables.Get_Tables();
+    #endregion
+
     #region Helpers
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -164,7 +168,7 @@ internal struct GE25519
         Curve25519.Expand(Y, p);
         Curve25519.Copy(Z, one);
         Curve25519.Square(num, Y); /* x = y^2 */
-        Curve25519.Mul(den, num, Curve25519.tables.ECD); /* den = dy^2 */
+        Curve25519.Mul(den, num, tables.ECD); /* den = dy^2 */
         Curve25519.Sub_reduce(num, num, Z); /* x = y^1 - 1 */
         Curve25519.Add(den, den, Z); /* den = dy^2 + 1 */
 
@@ -194,7 +198,7 @@ internal struct GE25519
             {
                 return false;
             }
-            Curve25519.Mul(X, X, Curve25519.tables.SqrtNeg1);
+            Curve25519.Mul(X, X, tables.SqrtNeg1);
         }
 
         Curve25519.Contract(check, X);
@@ -209,6 +213,151 @@ internal struct GE25519
 
     #endregion
 
+    #region Scalarmults
+    private const int S1_SWINDOWSIZE = 5;
+    private const int S1_TABLE_SIZE = (1 << (S1_SWINDOWSIZE - 2));
+    private const int S2_SWINDOWSIZE = 7;
+    private const int S2_TABLE_SIZE = (1 << (S2_SWINDOWSIZE - 2));
+
+    /* computes [s]basepoint */
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ge25519_scalarmult_base_niels(ReadOnlySpan<ulong> s)
+    {
+
+        Span<sbyte> b = stackalloc sbyte[64];
+
+        GE25519_NIELS t;
+        ModM.contract256_window4(b, s);
+
+        t.ge25519_scalarmult_base_choose_niels(tables.NIELS_Base_Multiples, 0, b[1]);
+        Curve25519.Sub_reduce(X, t.XaddY, t.YsubX);
+        Curve25519.Add_reduce(Y, t.XaddY, t.YsubX);
+        Z.Clear();
+        Curve25519.Copy(T, t.T2D);
+        Z[0] = 2;
+
+        for (int i = 3; i < 64; i += 2)
+        {
+            t.ge25519_scalarmult_base_choose_niels(tables.NIELS_Base_Multiples, i / 2, b[i]);
+            ge25519_nielsadd2(t);
+        }
+
+        ge25519_double_partial(this);
+        ge25519_double_partial(this);
+        ge25519_double_partial(this);
+        ge25519_double(this);
+        t.ge25519_scalarmult_base_choose_niels(tables.NIELS_Base_Multiples, 0, b[0]);
+        Curve25519.Mul(t.T2D, t.T2D, tables.ECD);
+        ge25519_nielsadd2(t);
+        for (int i = 2; i < 64; i += 2)
+        {
+            t.ge25519_scalarmult_base_choose_niels(tables.NIELS_Base_Multiples, i / 2, b[i]);
+            ge25519_nielsadd2(t);
+        }
+    }
+
+    /// <summary>
+    /// computes [s1]p1
+    /// WARNING: This function IS NOT timing-secure
+    /// </summary>
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ge25519_scalarmult_vartime(in GE25519 p1, ReadOnlySpan<ulong> s1)
+    {
+        Span<sbyte> slide1 = stackalloc sbyte[256];
+        Span<GE25519_PNIELS> pre1 = stackalloc GE25519_PNIELS[S1_TABLE_SIZE];
+        GE25519 d1;
+        GE25519_P1P1 t;
+        int i;
+
+        ModM.contract256_slidingwindow(slide1, s1, S1_SWINDOWSIZE);
+
+        d1.ge25519_double(p1);
+        pre1[0].ge25519_full_to_pniels(p1);
+
+        for (i = 0; i < S1_TABLE_SIZE - 1; i++)
+        {
+            pre1[i + 1].ge25519_pnielsadd(d1, pre1[i]);
+        }
+
+        // set neutral
+        ge25519_set_neutral();
+
+        i = 255;
+        while ((i >= 0) && !Convert.ToBoolean(slide1[i]))
+        {
+            i--;
+        }
+
+        for (; i >= 0; i--)
+        {
+            t.ge25519_double_p1p1(this);
+
+            if (Convert.ToBoolean(slide1[i]))
+            {
+                ge25519_p1p1_to_full(t);
+                t.ge25519_pnielsadd_p1p1(this, pre1[Math.Abs(slide1[i]) / 2], (byte)slide1[i] >> 7);
+            }
+
+            ge25519_p1p1_to_partial(t);
+        }
+    }
+
+    /* computes [s1]p1 + [s2]basepoint */
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ge25519_double_scalarmult_vartime(in GE25519 p1, ReadOnlySpan<ulong> s1, ReadOnlySpan<ulong> s2)
+    {
+        Span<sbyte> slide1 = stackalloc sbyte[256];
+        Span<sbyte> slide2 = stackalloc sbyte[256];
+
+        Span<GE25519_PNIELS> pre1 = stackalloc GE25519_PNIELS[S1_TABLE_SIZE];
+
+        GE25519 d1;
+        GE25519_P1P1 t;
+
+        int i;
+
+        ModM.contract256_slidingwindow(slide1, s1, S1_SWINDOWSIZE);
+        ModM.contract256_slidingwindow(slide2, s2, S2_SWINDOWSIZE);
+
+        d1.ge25519_double(p1);
+        pre1[0].ge25519_full_to_pniels(p1);
+        for (i = 0; i < S1_TABLE_SIZE - 1; i++)
+        {
+            pre1[i + 1].ge25519_pnielsadd(d1, pre1[i]);
+        }
+
+        // set neutral
+        ge25519_set_neutral();
+
+        i = 255;
+        while ((i >= 0) && !Convert.ToBoolean(slide1[i] | slide2[i]))
+        {
+            i--;
+        }
+
+        for (; i >= 0; i--)
+        {
+            t.ge25519_double_p1p1(this);
+
+            if (Convert.ToBoolean(slide1[i]))
+            {
+                ge25519_p1p1_to_full(t);
+                t.ge25519_pnielsadd_p1p1(this, pre1[Math.Abs(slide1[i]) / 2], (byte)slide1[i] >> 7);
+            }
+
+            if (Convert.ToBoolean(slide2[i]))
+            {
+                ge25519_p1p1_to_full(t);
+                t.ge25519_nielsadd2_p1p1(this, tables.NIELS_Sliding_Multiples[Math.Abs(slide2[i]) / 2], (byte)slide2[i] >> 7);
+            }
+
+            ge25519_p1p1_to_partial(t);
+        }
+    }
+    #endregion
 
     #region Data accessors
     public readonly unsafe Span<ulong> X

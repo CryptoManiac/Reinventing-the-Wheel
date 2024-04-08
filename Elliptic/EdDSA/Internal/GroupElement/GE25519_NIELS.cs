@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Wheel.Crypto.Elliptic.EdDSA.Internal.GroupElement;
 
@@ -28,6 +29,52 @@ internal struct GE25519_NIELS
     {
         throw new InvalidOperationException("Constructor shouldn't be called");
     }
+
+    #region Scalarmults
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static uint ge25519_windowb_equal(uint b, uint c)
+    {
+        return ((b ^ c) - 1) >> 31;
+    }
+
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ge25519_scalarmult_base_choose_niels(ReadOnlySpan<GE25519_NIELS_Packed> table, int pos, int b)
+    {
+
+        Span<ulong> neg = stackalloc ulong[ModM.ModM_WORDS];
+
+        uint sign = (uint)((byte)b >> 7);
+        uint mask = ~(sign - 1);
+        uint u = (uint)((b + mask) ^ mask);
+
+        GE25519_NIELS_Packed packed;
+
+        // Init to zero
+        packed.ALL.Clear();
+
+        /* initialize to ysubx = 1, xaddy = 1, t2d = 0 */
+        packed.YsubX[0] = 1;
+        packed.XaddY[0] = 1;
+
+        for (int i = 0; i < 8; i++)
+        {
+            Curve25519.Move_conditional_bytes(packed.ALL, table[(pos * 8) + i].ALL, ge25519_windowb_equal(u, (uint)i + 1));
+        }
+
+        /* expand in to t */
+        Curve25519.Expand(YsubX, packed.YsubX);
+        Curve25519.Expand(XaddY, packed.XaddY);
+        Curve25519.Expand(T2D, packed.T2D);
+
+        /* adjust for sign */
+        Curve25519.Swap_conditional(YsubX, XaddY, sign);
+        Curve25519.Neg(neg, T2D);
+        Curve25519.Swap_conditional(T2D, neg, sign);
+    }
+
+    #endregion
 
     public readonly unsafe Span<ulong> YsubX
     {

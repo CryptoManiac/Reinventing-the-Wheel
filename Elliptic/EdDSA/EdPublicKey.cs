@@ -251,7 +251,7 @@ public struct EdPublicKey : IPublicKey
         ModM.expand256(S, s, 32);
 
         // SB - H(R,A,m)A
-        GEMath.ge25519_double_scalarmult_vartime(ref R, A, hram, S);
+        R.ge25519_double_scalarmult_vartime(A, hram, S);
         R.ge25519_pack(checkR);
 
         // check that R = SB - H(R,A,m)A
