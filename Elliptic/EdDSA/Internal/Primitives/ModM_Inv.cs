@@ -19,6 +19,11 @@ public static partial class ModM
         mul256(s, s, a);
     }
     
+    /// <summary>
+    /// Inv(0x8d6590c848d06dc90adc4907cb0a20a8bad0f6c70798dc627b155d7fc1fc7f0c) = 0xdd1db84f16d764d0b647d12bb4c3075584422a6279cef47c10db701494c9ad03
+    /// </summary>
+    /// <param name="recip"></param>
+    /// <param name="s"></param>
     [SkipLocalsInit]
     public static void invert256(Span<ulong> recip, ReadOnlySpan<ulong> s)
     {
