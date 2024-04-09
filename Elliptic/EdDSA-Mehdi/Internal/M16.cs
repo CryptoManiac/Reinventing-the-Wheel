@@ -6,7 +6,7 @@ namespace Wheel.Crypto.Elliptic.Curve25519.Internal;
 public struct M16_U8
 {
     private static readonly int LO = Convert.ToInt32(!BitConverter.IsLittleEndian);
-    private static readonly int HI = Convert.ToInt32(!BitConverter.IsLittleEndian);
+    private static readonly int HI = 1 - LO;
 
     [FieldOffset(0)]
     private unsafe fixed U8 bytes[2];
@@ -24,7 +24,7 @@ public struct M16_U8
 public struct M16_S8
 {
     private static readonly int LO = Convert.ToInt32(!BitConverter.IsLittleEndian);
-    private static readonly int HI = Convert.ToInt32(BitConverter.IsLittleEndian);
+    private static readonly int HI = 1 - LO;
 
     [FieldOffset(0)]
     private unsafe fixed U8 bytes[2];
