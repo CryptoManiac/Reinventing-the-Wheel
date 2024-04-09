@@ -5,7 +5,7 @@ namespace Wheel.Hashing.SHA.SHA512.Internal;
 /// <summary>
 /// Represents the block data for the 512-bit family of SHA functions
 /// </summary>
-	[StructLayout(LayoutKind.Explicit)]
+[StructLayout(LayoutKind.Explicit)]
 internal struct InternalSHA512Block
 	{
     /// <summary>
