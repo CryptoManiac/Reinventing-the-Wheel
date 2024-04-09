@@ -460,6 +460,7 @@ public readonly struct EdCurve : IGenericCurve
         }
     }
 
+    [SkipLocalsInit]
     public void GenerateRandomSecret(Span<byte> result, ReadOnlySpan<byte> entropy)
     {
         Span<byte> rnd = stackalloc byte[32];
@@ -467,6 +468,15 @@ public readonly struct EdCurve : IGenericCurve
         GenerateDeterministicSecret<HMAC<SHA512>>(result, rnd, entropy, rnd.Length);
     }
 
+    [SkipLocalsInit]
+    public void GenerateRandomSecret(Span<ulong> result, ReadOnlySpan<byte> entropy)
+    {
+        Span<byte> rnd = stackalloc byte[32];
+        GenerateRandomSecret(rnd, entropy);
+        ModM.expand256(result, rnd, 32);
+    }
+
+    [SkipLocalsInit]
     public void GenerateRandomNonce(Span<byte> result, ReadOnlySpan<byte> entropy)
     {
         Span<byte> rnd = stackalloc byte[32];
