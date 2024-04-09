@@ -25,7 +25,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Internal\GroupElement\" />
-    <Folder Include="Internal\Primitives\" />
     <Folder Include="Internal\Curve25519\" />
   </ItemGroup>
 </Project>

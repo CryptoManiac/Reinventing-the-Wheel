@@ -4,7 +4,7 @@ using Wheel.Crypto.Elliptic.EdDSA.Internal.Platform;
 
 namespace Wheel.Crypto.Elliptic.EdDSA.Internal;
 
-public static class ModM
+public static partial class ModM
 {
     public const int ModM_WORDS = 5;
 
