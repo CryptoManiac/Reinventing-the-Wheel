@@ -6,6 +6,7 @@ using Wheel.Hashing.SHA.SHA256;
 using Wheel.Crypto.Elliptic.EllipticCommon;
 using Hashing.Hashing.HMAC;
 using Wheel.Hashing.SHA.SHA512;
+using Wheel.Crypto.EllipticCommon;
 
 static void Benchmark(string name, Action action, int n)
 {
@@ -81,7 +82,7 @@ static void SignData<HMAC_IMPL>(Span<byte> signature, ECPrivateKey sk, string me
     Span<byte> message_hash = stackalloc byte[32];
     SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
 
-    if (!sk.SignDeterministic<HMAC_IMPL>(out DERSignature derSig, message_hash))
+    if (!sk.SignDeterministic<HMAC_IMPL>(out DERSignature<SECPCurve> derSig, message_hash))
     {
         throw new SystemException("Signing failed");
     }
@@ -98,7 +99,7 @@ SHA256.Hash(message_hash, Encoding.ASCII.GetBytes(message));
 
 bool VerifySignature(ReadOnlySpan<byte> signature, string message, ReadOnlySpan<byte> public_key, SECPCurve curve)
 {
-    return new ECPublicKey(curve, public_key).VerifySignature(new DERSignature(curve, signature), message_hash);
+    return new ECPublicKey(curve, public_key).VerifySignature(new DERSignature<SECPCurve>(curve, signature), message_hash);
 }
 
 Benchmark("Sign<HMAC_SHA512>", () => {

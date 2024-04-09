@@ -59,5 +59,5 @@ public interface IPublicKey
     /// <param name="signature">The compact signature object</param>
     /// <param name="message_hash">The hash of the signed data</param>
     /// <returns></returns>
-    public bool VerifySignature(ISignature signature, ReadOnlySpan<byte> message_hash);
+    public bool VerifySignature<SignatureImpl>(in SignatureImpl signature, ReadOnlySpan<byte> message_hash) where SignatureImpl : unmanaged, ISignature;
 }

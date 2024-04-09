@@ -12,6 +12,11 @@ public interface IGenericCurve
     public ulong randomId { get; }
 
     /// <summary>
+    /// Vectors length in bytes
+    /// </summary>
+    public int NUM_BYTES { get; }
+
+    /// <summary>
     /// Elliptic curve coloquial name
     /// </summary>
     public ReadOnlySpan<char> name { get; }

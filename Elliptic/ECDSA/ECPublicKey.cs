@@ -1,6 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 using Wheel.Crypto.Elliptic.EllipticCommon;
 using Wheel.Crypto.Elliptic.ECDSA.Internal;
+using Wheel.Crypto.EllipticCommon;
+using System.Text;
 
 namespace Wheel.Crypto.Elliptic.ECDSA;
 
@@ -436,53 +438,19 @@ namespace Wheel.Crypto.Elliptic.ECDSA;
     /// <param name="signature">The signature object</param>
     /// <param name="message_hash">The hash of the signed data</param>
     /// <returns></returns>
-    public readonly bool VerifySignature(DERSignature signature, ReadOnlySpan<byte> message_hash)
+    public readonly bool VerifySignature<SignatureImpl>(in SignatureImpl signature, ReadOnlySpan<byte> message_hash) where SignatureImpl : unmanaged, ISignature
     {
-        return (_curve == (SECPCurve)signature.curve) && VerifySignature(signature.r, signature.s, message_hash);
-    }
-
-    /// <summary>
-    /// Verify an ECDSA signature.
-    /// Usage: Compute the hash of the signed data using the same hash as the signer and
-    /// pass it to this function along with the signer's public key and the signature values (r and s).
-    /// </summary>
-    /// <param name="signature">The signature object</param>
-    /// <param name="message_hash">The hash of the signed data</param>
-    /// <returns></returns>
-    public readonly bool VerifySignature(CompactSignature signature, ReadOnlySpan<byte> message_hash)
-    {
-        return (_curve == (SECPCurve)signature.curve) && VerifySignature(signature.r, signature.s, message_hash);
-    }
-
-    /// <summary>
-    /// Verify an ECDSA signature.
-    /// Usage: Compute the hash of the signed data using the same hash as the signer and
-    /// pass it to this function along with the signer's public key and the signature values (r and s).
-    /// </summary>
-    /// <param name="signature">The signature object</param>
-    /// <param name="message_hash">The hash of the signed data</param>
-    /// <returns></returns>
-    public readonly bool VerifySignature(IECDSASignature signature, ReadOnlySpan<byte> message_hash)
-    {
-        return (_curve == (SECPCurve)signature.curve) && VerifySignature(signature.r, signature.s, message_hash);
-    }
-
-    /// <summary>
-    /// Verify an ECDSA signature.
-    /// Usage: Compute the hash of the signed data using the same hash as the signer and
-    /// pass it to this function along with the signer's public key and the signature values (r and s).
-    /// </summary>
-    /// <param name="signature">The signature object</param>
-    /// <param name="message_hash">The hash of the signed data</param>
-    /// <returns></returns>
-    public readonly bool VerifySignature(ISignature signature, ReadOnlySpan<byte> message_hash)
-    {
-        if (signature is not DERSignature && signature is not CompactSignature)
+        if (signature.curve is not SECPCurve sig_curve || sig_curve != _curve)
         {
-            throw new InvalidOperationException("Invalid signature implementation instance");
+            return false;
         }
 
-        return VerifySignature(signature, message_hash);
+        // Decode R and S values
+        Span<ulong> r = stackalloc ulong[_curve.NUM_WORDS];
+        Span<ulong> s = stackalloc ulong[_curve.NUM_WORDS];
+        VLI.BytesToNative(r, signature.r, _curve.NUM_BYTES);
+        VLI.BytesToNative(s, signature.s, _curve.NUM_BYTES);
+
+        return VerifySignature(r, s, message_hash);
     }
 }
-

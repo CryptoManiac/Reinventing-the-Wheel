@@ -2,6 +2,7 @@
 using Wheel.Crypto.Elliptic.EdDSA.Internal;
 using Wheel.Crypto.Elliptic.EdDSA.Internal.GroupElement;
 using Wheel.Crypto.Elliptic.EllipticCommon;
+using Wheel.Crypto.EllipticCommon;
 using Wheel.Hashing;
 using Wheel.Hashing.HMAC;
 
@@ -500,7 +501,7 @@ public struct EdPrivateKey : IPrivateKey
     /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
     /// <param name="message_hash">The hash of the message to sign</param>
     /// <returns></returns>
-    public readonly bool SignDeterministic<HMAC_IMPL>(out DERSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+    public readonly bool SignDeterministic<HMAC_IMPL>(out DERSignature<EdCurve> signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
     {
         signature = new(_curve);
         return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
@@ -514,7 +515,7 @@ public struct EdPrivateKey : IPrivateKey
     /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
     /// <param name="message_hash">The hash of the message to sign</param>
     /// <returns></returns>
-    public readonly bool SignDeterministic<HMAC_IMPL>(out CompactSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+    public readonly bool SignDeterministic<HMAC_IMPL>(out CompactSignature<EdCurve> signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
     {
         signature = new(_curve);
         return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
@@ -530,7 +531,7 @@ public struct EdPrivateKey : IPrivateKey
     /// <returns></returns>
     public readonly bool SignDeterministic<HMAC_IMPL>(out ISignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
     {
-        bool result = SignDeterministic<HMAC_IMPL>(out DERSignature generatedSig, message_hash);
+        bool result = SignDeterministic<HMAC_IMPL>(out DERSignature<EdCurve> generatedSig, message_hash);
         signature = generatedSig;
         return result;
     }
@@ -543,7 +544,7 @@ public struct EdPrivateKey : IPrivateKey
     /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
     /// <param name="message_hash">The hash of the message to sign</param>
     /// <returns></returns>
-    public readonly bool Sign(out DERSignature signature, ReadOnlySpan<byte> message_hash)
+    public readonly bool Sign(out DERSignature<EdCurve> signature, ReadOnlySpan<byte> message_hash)
     {
         signature = new(_curve);
         return Sign(signature.r, signature.s, message_hash);
@@ -557,7 +558,7 @@ public struct EdPrivateKey : IPrivateKey
     /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
     /// <param name="message_hash">The hash of the message to sign</param>
     /// <returns></returns>
-    public readonly bool Sign(out CompactSignature signature, ReadOnlySpan<byte> message_hash)
+    public readonly bool Sign(out CompactSignature<EdCurve> signature, ReadOnlySpan<byte> message_hash)
     {
         signature = new(_curve);
         return Sign(signature.r, signature.s, message_hash);
@@ -573,7 +574,7 @@ public struct EdPrivateKey : IPrivateKey
     /// <returns></returns>
     public readonly bool Sign(out ISignature signature, ReadOnlySpan<byte> message_hash)
     {
-        bool result = Sign(out CompactSignature generatedSig, message_hash);
+        bool result = Sign(out CompactSignature<EdCurve> generatedSig, message_hash);
         signature = generatedSig;
         return result;
     }

@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using Hashing.Hashing.HMAC;
 using Wheel.Crypto.Elliptic.EdDSA.Internal;
 using Wheel.Crypto.Elliptic.EllipticCommon;
+using Wheel.Crypto.EllipticCommon;
 using Wheel.Hashing.HMAC;
 using Wheel.Hashing.SHA.SHA512;
 using Wheel.Hashing.SHA3;
@@ -61,12 +62,12 @@ public readonly struct EdCurve : IGenericCurve
     /// <summary>
     /// Maximum size of DER signature in bytes
     /// </summary>
-    public int DERSignatureSize => DERSignature.GetEncodedSize(this);
+    public int DERSignatureSize => DERSignature<EdCurve>.GetEncodedSize(this);
 
     /// <summary>
     /// Size of compact signature in bytes
     /// </summary>
-    public int CompactSignatureSize => CompactSignature.GetEncodedSize(this);
+    public int CompactSignatureSize => CompactSignature<EdCurve>.GetEncodedSize(this);
 
     public unsafe readonly ReadOnlySpan<byte> ScrambleKey
     {

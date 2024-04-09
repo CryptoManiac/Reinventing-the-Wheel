@@ -2,6 +2,7 @@
 using Hashing.Hashing.HMAC;
 using Wheel.Crypto.Elliptic.ECDSA;
 using Wheel.Crypto.Elliptic.EllipticCommon;
+using Wheel.Crypto.EllipticCommon;
 using Wheel.Hashing.HMAC;
 using Wheel.Hashing.SHA.SHA256;
 using Wheel.Hashing.SHA.SHA512;
@@ -134,7 +135,7 @@ public class ECDSATest
         byte[] signingHash = GetSigningHash(message);
 
         #region Sign
-        if (!secretKey.SignDeterministic<HMAC_IMPL>(out DERSignature derSig, signingHash))
+        if (!secretKey.SignDeterministic<HMAC_IMPL>(out DERSignature<SECPCurve> derSig, signingHash))
         {
             throw new SystemException("Signing failed");
         }
@@ -175,7 +176,7 @@ public class ECDSATest
         byte[] signature = Convert.FromHexString(toCheck);
         Console.Write(toCheck);
 
-        if (!publicKey.VerifySignature(new DERSignature(curve, signature), signingHash))
+        if (!publicKey.VerifySignature(new DERSignature<SECPCurve>(curve, signature), signingHash))
         {
             throw new SystemException("Signature check failed");
         }
@@ -195,7 +196,7 @@ public class ECDSATest
 
         #region Sign
         // Try signing until the signing will succeed
-        DERSignature derSig;
+        DERSignature<SECPCurve> derSig;
         while (!secretKey.Sign(out derSig, signingHash)) ;
         #endregion
 
@@ -213,7 +214,7 @@ public class ECDSATest
         #endregion
 
         #region Decode and check
-        DERSignature derDecoded = new(curve, signature);
+        DERSignature<SECPCurve> derDecoded = new(curve, signature);
         if (!publicKey.VerifySignature(derDecoded, signingHash))
         {
             throw new SystemException("Failed to check the generated signature");

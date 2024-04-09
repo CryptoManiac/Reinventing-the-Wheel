@@ -1,16 +1,16 @@
 ﻿using Wheel.Crypto.Elliptic.EllipticCommon;
 
-namespace Wheel.Crypto.Elliptic.EdDSA;
+namespace Wheel.Crypto.EllipticCommon;
 
 /// <summary>
 /// EdDSA DER encapsulated signature value pair
 /// </summary>
-public struct DERSignature : IEdSignature
+public struct DERSignature<CurveImpl> : ISignature where CurveImpl : unmanaged, IGenericCurve
 {
     /// <summary>
     /// ECC implementation to use
     /// </summary>
-    private readonly EdCurve _curve { get; }
+    private readonly CurveImpl _curve { get; }
 
     /// <summary>
     /// Public property for unification purposes
@@ -25,7 +25,7 @@ public struct DERSignature : IEdSignature
     /// <summary>
     /// The r and s are sliced from this hidden array.
     /// </summary>
-    private unsafe fixed byte signature_data[64];
+    private unsafe fixed byte signature_data[132]; // Enough for a pair of the 66 byte values for SECP521R1 
 
     /// <summary>
     /// R part of the signature
@@ -36,7 +36,7 @@ public struct DERSignature : IEdSignature
         {
             fixed (byte* ptr = &signature_data[0])
             {
-                return new Span<byte>(ptr, 32);
+                return new Span<byte>(ptr, curve.NUM_BYTES);
             }
         }
     }
@@ -48,9 +48,9 @@ public struct DERSignature : IEdSignature
     {
         get
         {
-            fixed (byte* ptr = &signature_data[32])
+            fixed (byte* ptr = &signature_data[curve.NUM_BYTES])
             {
-                return new Span<byte>(ptr, 32);
+                return new Span<byte>(ptr, curve.NUM_BYTES);
             }
         }
     }
@@ -64,7 +64,7 @@ public struct DERSignature : IEdSignature
     /// Construct the empty signature for given curve
     /// </summary>
     /// <param name="curve">ECC implementation</param>
-    public DERSignature(EdCurve curve)
+    public DERSignature(CurveImpl curve)
     {
         _curve = curve;
         r.Clear();
@@ -75,7 +75,7 @@ public struct DERSignature : IEdSignature
     /// Create instance and parse provided data
     /// </summary>
     /// <param name="curve">ECC implementation</param>
-    public DERSignature(EdCurve curve, ReadOnlySpan<byte> bytes) : this(curve)
+    public DERSignature(CurveImpl curve, ReadOnlySpan<byte> bytes) : this(curve)
     {
         if (!Parse(bytes))
         {
@@ -154,10 +154,10 @@ public struct DERSignature : IEdSignature
     /// </summary>
     /// <param name="curve"></param>
     /// <returns></returns>
-    public static int GetEncodedSize(EdCurve curve)
+    public static int GetEncodedSize(CurveImpl curve)
     {
         // Integer tags, integer lengths and prefixes
-        int seqSz = 4 + 2 * 32 + 2;
+        int seqSz = 4 + 2 * curve.NUM_BYTES + 2;
 
         // Content type tag + content length + sequence length
         int reqSz = 2 + seqSz;
@@ -308,28 +308,28 @@ public struct DERSignature : IEdSignature
         }
 
         // Remove r prefix
-        if ((rlen - 1) == 32 && encoded[rpos] == 0x00)
+        if ((rlen - 1) == curve.NUM_BYTES && encoded[rpos] == 0x00)
         {
             rpos++;
             rlen--;
         }
 
         // Remove s prefix
-        if ((slen - 1) == 32 && encoded[spos] == 0x00)
+        if ((slen - 1) == curve.NUM_BYTES && encoded[spos] == 0x00)
         {
             spos++;
             slen--;
         }
 
-        if (rlen > 32 || slen > 32)
+        if (rlen > curve.NUM_BYTES || slen > curve.NUM_BYTES)
         {
             // Overflow
             return false;
         }
 
         // Decode R and S values
-        encoded.Slice(rpos, rlen).CopyTo(r);
-        encoded.Slice(spos, slen).CopyTo(s);
+        encoded[rpos..(rpos + rlen)].CopyTo(r[(r.Length - rlen)..r.Length]);
+        encoded[spos..(spos + slen)].CopyTo(s[(s.Length - slen)..s.Length]);
 
         return true;
     }

@@ -2,6 +2,7 @@
 using Wheel.Crypto.Elliptic.EdDSA.Internal;
 using Wheel.Crypto.Elliptic.EdDSA.Internal.GroupElement;
 using Wheel.Crypto.Elliptic.EllipticCommon;
+using Wheel.Crypto.EllipticCommon;
 
 namespace Wheel.Crypto.Elliptic.EdDSA;
 
@@ -266,45 +267,8 @@ public struct EdPublicKey : IPublicKey
     /// <param name="signature">The signature object</param>
     /// <param name="message_hash">The hash of the signed data</param>
     /// <returns></returns>
-    public readonly bool VerifySignature(CompactSignature signature, ReadOnlySpan<byte> message_hash)
+    public readonly bool VerifySignature<SignatureImpl>(in SignatureImpl signature, ReadOnlySpan<byte> message_hash) where SignatureImpl : unmanaged, ISignature
     {
         return (_curve == (EdCurve)signature.curve) && VerifySignature(signature.r, signature.s, message_hash);
-    }
-
-    /// <summary>
-    /// Verify an ECDSA signature.
-    /// Usage: Compute the hash of the signed data using the same hash as the signer and
-    /// pass it to this function along with the signer's public key and the signature values (r and s).
-    /// </summary>
-    /// <param name="signature">The signature object</param>
-    /// <param name="message_hash">The hash of the signed data</param>
-    /// <returns></returns>
-    public readonly bool VerifySignature(IEdSignature signature, ReadOnlySpan<byte> message_hash)
-    {
-        return (_curve == (EdCurve)signature.curve) && VerifySignature(signature.r, signature.s, message_hash);
-    }
-
-    /// <summary>
-    /// Verify an ECDSA signature.
-    /// Usage: Compute the hash of the signed data using the same hash as the signer and
-    /// pass it to this function along with the signer's public key and the signature values (r and s).
-    /// </summary>
-    /// <param name="signature">The signature object</param>
-    /// <param name="message_hash">The hash of the signed data</param>
-    /// <returns></returns>
-    public readonly bool VerifySignature(ISignature signature, ReadOnlySpan<byte> message_hash)
-    {
-        if (signature is CompactSignature compact)
-        {
-            return VerifySignature(compact.r, compact.s, message_hash);
-        }
-
-        if (signature is DERSignature der)
-        {
-            return VerifySignature(der.r, der.s, message_hash);
-        }
-
-        throw new InvalidOperationException("Invalid signature implementation instance");
     }
 }
-

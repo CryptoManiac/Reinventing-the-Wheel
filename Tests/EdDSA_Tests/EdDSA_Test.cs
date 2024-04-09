@@ -2,6 +2,7 @@
 using Hashing.Hashing.HMAC;
 using Wheel.Crypto.Elliptic.EdDSA;
 using Wheel.Crypto.Elliptic.EllipticCommon;
+using Wheel.Crypto.EllipticCommon;
 using Wheel.Hashing.HMAC;
 using Wheel.Hashing.SHA.SHA256;
 using Wheel.Hashing.SHA.SHA512;
@@ -142,7 +143,7 @@ public class EdDSATest
         byte[] signingHash = GetSigningHash(message);
 
         #region Sign
-        if (!secretKey.SignDeterministic<HMAC_IMPL>(out DERSignature derSig, signingHash))
+        if (!secretKey.SignDeterministic<HMAC_IMPL>(out DERSignature<EdCurve> derSig, signingHash))
         {
             throw new SystemException("Signing failed");
         }
@@ -183,7 +184,7 @@ public class EdDSATest
         byte[] signingHash = GetSigningHash(message);
 
         #region Sign
-        if (!secretKey.SignDeterministic<HMAC_IMPL>(out CompactSignature derSig, signingHash))
+        if (!secretKey.SignDeterministic<HMAC_IMPL>(out CompactSignature<EdCurve> derSig, signingHash))
         {
             throw new SystemException("Signing failed");
         }
@@ -224,7 +225,7 @@ public class EdDSATest
         byte[] signature = Convert.FromHexString(toCheck);
         Console.Write(toCheck);
 
-        if (!publicKey.VerifySignature(new CompactSignature(curve, signature), signingHash))
+        if (!publicKey.VerifySignature(new CompactSignature<EdCurve>(curve, signature), signingHash))
         {
             throw new SystemException("Signature check failed");
         }
@@ -245,7 +246,7 @@ public class EdDSATest
         byte[] signature = Convert.FromHexString(toCheck);
         Console.Write(toCheck);
 
-        if (!publicKey.VerifySignature(new DERSignature(curve, signature), signingHash))
+        if (!publicKey.VerifySignature(new DERSignature<EdCurve>(curve, signature), signingHash))
         {
             throw new SystemException("Signature check failed");
         }
@@ -265,7 +266,7 @@ public class EdDSATest
 
         #region Sign
         // Try signing until the signing will succeed
-        DERSignature derSig;
+        DERSignature<EdCurve> derSig;
         while (!secretKey.Sign(out derSig, signingHash)) ;
         #endregion
 
@@ -283,7 +284,7 @@ public class EdDSATest
         #endregion
 
         #region Decode and check
-        DERSignature derDecoded = new(curve, signature);
+        DERSignature<EdCurve> derDecoded = new(curve, signature);
         if (!publicKey.VerifySignature(derDecoded, signingHash))
         {
             throw new SystemException("Failed to check the generated signature");

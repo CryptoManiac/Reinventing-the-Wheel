@@ -5,6 +5,7 @@ using Wheel.Crypto.Elliptic.ECDSA.Internal;
 using Wheel.Hashing.HMAC;
 using Hashing.Hashing.HMAC;
 using Wheel.Hashing.SHA.SHA512;
+using Wheel.Crypto.EllipticCommon;
 
 namespace Wheel.Crypto.Elliptic.ECDSA;
 
@@ -273,12 +274,12 @@ public readonly partial struct SECPCurve : IGenericCurve
     /// <summary>
     /// Maximum size of DER signature in bytes
     /// </summary>
-    public int DERSignatureSize => DERSignature.GetEncodedSize(this);
+    public int DERSignatureSize => DERSignature<SECPCurve>.GetEncodedSize(this);
 
     /// <summary>
     /// Size of compact signature in bytes
     /// </summary>
-    public int CompactSignatureSize => CompactSignature.GetEncodedSize(this);
+    public int CompactSignatureSize => CompactSignature<SECPCurve>.GetEncodedSize(this);
 
     /// <summary>
     /// Check whether the provided byte array contains a valid public key

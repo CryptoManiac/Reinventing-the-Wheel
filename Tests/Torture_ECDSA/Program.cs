@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Wheel.Crypto.Elliptic.ECDSA;
+using Wheel.Crypto.EllipticCommon;
 using Wheel.Hashing.SHA.SHA256;
 
 List<Tuple<string, SECPCurve>> curves = new()
@@ -75,12 +76,12 @@ foreach (var (name, algo) in curves)
     Span<byte> message_hash = new byte[32];
     SHA256.Hash(message_hash, random_message);
 
-    secretKeyA.Sign(out DERSignature sig, message_hash);
+    secretKeyA.Sign(out DERSignature<SECPCurve> sig, message_hash);
     int sigSz = sig.Encode(signature_der_buffer);
 
     Console.WriteLine("DER signature: {0}", Convert.ToHexString(signature_der_buffer[..sigSz]));
 
-    DERSignature decoded = new DERSignature(algo, signature_der_buffer[..sigSz]);
+    DERSignature<SECPCurve> decoded = new DERSignature<SECPCurve>(algo, signature_der_buffer[..sigSz]);
 
     if (!unserializedA.VerifySignature(decoded, message_hash))
     {

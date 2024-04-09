@@ -11,7 +11,17 @@ public interface ISignature
     /// Encoded data size in bytes
     /// </summary>
     public int EncodedSize { get; }
-    
+
+    /// <summary>
+    /// R part of the signature
+    /// </summary>
+    public Span<byte> r { get; }
+
+    /// <summary>
+    /// S part of the signature
+    /// </summary>
+    public Span<byte> s { get; }
+
     /// <summary>
     /// Write signature data in current format
     /// </summary>

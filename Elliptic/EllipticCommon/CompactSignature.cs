@@ -1,13 +1,13 @@
 ﻿using Wheel.Crypto.Elliptic.EllipticCommon;
 
-namespace Wheel.Crypto.Elliptic.EdDSA;
+namespace Wheel.Crypto.EllipticCommon;
 
-public struct CompactSignature : IEdSignature
+public struct CompactSignature<CurveImpl> : ISignature where CurveImpl : unmanaged, IGenericCurve
 {
     /// <summary>
     /// ECC implementation to use
     /// </summary>
-    private readonly EdCurve _curve { get; }
+    private readonly CurveImpl _curve { get; }
 
     /// <summary>
     /// Public property for unification purposes
@@ -24,15 +24,15 @@ public struct CompactSignature : IEdSignature
     /// </summary>
     /// <param name="curve"></param>
     /// <returns></returns>
-    public static int GetEncodedSize(EdCurve curve)
+    public static int GetEncodedSize(CurveImpl curve)
     {
-        return 64;
+        return curve.NUM_BYTES;
     }
 
     /// <summary>
     /// The r and s are sliced from this hidden array.
     /// </summary>
-    private unsafe fixed byte signature_data[64];
+    private unsafe fixed byte signature_data[132]; // Enough for a pair of the 66 byte values for SECP521R1 
 
     /// <summary>
     /// R part of the signature
@@ -43,7 +43,7 @@ public struct CompactSignature : IEdSignature
         {
             fixed (byte* ptr = &signature_data[0])
             {
-                return new Span<byte>(ptr, 32);
+                return new Span<byte>(ptr, curve.NUM_BYTES);
             }
         }
     }
@@ -55,9 +55,9 @@ public struct CompactSignature : IEdSignature
     {
         get
         {
-            fixed (byte* ptr = &signature_data[32])
+            fixed (byte* ptr = &signature_data[curve.NUM_BYTES])
             {
-                return new Span<byte>(ptr, 32);
+                return new Span<byte>(ptr, curve.NUM_BYTES);
             }
         }
     }
@@ -71,7 +71,7 @@ public struct CompactSignature : IEdSignature
     /// Construct the empty signature for given curve
     /// </summary>
     /// <param name="curve">ECC implementation</param>
-    public CompactSignature(EdCurve curve)
+    public CompactSignature(CurveImpl curve)
     {
         _curve = curve;
         r.Clear();
@@ -82,7 +82,7 @@ public struct CompactSignature : IEdSignature
     /// Create instance and parse provided data
     /// </summary>
     /// <param name="curve">ECC implementation</param>
-    public CompactSignature(EdCurve curve, ReadOnlySpan<byte> bytes) : this(curve)
+    public CompactSignature(CurveImpl curve, ReadOnlySpan<byte> bytes) : this(curve)
     {
         if (!Parse(bytes))
         {
@@ -92,26 +92,26 @@ public struct CompactSignature : IEdSignature
 
     public int Encode(Span<byte> encoded)
     {
-        if (encoded.Length < 64)
+        if (encoded.Length < 2 * curve.NUM_BYTES)
         {
-            return 64;
+            return 2 * curve.NUM_BYTES;
         }
 
-        r.CopyTo(encoded[..32]);
-        s.CopyTo(encoded[32..]);
+        r.CopyTo(encoded[.. curve.NUM_BYTES]);
+        s.CopyTo(encoded[curve.NUM_BYTES..]);
 
-        return 64;
+        return 2 * curve.NUM_BYTES;
     }
 
     public bool Parse(ReadOnlySpan<byte> encoded)
     {
-        if (encoded.Length != 64)
+        if (encoded.Length != 2 * curve.NUM_BYTES)
         {
             return false;
         }
 
-        encoded[..32].CopyTo(r);
-        encoded[32..].CopyTo(s);
+        encoded[..curve.NUM_BYTES].CopyTo(r);
+        encoded[curve.NUM_BYTES ..].CopyTo(s);
 
         return true;
     }

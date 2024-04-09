@@ -4,6 +4,8 @@ using Wheel.Crypto.Elliptic.EllipticCommon;
 using Wheel.Crypto.Elliptic.ECDSA.Internal;
 using Wheel.Hashing;
 using Wheel.Hashing.HMAC;
+using Wheel.Crypto.EllipticCommon;
+using System.Xml.Linq;
 
 namespace Wheel.Crypto.Elliptic.ECDSA;
 
@@ -473,10 +475,18 @@ public struct ECPrivateKey : IPrivateKey
     /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
     /// <param name="message_hash">The hash of the message to sign</param>
     /// <returns></returns>
-    public readonly bool SignDeterministic<HMAC_IMPL>(out DERSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+    public readonly bool SignDeterministic<HMAC_IMPL>(out DERSignature<SECPCurve> signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
     {
         signature = new(_curve);
-        return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
+        Span<ulong> r = stackalloc ulong[_curve.NUM_WORDS];
+        Span<ulong> s = stackalloc ulong[_curve.NUM_WORDS];
+        bool result = SignDeterministic<HMAC_IMPL>(r, s, message_hash);
+        if (result)
+        {
+            VLI.NativeToBytes(signature.r, _curve.NUM_BYTES, r);
+            VLI.NativeToBytes(signature.s, _curve.NUM_BYTES, s);
+        }
+        return result;
     }
 
     /// <summary>
@@ -487,10 +497,18 @@ public struct ECPrivateKey : IPrivateKey
     /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
     /// <param name="message_hash">The hash of the message to sign</param>
     /// <returns></returns>
-    public readonly bool SignDeterministic<HMAC_IMPL>(out CompactSignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+    public readonly bool SignDeterministic<HMAC_IMPL>(out CompactSignature<SECPCurve> signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
     {
         signature = new(_curve);
-        return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
+        Span<ulong> r = stackalloc ulong[_curve.NUM_WORDS];
+        Span<ulong> s = stackalloc ulong[_curve.NUM_WORDS];
+        bool result = SignDeterministic<HMAC_IMPL>(r, s, message_hash);
+        if (result)
+        {
+            VLI.NativeToBytes(signature.r, _curve.NUM_BYTES, r);
+            VLI.NativeToBytes(signature.s, _curve.NUM_BYTES, s);
+        }
+        return result;
     }
 
     /// <summary>
@@ -503,7 +521,7 @@ public struct ECPrivateKey : IPrivateKey
     /// <returns></returns>
     public readonly bool SignDeterministic<HMAC_IMPL>(out ISignature signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
     {
-        bool result = SignDeterministic<HMAC_IMPL>(out DERSignature generatedSig, message_hash);
+        bool result = SignDeterministic<HMAC_IMPL>(out DERSignature<SECPCurve> generatedSig, message_hash);
         signature = generatedSig;
         return result;
     }
@@ -516,10 +534,18 @@ public struct ECPrivateKey : IPrivateKey
     /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
     /// <param name="message_hash">The hash of the message to sign</param>
     /// <returns></returns>
-    public readonly bool Sign(out DERSignature signature, ReadOnlySpan<byte> message_hash)
+    public readonly bool Sign(out DERSignature<SECPCurve> signature, ReadOnlySpan<byte> message_hash)
     {
         signature = new(_curve);
-        return Sign(signature.r, signature.s, message_hash);
+        Span<ulong> r = stackalloc ulong[_curve.NUM_WORDS];
+        Span<ulong> s = stackalloc ulong[_curve.NUM_WORDS];
+        bool result = Sign(r, s, message_hash);
+        if (result)
+        {
+            VLI.NativeToBytes(signature.r, _curve.NUM_BYTES, r);
+            VLI.NativeToBytes(signature.s, _curve.NUM_BYTES, s);
+        }
+        return result;
     }
 
     /// <summary>
@@ -530,10 +556,18 @@ public struct ECPrivateKey : IPrivateKey
     /// <param name="signature">Will be filled in with the signature value. Curve settings will be overwritten.</param>
     /// <param name="message_hash">The hash of the message to sign</param>
     /// <returns></returns>
-    public readonly bool Sign(out CompactSignature signature, ReadOnlySpan<byte> message_hash)
+    public readonly bool Sign(out CompactSignature<SECPCurve> signature, ReadOnlySpan<byte> message_hash)
     {
         signature = new(_curve);
-        return Sign(signature.r, signature.s, message_hash);
+        Span<ulong> r = stackalloc ulong[_curve.NUM_WORDS];
+        Span<ulong> s = stackalloc ulong[_curve.NUM_WORDS];
+        bool result = Sign(r, s, message_hash);
+        if (result)
+        {
+            VLI.NativeToBytes(signature.r, _curve.NUM_BYTES, r);
+            VLI.NativeToBytes(signature.s, _curve.NUM_BYTES, s);
+        }
+        return result;
     }
 
     /// <summary>
@@ -546,7 +580,7 @@ public struct ECPrivateKey : IPrivateKey
     /// <returns></returns>
     public readonly bool Sign(out ISignature signature, ReadOnlySpan<byte> message_hash)
     {
-        bool result = Sign(out DERSignature generatedSig, message_hash);
+        bool result = Sign(out DERSignature<SECPCurve> generatedSig, message_hash);
         signature = generatedSig;
         return result;
     }
