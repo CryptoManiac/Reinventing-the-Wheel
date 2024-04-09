@@ -8,7 +8,7 @@ namespace EdDSA_Mehdi.Internal;
 public struct M32_U16
 {
     private static readonly int LO = Convert.ToInt32(!BitConverter.IsLittleEndian);
-    private static readonly int HI = Convert.ToInt32(BitConverter.IsLittleEndian);
+    private static readonly int HI = 1 - LO;
 
     [FieldOffset(0)]
     private unsafe fixed U16 _words[2];
@@ -29,7 +29,7 @@ public struct M32_U16
 public struct M32_S16
 {
     private static readonly int LO = Convert.ToInt32(!BitConverter.IsLittleEndian);
-    private static readonly int HI = Convert.ToInt32(BitConverter.IsLittleEndian);
+    private static readonly int HI = 1 - LO;
 
     [FieldOffset(0)]
     private unsafe fixed U16 _words[2];
@@ -50,7 +50,7 @@ public struct M32_S16
 public struct M32_M16
 {
     private static readonly int LO = Convert.ToInt32(!BitConverter.IsLittleEndian);
-    private static readonly int HI = Convert.ToInt32(BitConverter.IsLittleEndian);
+    private static readonly int HI = 1 - LO;
 
     [FieldOffset(0)]
     private unsafe fixed U16 _words[2];
