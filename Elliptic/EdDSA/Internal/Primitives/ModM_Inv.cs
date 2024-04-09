@@ -19,8 +19,10 @@ public static partial class ModM
         mul256(s, s, a);
     }
     
+    [SkipLocalsInit]
     public static void invert256(Span<ulong> recip, ReadOnlySpan<ulong> s)
     {
+        // https://github.com/dalek-cryptography/curve25519-dalek/blob/main/curve25519-dalek/src/scalar.rs#L1148
         Span<ulong> _10 = stackalloc ulong[ModM_WORDS];
         Span<ulong> _100 = stackalloc ulong[ModM_WORDS];
         Span<ulong> _11 = stackalloc ulong[ModM_WORDS];
