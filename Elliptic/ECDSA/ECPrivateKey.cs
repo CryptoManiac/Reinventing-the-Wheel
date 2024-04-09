@@ -468,6 +468,60 @@ public struct ECPrivateKey : IPrivateKey
     }
 
     /// <summary>
+    /// Generate an ECDSA signature for a given hash value, using a non-deterministic algorithm
+    /// 
+    /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
+    /// </summary>
+    /// <param name="r">Will be filled in with the signature value</param>
+    /// <param name="s">Will be filled in with the signature value</param>
+    /// <param name="message_hash">The hash of the message to sign</param>
+    /// <returns>True on success</returns>
+    [SkipLocalsInit]
+    private readonly bool Sign(Span<byte> r, Span<byte> s, ReadOnlySpan<byte> message_hash)
+    {
+        if (r.Length != _curve.NUM_BYTES || s.Length != _curve.NUM_BYTES)
+        {
+            return false;
+        }
+        Span<ulong> _r = stackalloc ulong[_curve.NUM_WORDS];
+        Span<ulong> _s = stackalloc ulong[_curve.NUM_WORDS];
+        bool result = Sign(_r, _s, message_hash);
+        if (result)
+        {
+            VLI.NativeToBytes(r, _curve.NUM_BYTES, _r);
+            VLI.NativeToBytes(s, _curve.NUM_BYTES, _s);
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Generate an ECDSA signature for a given hash value, using a non-deterministic algorithm
+    /// 
+    /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
+    /// </summary>
+    /// <param name="r">Will be filled in with the signature value</param>
+    /// <param name="s">Will be filled in with the signature value</param>
+    /// <param name="message_hash">The hash of the message to sign</param>
+    /// <returns>True on success</returns>
+    [SkipLocalsInit]
+    private readonly bool SignDeterministic<HMAC_IMPL>(Span<byte> r, Span<byte> s, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
+    {
+        if (r.Length != _curve.NUM_BYTES || s.Length != _curve.NUM_BYTES)
+        {
+            return false;
+        }
+        Span<ulong> _r = stackalloc ulong[_curve.NUM_WORDS];
+        Span<ulong> _s = stackalloc ulong[_curve.NUM_WORDS];
+        bool result = SignDeterministic<HMAC_IMPL>(_r, _s, message_hash);
+        if (result)
+        {
+            VLI.NativeToBytes(r, _curve.NUM_BYTES, _r);
+            VLI.NativeToBytes(s, _curve.NUM_BYTES, _s);
+        }
+        return result;
+    }
+
+    /// <summary>
     /// Generate an ECDSA signature for a given hash value, using a deterministic algorithm
     /// 
     /// Usage: Compute a hash of the data you wish to sign and pass it to this function.
@@ -478,15 +532,7 @@ public struct ECPrivateKey : IPrivateKey
     public readonly bool SignDeterministic<HMAC_IMPL>(out DERSignature<SECPCurve> signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
     {
         signature = new(_curve);
-        Span<ulong> r = stackalloc ulong[_curve.NUM_WORDS];
-        Span<ulong> s = stackalloc ulong[_curve.NUM_WORDS];
-        bool result = SignDeterministic<HMAC_IMPL>(r, s, message_hash);
-        if (result)
-        {
-            VLI.NativeToBytes(signature.r, _curve.NUM_BYTES, r);
-            VLI.NativeToBytes(signature.s, _curve.NUM_BYTES, s);
-        }
-        return result;
+        return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
     }
 
     /// <summary>
@@ -500,15 +546,7 @@ public struct ECPrivateKey : IPrivateKey
     public readonly bool SignDeterministic<HMAC_IMPL>(out CompactSignature<SECPCurve> signature, ReadOnlySpan<byte> message_hash) where HMAC_IMPL : unmanaged, IMac
     {
         signature = new(_curve);
-        Span<ulong> r = stackalloc ulong[_curve.NUM_WORDS];
-        Span<ulong> s = stackalloc ulong[_curve.NUM_WORDS];
-        bool result = SignDeterministic<HMAC_IMPL>(r, s, message_hash);
-        if (result)
-        {
-            VLI.NativeToBytes(signature.r, _curve.NUM_BYTES, r);
-            VLI.NativeToBytes(signature.s, _curve.NUM_BYTES, s);
-        }
-        return result;
+        return SignDeterministic<HMAC_IMPL>(signature.r, signature.s, message_hash);
     }
 
     /// <summary>
@@ -537,15 +575,7 @@ public struct ECPrivateKey : IPrivateKey
     public readonly bool Sign(out DERSignature<SECPCurve> signature, ReadOnlySpan<byte> message_hash)
     {
         signature = new(_curve);
-        Span<ulong> r = stackalloc ulong[_curve.NUM_WORDS];
-        Span<ulong> s = stackalloc ulong[_curve.NUM_WORDS];
-        bool result = Sign(r, s, message_hash);
-        if (result)
-        {
-            VLI.NativeToBytes(signature.r, _curve.NUM_BYTES, r);
-            VLI.NativeToBytes(signature.s, _curve.NUM_BYTES, s);
-        }
-        return result;
+        return Sign(signature.r, signature.s, message_hash);
     }
 
     /// <summary>
@@ -559,15 +589,7 @@ public struct ECPrivateKey : IPrivateKey
     public readonly bool Sign(out CompactSignature<SECPCurve> signature, ReadOnlySpan<byte> message_hash)
     {
         signature = new(_curve);
-        Span<ulong> r = stackalloc ulong[_curve.NUM_WORDS];
-        Span<ulong> s = stackalloc ulong[_curve.NUM_WORDS];
-        bool result = Sign(r, s, message_hash);
-        if (result)
-        {
-            VLI.NativeToBytes(signature.r, _curve.NUM_BYTES, r);
-            VLI.NativeToBytes(signature.s, _curve.NUM_BYTES, s);
-        }
-        return result;
+        return Sign(signature.r, signature.s, message_hash);
     }
 
     /// <summary>
