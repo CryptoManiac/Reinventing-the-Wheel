@@ -11,12 +11,12 @@ public static partial class ECP
     /// <summary>
     /// X coordinate of base point
     /// </summary>
-    public static M256V_U8 ecp_BasePoint = new ([
+    public static M256V_U8 ecp_BasePoint = new (
         9,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0
-    ]);
+    );
     
     /// <summary>
     /// Y = X + X 
@@ -79,5 +79,86 @@ public static partial class ECP
         ecp_SubReduce(B, A, B);         /* B = (x2+z2)^2 - (x2-z2)^2 */
         ecp_WordMulAddReduce(A, A, 121665, B);
         ecp_MulReduce(Q.Z, A, B);      /* z4 = B*((x2+z2)^2 + 121665*B) */
+    }
+    
+    private static unsafe void ECP_MONT(int n, int k, ref int j, ReadOnlySpan<nuint> PP, ReadOnlySpan<nuint> QP, ReadOnlySpan<U_WORD> X)
+    {
+        j = (k >> n) & 1;
+        XZ_POINT* P = (XZ_POINT*) PP[j].ToPointer();
+        XZ_POINT* Q = (XZ_POINT*) QP[j].ToPointer();
+        ecp_Mont(ref *P, ref *Q, X);
+    }
+    
+    public static void ecp_PointMultiply(Span<U8> PublicKey, ReadOnlySpan<U8> BasePoint, ReadOnlySpan<U8> SecretKey, int len)
+    {
+        int i, j = 0, k;
+        XZ_POINT P, Q;
+        Span<U_WORD> X = stackalloc U_WORD[Const.K_WORDS];
+        Span<nuint> PP = stackalloc nuint[2];
+        Span<nuint> QP = stackalloc nuint[2];
+
+        ecp_BytesToWords(X, BasePoint);
+
+        /* 1: P = (2k+1)G, Q = (2k+2)G */
+        /* 0: Q = (2k+1)G, P = (2k)G */
+
+        /* Find first non-zero bit */
+        while (len-- > 0)
+        {
+            k = SecretKey[len];
+            for (i = 0; i < 8; i++, k <<= 1)
+            {
+                /* P = kG, Q = (k+1)G */
+                if (Convert.ToBoolean(k & 0x80))
+                {
+                    /* We have first non-zero bit
+                    // This is always bit 254 for keys created according to the spec.
+                    // Start with randomized base point
+                    */
+
+                    ecp_Add(P.Z, X, edp_custom_blinding.zr);    /* P.Z = random */
+                    ecp_MulReduce(P.X, X, P.Z);
+                    ecp_MontDouble(ref Q,  P);
+
+                    //PP[1] = &P; PP[0] = &Q;
+                    //QP[1] = &Q; QP[0] = &P;
+
+                    unsafe
+                    {
+                        PP[1] = new nuint(&P); PP[0] = new nuint(&Q);
+                        PP[1] = new nuint(&Q); PP[0] = new nuint(&P);
+                    }
+                    
+                    /* Everything we reference in the below loop are on the stack
+                    // and already touched (cached)
+                    */
+
+                    while (++i < 8)
+                    {
+                        k <<= 1; 
+                        ECP_MONT(7, k, ref j, PP, QP, X);
+                    }
+                    while (len > 0)
+                    {
+                        k = SecretKey[--len];
+                        ECP_MONT(7, k, ref j, PP, QP, X);
+                        ECP_MONT(6, k, ref j, PP, QP, X);
+                        ECP_MONT(5, k, ref j, PP, QP, X);
+                        ECP_MONT(4, k, ref j, PP, QP, X);
+                        ECP_MONT(3, k, ref j, PP, QP, X);
+                        ECP_MONT(2, k, ref j, PP, QP, X);
+                        ECP_MONT(1, k, ref j, PP, QP, X);
+                        ECP_MONT(0, k, ref j, PP, QP, X);
+                    }
+
+                    ecp_Inverse(Q.Z, P.Z);
+                    ecp_MulMod(X, P.X, Q.Z);
+                    ecp_WordsToBytes(PublicKey, X);
+                    return;
+                }
+            }
+        }
+        /* K is 0 */
+        PublicKey.Clear();
     }
 }

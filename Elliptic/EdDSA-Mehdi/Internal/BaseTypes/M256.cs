@@ -21,14 +21,9 @@ public struct M256
         set => words[index] = value;
     }
 
-    public M256(ReadOnlySpan<U32> words)
+    public M256(params U32[] words)
     {
         words.CopyTo(this.words);
-    }
-
-    public static implicit operator M256(ReadOnlySpan<U32> words)
-    {
-        return new(words);
     }
 }
 
@@ -53,13 +48,8 @@ public struct M256V_U8
         set => bytes[index] = value;
     }
 
-    public M256V_U8(ReadOnlySpan<U8> words)
+    public M256V_U8(params U8[] words)
     {
         words.CopyTo(this.bytes);
-    }
-
-    public static implicit operator M256V_U8(ReadOnlySpan<U8> bytes)
-    {
-        return new(bytes);
     }
 }

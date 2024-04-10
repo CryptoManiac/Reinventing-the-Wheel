@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using EdDSA_Mehdi.Internal.BaseTypes;
 
 namespace EdDSA_Mehdi.Internal.Curve25519.Types;
 
@@ -44,4 +45,11 @@ public struct EDP_BLINDING_CTX
     /// </summary>
     [FieldOffset(2 * Const.K_WORDS * sizeof(U_WORD))]
     PE_POINT BP;
+
+    public EDP_BLINDING_CTX(in M256 bl, in M256 zr, in PE_POINT BP)
+    {
+        bl.words.CopyTo(this.bl);
+        zr.words.CopyTo(this.zr);
+        this.BP = BP;
+    }
 }

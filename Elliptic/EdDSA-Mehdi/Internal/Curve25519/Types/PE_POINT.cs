@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using EdDSA_Mehdi.Internal.BaseTypes;
 
 namespace EdDSA_Mehdi.Internal.Curve25519.Types;
 
@@ -76,4 +77,12 @@ public struct PE_POINT
     [FieldOffset(4 * Const.K_WORDS * sizeof(U_WORD))]
     private unsafe fixed U_WORD _Z2[Const.K_WORDS];
     #endregion
+    
+    public PE_POINT(in M256 YpX, in M256 YmX, in M256 T2d, in M256 Z2)
+    {
+        YpX.words.CopyTo(this.YpX);
+        YmX.words.CopyTo(this.YmX);
+        T2d.words.CopyTo(this.T2d);
+        Z2.words.CopyTo(this.Z2);
+    }
 }

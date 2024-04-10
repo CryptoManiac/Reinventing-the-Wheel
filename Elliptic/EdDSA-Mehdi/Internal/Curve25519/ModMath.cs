@@ -7,16 +7,16 @@ namespace EdDSA_Mehdi.Internal.Curve25519;
 /// </summary>
 public static partial class ECP
 {
-    public static M256 _w_P = new([
+    public static M256 _w_P = new(
         0xFFFFFFED, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x7FFFFFFF
-    ]);
+    );
 
     /// <summary>
     /// Maximum number of prime p that fits into 256-bits
     /// </summary>
-    public static M256 _w_maxP = new([
+    public static M256 _w_maxP = new(
         0xFFFFFFDA, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF
-    ]);
+    );
 
     public static void ecp_SetValue(Span<U32> X, U32 value)
     {
