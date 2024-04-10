@@ -27,18 +27,19 @@ public struct M16_S8
     private static readonly int LO = Convert.ToInt32(!BitConverter.IsLittleEndian);
     private static readonly int HI = 1 - LO;
 
-    [FieldOffset(0)]
-    private unsafe fixed U8 bytes[2];
-        public unsafe U8 b0
-        {
-            readonly get => bytes[LO];
-            set => bytes[LO] = value;
-        }
-        public unsafe S8 b1
-        {
-            readonly get => (S8) bytes[LO];
-            set => bytes[LO] = (U8) value;
-        }
+    [FieldOffset(0)] private unsafe fixed U8 bytes[2];
+
+    public unsafe U8 b0
+    {
+        readonly get => bytes[LO];
+        set => bytes[LO] = value;
+    }
+
+    public unsafe S8 b1
+    {
+        readonly get => (S8)bytes[LO];
+        set => bytes[LO] = (U8)value;
+    }
 }
 
 /// <summary>
