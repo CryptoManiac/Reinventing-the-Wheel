@@ -44,7 +44,7 @@ public struct EDP_BLINDING_CTX
     /// Blinding point coordinates
     /// </summary>
     [FieldOffset(2 * Const.K_WORDS * sizeof(U_WORD))]
-    PE_POINT BP;
+    public PE_POINT BP;
 
     public EDP_BLINDING_CTX(in M256 bl, in M256 zr, in PE_POINT BP)
     {
