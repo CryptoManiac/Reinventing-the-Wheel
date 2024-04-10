@@ -24,9 +24,6 @@
     <None Remove="Internal\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Internal\" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="5.0.0" />
   </ItemGroup>
 </Project>

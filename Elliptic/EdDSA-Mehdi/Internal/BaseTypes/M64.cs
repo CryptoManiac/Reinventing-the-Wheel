@@ -1,8 +1,6 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using Wheel.Crypto.Elliptic.Curve25519.Internal;
+﻿using System.Runtime.InteropServices;
 
-namespace EdDSA_Mehdi.Internal;
+namespace EdDSA_Mehdi.Internal.BaseTypes;
 
 [StructLayout(LayoutKind.Explicit)]
 public struct M64_U32
@@ -13,12 +11,12 @@ public struct M64_U32
     [FieldOffset(0)]
     private unsafe fixed U32 _words[2];
 
-    public unsafe U32 w0
+    public unsafe U32 lo
     {
         readonly get => _words[LO];
         set => _words[LO] = value;
     }
-    public unsafe U32 w1
+    public unsafe U32 hi
     {
         readonly get => _words[HI];
         set => _words[HI] = value;
@@ -34,12 +32,12 @@ public struct M64_S32
     [FieldOffset(0)]
     private unsafe fixed U32 _words[2];
 
-    public unsafe U32 w0
+    public unsafe U32 lo
     {
         readonly get => _words[LO];
         set => _words[LO] = value;
     }
-    public unsafe S32 w1
+    public unsafe S32 hi
     {
         readonly get => (S32)_words[HI];
         set => _words[HI] = (U32)value;
@@ -189,13 +187,16 @@ public struct M64_U8
     }
 }
 
+/// <summary>
+/// Eight-byte value (ulong aka uint64_t)
+/// </summary>
 [StructLayout(LayoutKind.Explicit)]
 public struct M64
 {
     [FieldOffset(0)]
-    U64 u64;
+    public U64 u64;
     [FieldOffset(0)]
-    S64 s64;
+    public S64 s64;
 
     [FieldOffset(0)]
     private unsafe fixed U8 _bytes[8];

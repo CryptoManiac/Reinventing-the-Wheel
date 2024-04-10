@@ -9,3 +9,5 @@ global using U32 = uint;
 global using S64 = long;
 global using U64 = ulong;
 
+global using U_WORD = uint;
+global using S_WORD = int;

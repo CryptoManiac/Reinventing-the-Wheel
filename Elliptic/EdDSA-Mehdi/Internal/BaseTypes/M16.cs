@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace Wheel.Crypto.Elliptic.Curve25519.Internal;
+namespace EdDSA_Mehdi.Internal.BaseTypes;
 
 [StructLayout(LayoutKind.Explicit)]
 public struct M16_U8
@@ -20,6 +20,7 @@ public struct M16_U8
         set => bytes[HI] = value;
     }
 }
+
 [StructLayout(LayoutKind.Explicit)]
 public struct M16_S8
 {
@@ -39,7 +40,10 @@ public struct M16_S8
             set => bytes[LO] = (U8) value;
         }
 }
- 
+
+/// <summary>
+/// Two-byte value (ushort aka uint16_t)
+/// </summary>
 [StructLayout(LayoutKind.Explicit)]
 public struct M16
 {
@@ -50,6 +54,7 @@ public struct M16
 
     [FieldOffset(0)]
     private unsafe fixed U8 _bytes[2];
+    
     public readonly unsafe Span<U8> bytes
     {
         get

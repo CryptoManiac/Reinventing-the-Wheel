@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using Wheel.Crypto.Elliptic.Curve25519.Internal;
+using EdDSA_Mehdi.Internal.BaseTypes;
 
 namespace EdDSA_Mehdi.Internal;
 
@@ -126,13 +126,16 @@ public struct M32_U8
     }
 }
 
+/// <summary>
+/// Four-byte value (uint aka uint32_t)
+/// </summary>
 [StructLayout(LayoutKind.Explicit)]
 public struct M32
 {
     [FieldOffset(0)]
-    U32 u32;
+    public U32 u32;
     [FieldOffset(0)]
-    S32 s32;
+    public S32 s32;
 
     [FieldOffset(0)]
     private unsafe fixed U8 _bytes[4];
@@ -152,6 +155,9 @@ public struct M32
 
     [FieldOffset(0)]
     public M32_S16 s16;
+
+    [FieldOffset(0)]
+    public M32_U8 u8;
 
     [FieldOffset(0)]
     public M32_M16 m16;
