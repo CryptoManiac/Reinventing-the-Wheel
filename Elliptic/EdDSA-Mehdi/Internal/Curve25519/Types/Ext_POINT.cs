@@ -72,5 +72,9 @@ public struct Ext_POINT
     private unsafe fixed U_WORD _z[Const.K_WORDS];
     [FieldOffset(3 * Const.K_WORDS * sizeof(U_WORD))]
     private unsafe fixed U_WORD _t[Const.K_WORDS];
+    /// <summary>
+    /// Size of structure in bytes
+    /// </summary>
+    public const int TypeByteSz = 4 * Const.K_WORDS * sizeof(U_WORD);
     #endregion
 }

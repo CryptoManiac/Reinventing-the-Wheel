@@ -38,6 +38,10 @@ public struct EDP_BLINDING_CTX
     private unsafe fixed U_WORD _bl[Const.K_WORDS];
     [FieldOffset(1 * Const.K_WORDS * sizeof(U_WORD))]
     private unsafe fixed U_WORD _zr[Const.K_WORDS];
+    /// <summary>
+    /// Size of structure in bytes
+    /// </summary>
+    public const int TypeByteSz = 2 * Const.K_WORDS * sizeof(U_WORD);
     #endregion
 
     /// <summary>

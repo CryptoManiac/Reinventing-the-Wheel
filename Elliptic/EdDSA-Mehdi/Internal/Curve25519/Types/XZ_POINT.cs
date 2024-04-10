@@ -51,5 +51,9 @@ public struct XZ_POINT
     private unsafe fixed U_WORD _X[Const.K_WORDS];
     [FieldOffset(1 * Const.K_WORDS * sizeof(U_WORD))]
     private unsafe fixed U_WORD _Z[Const.K_WORDS];
+    /// <summary>
+    /// Size of structure in bytes
+    /// </summary>
+    public const int TypeByteSz = 2 * Const.K_WORDS * sizeof(U_WORD);
     #endregion
 }

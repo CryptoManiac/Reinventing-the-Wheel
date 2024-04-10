@@ -60,6 +60,10 @@ public struct PA_POINT
     private unsafe fixed U_WORD _YmX[Const.K_WORDS];       
     [FieldOffset(2 * Const.K_WORDS * sizeof(U_WORD))]
     private unsafe fixed U_WORD _T2d[Const.K_WORDS]; 
+    /// <summary>
+    /// Size of structure in bytes
+    /// </summary>
+    public const int TypeByteSz = 3 * Const.K_WORDS * sizeof(U_WORD);
     #endregion
     
     public PA_POINT(in M256 YpX, in M256 YmX, in M256 T2d)

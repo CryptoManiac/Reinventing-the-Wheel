@@ -1,11 +1,22 @@
 using EdDSA_Mehdi.Internal.BaseTypes;
 using EdDSA_Mehdi.Internal.Curve25519.Types;
+using Wheel.Hashing.SHA.SHA512;
 
 namespace EdDSA_Mehdi.Internal.Curve25519;
 
-/// <summary>
-/// Signing functions and related point arithmetic
-/// </summary>
+/*
+ * Arithmetic on twisted Edwards curve y^2 - x^2 = 1 + dx^2y^2
+ * with d = -(121665/121666) mod p
+ *      d = 0x52036CEE2B6FFE738CC740797779E89800700A4D4141D8AB75EB4DCA135978A3
+ *      p = 2**255 - 19
+ *      p = 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFED
+ * Base point: y=4/5 mod p
+ *      x = 0x216936D3CD6E53FEC0A4E231FDD6DC5C692CC7609525A7B2C9562D608F25D51A
+ *      y = 0x6666666666666666666666666666666666666666666666666666666666666658
+ * Base point order:
+ *      l = 2**252 + 27742317777372353535851937790883648493
+ *      l = 0x1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED
+ */
 public static partial class ECP
 {
     /// <summary>
@@ -246,5 +257,87 @@ public static partial class ECP
         ecp_SubReduce(r.YmX, p.y, p.x);
         ecp_MulReduce(r.T2d, p.t, _w_2d.words);
         ecp_AddReduce(r.Z2, p.z, p.z);
+    }
+    
+    /// <summary>
+    /// Generate public and private key pair associated with the secret key
+    /// </summary>
+    /// <param name="pubKey">OUT: public key</param>
+    /// <param name="privKey">OUT: private key</param>
+    /// <param name="blinding">blinding context</param>
+    /// <param name="sk">IN: secret key (32 bytes)</param>
+    public static void ed25519_CreateKeyPair(Span<U8> pubKey, Span<U8> privKey, in EDP_BLINDING_CTX blinding, ReadOnlySpan<U8> sk)
+    {
+        SHA512 H = new();
+
+        Span<U8> md = stackalloc U8[H.HashSz];
+        Span<U_WORD> t = stackalloc U_WORD[Const.K_WORDS];
+        Affine_POINT Q;
+
+        /* [a:b] = H(sk) */
+        H.Update(sk);
+        H.Digest(md);
+        ecp_TrimSecretKey(md);
+
+        ecp_BytesToWords(t, md);
+        edp_BasePointMultiply(ref Q, t, blinding);
+        ed25519_PackPoint(pubKey, Q.y, Q.x[0]);
+        
+        sk[..32].CopyTo(privKey[..32]);
+        pubKey[..32].CopyTo(privKey[32..]);
+    }
+    
+    /// <summary>
+    /// Generate message signature
+    /// </summary>
+    /// <param name="signature">OUT: [64 bytes] signature (R,S)</param>
+    /// <param name="privKey">IN: [64 bytes] private key (sk,pk)</param>
+    /// <param name="blinding">IN: blinding context</param>
+    /// <param name="msg">[msg_size bytes] message to sign</param>
+    public static void ed25519_SignMessage(Span<U8> signature, ReadOnlySpan<U8> privKey, EDP_BLINDING_CTX blinding, ReadOnlySpan<U8> msg)
+    {
+        SHA512 H = new();
+        Affine_POINT R;
+
+        Span<U_WORD> a = stackalloc U_WORD[Const.K_WORDS];
+        Span<U_WORD> t = stackalloc U_WORD[Const.K_WORDS];
+        Span<U_WORD> r = stackalloc U_WORD[Const.K_WORDS];
+        Span<U8> md = stackalloc U8[H.HashSz];
+
+        /* [a:b] = H(sk) */
+        H.Reset();
+        H.Update(privKey[..32]);
+        H.Digest(md);
+        ecp_TrimSecretKey(md);              /* a = first 32 bytes */
+        ecp_BytesToWords(a, md);
+
+        /* r = H(b + m) mod BPO */
+        H.Reset();
+        H.Update(md[32..]);
+        H.Update(msg);
+        H.Digest(md);
+        eco_DigestToWords(r, md);
+        eco_Mod(r);                         /* r mod BPO */
+
+        /* R = r*P */
+        edp_BasePointMultiply(ref R, r, blinding);
+        ed25519_PackPoint(signature, R.y, R.x[0]); /* R part of signature */
+
+        /* S = r + H(encoded(R) + pk + m) * a  mod BPO */
+        H.Reset();
+        H.Update(signature[..32]);   /* encoded(R) */
+        H.Update(privKey[32..]);  /* pk */
+        H.Update(msg);   /* m */
+        H.Digest(md);
+        eco_DigestToWords(t, md);
+
+        eco_MulReduce(t, t, a);             /* h()*a */
+        eco_AddReduce(t, t, r);
+        eco_Mod(t);
+        ecp_WordsToBytes(signature[32..], t);  /* S part of signature */
+
+        /* Clear sensitive data */
+        ecp_SetValue(a, 0);
+        ecp_SetValue(r, 0);
     }
 }
