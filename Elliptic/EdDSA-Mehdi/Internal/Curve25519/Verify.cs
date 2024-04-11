@@ -293,18 +293,15 @@ public static partial class ECP
     /// <returns></returns>
     public static bool ed25519_Verify_Check(in EDP_SIGV_CTX context, ReadOnlySpan<U8> signature, ReadOnlySpan<U8> msg)
     {
-        SHA512 H = new();
-        
         Affine_POINT T;
         Span<U_WORD> h = stackalloc U_WORD[Const.K_WORDS];
         Span<U_WORD> s = stackalloc U_WORD[Const.K_WORDS];
-        Span<U8> md = stackalloc U8[H.HashSz];
-        
+        Span<U8> md = stackalloc U8[64];
         /* h = H(enc(R) + pk + m)  mod BPO */
-        H.Update(signature[..32]);       /* enc(R) */
-        H.Update(context.pk);
-        H.Update(msg);
-        H.Digest(md);
+        HRAM(md, 
+            signature[..32], /* enc(R) */
+            context.pk, 
+            msg);
         eco_DigestToWords(h, md);
         eco_Mod(h);
 
@@ -315,6 +312,22 @@ public static partial class ECP
         ed25519_PackPoint(md, T.y, T.x[0]);
 
         return Equals(md, signature, 32);
+    }
+
+    /// <summary>
+    /// Calculate signature challenge H(enc(R) + pk + m)
+    /// </summary>
+    /// <param name="hram"></param>
+    /// <param name="R"></param>
+    /// <param name="A"></param>
+    /// <param name="m"></param>
+    public static void HRAM(Span<U8> hram, ReadOnlySpan<U8> R, ReadOnlySpan<U8> A, ReadOnlySpan<U8> m)
+    {
+        SHA512 ctx = new();
+        ctx.Update(R);
+        ctx.Update(A);
+        ctx.Update(m);
+        ctx.Digest(hram);
     }
     
     /// <summary>

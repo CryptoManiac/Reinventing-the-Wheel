@@ -1,5 +1,6 @@
 using EdDSA_Mehdi.Internal.BaseTypes;
 using EdDSA_Mehdi.Internal.Curve25519.Types;
+using Hashing.Hashing.HMAC;
 using Wheel.Hashing.SHA.SHA512;
 
 namespace EdDSA_Mehdi.Internal.Curve25519;
@@ -262,73 +263,60 @@ public static partial class ECP
     /// <summary>
     /// Generate public and private key pair associated with the secret key
     /// </summary>
-    /// <param name="pubKey">OUT: public key</param>
-    /// <param name="privKey">OUT: private key</param>
+    /// <param name="pubKey">OUT: [32 bytes] public key</param>
+    /// <param name="privKey">OUT: [32 bytes] private key</param>
     /// <param name="blinding">blinding context</param>
-    /// <param name="sk">IN: secret key (32 bytes)</param>
-    public static void ed25519_CreateKeyPair(Span<U8> pubKey, Span<U8> privKey, in EDP_BLINDING_CTX blinding, ReadOnlySpan<U8> sk)
+    /// <param name="seed">IN: secret seed (32 bytes)</param>
+    public static void ed25519_ExpandSeed(Span<U8> pubKey, Span<U8> privKey, in EDP_BLINDING_CTX blinding, ReadOnlySpan<U8> seed)
     {
-        SHA512 H = new();
-
-        Span<U8> md = stackalloc U8[H.HashSz];
+        Span<U8> md = stackalloc U8[64];
         Span<U_WORD> t = stackalloc U_WORD[Const.K_WORDS];
         Affine_POINT Q;
 
         /* [a:b] = H(sk) */
-        H.Update(sk);
+        SHA512 H = new();
+        H.Update(seed);
         H.Digest(md);
         ecp_TrimSecretKey(md);
-
+        
+        md.CopyTo(privKey[..32]);
         ecp_BytesToWords(t, md);
         edp_BasePointMultiply(ref Q, t, blinding);
-        ed25519_PackPoint(pubKey, Q.y, Q.x[0]);
-        
-        sk[..32].CopyTo(privKey[..32]);
-        pubKey[..32].CopyTo(privKey[32..]);
+        ed25519_PackPoint(pubKey[..32], Q.y, Q.x[0]);
     }
     
     /// <summary>
     /// Generate message signature
     /// </summary>
     /// <param name="signature">OUT: [64 bytes] signature (R,S)</param>
-    /// <param name="privKey">IN: [64 bytes] private key (sk,pk)</param>
+    /// <param name="ctx">IN: signing context</param>
     /// <param name="blinding">IN: blinding context</param>
     /// <param name="msg">[msg_size bytes] message to sign</param>
-    public static void ed25519_SignMessage(Span<U8> signature, ReadOnlySpan<U8> privKey, EDP_BLINDING_CTX blinding, ReadOnlySpan<U8> msg)
+    public static void ed25519_SignMessage(Span<U8> signature, EDP_SIGN_CTX ctx, EDP_BLINDING_CTX blinding, ReadOnlySpan<U8> msg)
     {
-        SHA512 H = new();
         Affine_POINT R;
 
         Span<U_WORD> a = stackalloc U_WORD[Const.K_WORDS];
         Span<U_WORD> t = stackalloc U_WORD[Const.K_WORDS];
         Span<U_WORD> r = stackalloc U_WORD[Const.K_WORDS];
-        Span<U8> md = stackalloc U8[H.HashSz];
 
-        /* [a:b] = H(sk) */
-        H.Reset();
-        H.Update(privKey[..32]);
-        H.Digest(md);
-        ecp_TrimSecretKey(md);              /* a = first 32 bytes */
-        ecp_BytesToWords(a, md);
+        ecp_BytesToWords(a, ctx.sk); /* a = secret key */
 
-        /* r = H(b + m) mod BPO */
-        H.Reset();
-        H.Update(md[32..]);
-        H.Update(msg);
-        H.Digest(md);
-        eco_DigestToWords(r, md);
-        eco_Mod(r);                         /* r mod BPO */
-
+        /* r = HMAC_sk(m) mod BPO */
+        HNONCE(r, ctx.sk, msg);
+        
         /* R = r*P */
         edp_BasePointMultiply(ref R, r, blinding);
         ed25519_PackPoint(signature, R.y, R.x[0]); /* R part of signature */
 
         /* S = r + H(encoded(R) + pk + m) * a  mod BPO */
-        H.Reset();
-        H.Update(signature[..32]);   /* encoded(R) */
-        H.Update(privKey[32..]);  /* pk */
-        H.Update(msg);   /* m */
-        H.Digest(md);
+        
+        Span<U8> md = stackalloc U8[64];
+        HRAM(md,
+            signature[..32], /* encoded(R) */
+            ctx.pk, /* pk */
+            msg /* m */
+            );
         eco_DigestToWords(t, md);
 
         eco_MulReduce(t, t, a);             /* h()*a */
@@ -339,5 +327,40 @@ public static partial class ECP
         /* Clear sensitive data */
         ecp_SetValue(a, 0);
         ecp_SetValue(r, 0);
+    }
+
+    /// <summary>
+    /// Init signing context
+    /// </summary>
+    /// <param name="ctx">OUT: Context</param>
+    /// <param name="sk">IN: [32 bytes] Secret key</param>
+    /// <param name="blinding">IN: Blinding context</param>
+    public static void ed25519_Sign_Init(ref EDP_SIGN_CTX ctx, Span<U8> sk, EDP_BLINDING_CTX blinding)
+    {
+        ecp_TrimSecretKey(sk);
+        Span<U_WORD> t = stackalloc U_WORD[Const.K_WORDS];
+        Affine_POINT Q;
+        ecp_BytesToWords(t, sk[..32]);
+        edp_BasePointMultiply(ref Q, t, blinding);
+        ed25519_PackPoint(ctx.pk, Q.y, Q.x[0]);
+        sk[..32].CopyTo(ctx.sk);
+    }
+    
+    /// <summary>
+    /// Calculate signature nonce HMAC_sk(m) mod BPO
+    /// </summary>
+    /// <param name="nonce">OUT: Secret nonce</param>
+    /// <param name="sk">IN: [32 bytes] Secret key</param>
+    /// <param name="m">IN: [32 bytes] Message</param>
+    public static void HNONCE(Span<U_WORD> nonce, ReadOnlySpan<U8> sk, ReadOnlySpan<U8> m)
+    {
+        HMAC<SHA512> ctx = new();
+        ctx.Init(sk);
+        ctx.Update(m);
+
+        Span<U8> md = stackalloc U8[ctx.HashSz];
+        ctx.Digest(md);
+        eco_DigestToWords(nonce, md);
+        eco_Mod(nonce); /* nonce mod BPO */
     }
 }
