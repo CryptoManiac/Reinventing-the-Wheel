@@ -15,13 +15,13 @@ namespace EdDSA_Mehdi.Internal.Curve25519;
  *      l = 2**252 + 27742317777372353535851937790883648493
  *      l = 0x1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED
  */
-public static partial class ECP
+public static partial class Const
 {
   /// <summary>
   /// This table is generated from all 256 permutations of SUM(P0,P1,..,P7)
   /// where P_i = 2^(32i)*BasePoint
   /// </summary>
-    private static readonly PA_POINT[] _w_base_folding8 = new PA_POINT[256]
+    public static readonly PA_POINT[] _w_base_folding8 = new PA_POINT[256]
     {
       new( /* Pnew(0} */
           new(0x00000001,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000),

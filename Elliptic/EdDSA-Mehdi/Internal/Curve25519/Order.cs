@@ -36,29 +36,6 @@ public static partial class ECP
     ///
     ///     This library is used for implementation of EdDSA sign/verify.
     /// </summary>
-    
-    /// <summary>
-    /// n * BPO
-    /// </summary>
-    private static readonly M256[] _w_NxBPO = new M256[16]
-    {
-        new(0, 0, 0, 0, 0, 0, 0, 0),
-        new(0x5CF5D3ED, 0x5812631A, 0xA2F79CD6, 0x14DEF9DE, 0, 0, 0, 0x10000000),
-        new(0xB9EBA7DA, 0xB024C634, 0x45EF39AC, 0x29BDF3BD, 0, 0, 0, 0x20000000),
-        new(0x16E17BC7, 0x0837294F, 0xE8E6D683, 0x3E9CED9B, 0, 0, 0, 0x30000000),
-        new(0x73D74FB4, 0x60498C69, 0x8BDE7359, 0x537BE77A, 0, 0, 0, 0x40000000),
-        new(0xD0CD23A1, 0xB85BEF83, 0x2ED6102F, 0x685AE159, 0, 0, 0, 0x50000000),
-        new(0x2DC2F78E, 0x106E529E, 0xD1CDAD06, 0x7D39DB37, 0, 0, 0, 0x60000000),
-        new(0x8AB8CB7B, 0x6880B5B8, 0x74C549DC, 0x9218D516, 0, 0, 0, 0x70000000),
-        new(0xE7AE9F68, 0xC09318D2, 0x17BCE6B2, 0xA6F7CEF5, 0, 0, 0, 0x80000000),
-        new(0x44A47355, 0x18A57BED, 0xBAB48389, 0xBBD6C8D3, 0, 0, 0, 0x90000000),
-        new(0xA19A4742, 0x70B7DF07, 0x5DAC205F, 0xD0B5C2B2, 0, 0, 0, 0xA0000000),
-        new(0xFE901B2F, 0xC8CA4221, 0x00A3BD35, 0xE594BC91, 0, 0, 0, 0xB0000000),
-        new(0x5B85EF1C, 0x20DCA53C, 0xA39B5A0C, 0xFA73B66F, 0, 0, 0, 0xC0000000),
-        new(0xB87BC309, 0x78EF0856, 0x4692F6E2, 0x0F52B04E, 1, 0, 0, 0xD0000000),
-        new(0x157196F6, 0xD1016B71, 0xE98A93B8, 0x2431AA2C, 1, 0, 0, 0xE0000000),
-        new(0x72676AE3, 0x2913CE8B, 0x8C82308F, 0x3910A40B, 1, 0, 0, 0xF0000000)
-    };
 
     private const U32 minusR_0 = 0xCF5D3ED0;
     private const U32 minusR_1 = 0x812631A5;
@@ -105,7 +82,7 @@ public static partial class ECP
 
         /* Add BPO if there is a borrow */
 
-        ecp_Add(Y, Y, _w_NxBPO[c.s32.hi & 1].words);
+        ecp_Add(Y, Y, Const._w_NxBPO[c.s32.hi & 1].words);
     }
 
     /// <summary>
@@ -134,8 +111,8 @@ public static partial class ECP
     /// <param name="X"></param>
     public static void eco_Mod(Span<U32> X)
     {
-        S32 c = ecp_Sub(X, X, _w_NxBPO[X[7] >> 28].words);
-        ecp_Add(X, X, _w_NxBPO[c & 1].words);
+        S32 c = ecp_Sub(X, X, Const._w_NxBPO[X[7] >> 28].words);
+        ecp_Add(X, X, Const._w_NxBPO[c & 1].words);
     }
 
     /// <summary>

@@ -17,17 +17,7 @@ namespace EdDSA_Mehdi.Internal.Curve25519;
  *      l = 0x1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED
  */
 public static partial class ECP
-{
-    /// <summary>
-    /// X coordinate of base point
-    /// </summary>
-    public static M256V_U8 ecp_BasePoint = new (
-        9,0,0,0,0,0,0,0,
-        0,0,0,0,0,0,0,0,
-        0,0,0,0,0,0,0,0,
-        0,0,0,0,0,0,0,0
-    );
-    
+{    
     /// <summary>
     /// Y = X + X 
     /// </summary>
@@ -126,7 +116,7 @@ public static partial class ECP
                     // Start with randomized base point
                     */
 
-                    ecp_Add(P.Z, X, edp_custom_blinding.zr);    /* P.Z = random */
+                    ecp_Add(P.Z, X, EDP_BLINDING_CTX.edp_custom_blinding.zr);    /* P.Z = random */
                     ecp_MulReduce(P.X, X, P.Z);
                     ecp_MontDouble(ref Q,  P);
 
@@ -183,7 +173,7 @@ public static partial class ECP
         Span<U_WORD> t = stackalloc U_WORD[Const.K_WORDS];
 
         ecp_BytesToWords(t, sk);
-        edp_BasePointMult(ref S, t, edp_custom_blinding.zr);
+        edp_BasePointMult(ref S, t, EDP_BLINDING_CTX.edp_custom_blinding.zr);
 
         /* Convert ed25519 point to x25519 point */
     
@@ -216,7 +206,7 @@ public static partial class ECP
     public static void curve25519_dh_CalculatePublicKey(Span<U8> pk, Span<U8> sk) 
     {
         ecp_TrimSecretKey(sk);
-        ecp_PointMultiply(pk, ecp_BasePoint.bytes, sk, 32);
+        ecp_PointMultiply(pk, Const.ecp_BasePoint.bytes, sk, 32);
     }
     
     /// <summary>

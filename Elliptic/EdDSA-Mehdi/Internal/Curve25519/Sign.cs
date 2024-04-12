@@ -2,6 +2,7 @@ using EdDSA_Mehdi.Internal.BaseTypes;
 using EdDSA_Mehdi.Internal.Curve25519.Types;
 using Hashing.Hashing.HMAC;
 using Wheel.Hashing.SHA.SHA512;
+using Wheel.Hashing.SHA3;
 
 namespace EdDSA_Mehdi.Internal.Curve25519;
 
@@ -20,17 +21,7 @@ namespace EdDSA_Mehdi.Internal.Curve25519;
  */
 public static partial class ECP
 {
-    /// <summary>
-    /// 2*d
-    /// </summary>
-    private static readonly M256 _w_2d = new(0x26B2F159,0xEBD69B94,0x8283B156,0x00E0149A,0xEEF3D130,0x198E80F2,0x56DFFCE7,0x2406D9DC);
-    
-    /// <summary>
-    /// 1/d
-    /// </summary>
-    private static readonly M256 _w_di = new(0xCDC9F843,0x25E0F276,0x4279542E,0x0B5DD698,0xCDB9CF66,0x2B162114,0x14D5CE43,0x40907ED2);
-    
-    /// <summary>
+        /// <summary>
     /// Reference: http://eprint.iacr.org/2008/522
     /// Cost: 7M + 7add
     /// Return: R = P + BasePoint
@@ -45,10 +36,10 @@ public static partial class ECP
         Span<U_WORD> e = stackalloc U_WORD[Const.K_WORDS];
         
         ecp_SubReduce(a, p.y, p.x);           /* A = (Y1-X1)*(Y2-X2) */
-        ecp_MulReduce(a, a, _w_base_folding8[1].YmX);
+        ecp_MulReduce(a, a, Const._w_base_folding8[1].YmX);
         ecp_AddReduce(b, p.y, p.x);           /* B = (Y1+X1)*(Y2+X2) */
-        ecp_MulReduce(b, b, _w_base_folding8[1].YpX);
-        ecp_MulReduce(c, p.t, _w_base_folding8[1].T2d); /* C = T1*2d*T2 */
+        ecp_MulReduce(b, b, Const._w_base_folding8[1].YpX);
+        ecp_MulReduce(c, p.t, Const._w_base_folding8[1].T2d); /* C = T1*2d*T2 */
         ecp_AddReduce(d, p.z, p.z);           /* D = 2*Z1 */
         ecp_SubReduce(e, b, a);                 /* E = B-A */
         ecp_AddReduce(b, b, a);                 /* H = B+A */
@@ -111,7 +102,7 @@ public static partial class ECP
         ecp_SqrReduce(b, p.y);         /* B = Y1^2 */
         ecp_SqrReduce(c, p.z);         /* C = 2*Z1^2 */
         ecp_AddReduce(c, c, c);
-        ecp_SubReduce(d, _w_maxP.words, a);   /* D = -A */
+        ecp_SubReduce(d, Const._w_maxP.words, a);   /* D = -A */
 
         ecp_SubReduce(a, d, b);         /* H = D-B */
         ecp_AddReduce(d, d, b);         /* G = D+B */
@@ -209,11 +200,11 @@ public static partial class ECP
 
         ecp_8Folds(cut, sk);
 
-        ref PA_POINT p0 = ref _w_base_folding8[cut[0]];
+        ref PA_POINT p0 = ref Const._w_base_folding8[cut[0]];
 
         ecp_SubReduce(S.x, p0.YpX, p0.YmX);  /* 2x */
         ecp_AddReduce(S.y, p0.YpX, p0.YmX);  /* 2y */
-        ecp_MulReduce(S.t, p0.T2d, _w_di.words);    /* 2xy */
+        ecp_MulReduce(S.t, p0.T2d, Const._w_di.words);    /* 2xy */
 
         /* Randomize starting point */
 
@@ -225,14 +216,14 @@ public static partial class ECP
         do 
         {
             edp_DoublePoint(ref S);
-            edp_AddAffinePoint(ref S, _w_base_folding8[cut[i]]);
+            edp_AddAffinePoint(ref S, Const._w_base_folding8[cut[i]]);
         } while (i++ < 31);
     }
 
     public static void edp_BasePointMultiply(ref Affine_POINT R, ReadOnlySpan<U_WORD> sk)
     {
         Ext_POINT S;
-        edp_BasePointMult(ref S, sk, edp_custom_blinding.zr);
+        edp_BasePointMult(ref S, sk, EDP_BLINDING_CTX.edp_custom_blinding.zr);
         ecp_Inverse(S.z, S.z);
         ecp_MulMod(R.x, S.x, S.z);
         ecp_MulMod(R.y, S.y, S.z);
@@ -256,111 +247,81 @@ public static partial class ECP
     {
         ecp_AddReduce(r.YpX, p.y, p.x);
         ecp_SubReduce(r.YmX, p.y, p.x);
-        ecp_MulReduce(r.T2d, p.t, _w_2d.words);
+        ecp_MulReduce(r.T2d, p.t, Const._w_2d.words);
         ecp_AddReduce(r.Z2, p.z, p.z);
     }
     
     /// <summary>
-    /// Generate public and private key pair associated with the secret key
+    /// Generate public key associated with the secret key
     /// </summary>
     /// <param name="pubKey">OUT: [32 bytes] public key</param>
-    /// <param name="privKey">OUT: [32 bytes] private key</param>
+    /// <param name="privKey">IN/OUT: [32 bytes] private key</param>
     /// <param name="blinding">blinding context</param>
-    /// <param name="seed">IN: secret seed (32 bytes)</param>
-    public static void ed25519_ExpandSeed(Span<U8> pubKey, Span<U8> privKey, in EDP_BLINDING_CTX blinding, ReadOnlySpan<U8> seed)
+    public static void ed25519_CalculatePublicKey(Span<U8> pubKey, Span<U8> privKey, in EDP_BLINDING_CTX blinding)
     {
-        Span<U8> md = stackalloc U8[64];
+        ecp_TrimSecretKey(privKey[0 .. 32]);
         Span<U_WORD> t = stackalloc U_WORD[Const.K_WORDS];
         Affine_POINT Q;
-
-        /* [a:b] = H(sk) */
-        SHA512 H = new();
-        H.Update(seed);
-        H.Digest(md);
-        ecp_TrimSecretKey(md);
-        
-        md.CopyTo(privKey[..32]);
-        ecp_BytesToWords(t, md);
+        ecp_BytesToWords(t, privKey);
         edp_BasePointMultiply(ref Q, t, blinding);
         ed25519_PackPoint(pubKey[..32], Q.y, Q.x[0]);
     }
     
-    /// <summary>
-    /// Generate message signature
-    /// </summary>
-    /// <param name="signature">OUT: [64 bytes] signature (R,S)</param>
-    /// <param name="ctx">IN: signing context</param>
-    /// <param name="blinding">IN: blinding context</param>
-    /// <param name="msg">[msg_size bytes] message to sign</param>
-    public static void ed25519_SignMessage(Span<U8> signature, EDP_SIGN_CTX ctx, EDP_BLINDING_CTX blinding, ReadOnlySpan<U8> msg)
-    {
-        Affine_POINT R;
-
-        Span<U_WORD> a = stackalloc U_WORD[Const.K_WORDS];
-        Span<U_WORD> t = stackalloc U_WORD[Const.K_WORDS];
-        Span<U_WORD> r = stackalloc U_WORD[Const.K_WORDS];
-
-        ecp_BytesToWords(a, ctx.sk); /* a = secret key */
-
-        /* r = HMAC_sk(m) mod BPO */
-        HNONCE(r, ctx.sk, msg);
-        
-        /* R = r*P */
-        edp_BasePointMultiply(ref R, r, blinding);
-        ed25519_PackPoint(signature, R.y, R.x[0]); /* R part of signature */
-
-        /* S = r + H(encoded(R) + pk + m) * a  mod BPO */
-        
-        Span<U8> md = stackalloc U8[64];
-        HRAM(md,
-            signature[..32], /* encoded(R) */
-            ctx.pk, /* pk */
-            msg /* m */
-            );
-        eco_DigestToWords(t, md);
-
-        eco_MulReduce(t, t, a);             /* h()*a */
-        eco_AddReduce(t, t, r);
-        eco_Mod(t);
-        ecp_WordsToBytes(signature[32..], t);  /* S part of signature */
-
-        /* Clear sensitive data */
-        ecp_SetValue(a, 0);
-        ecp_SetValue(r, 0);
-    }
-
-    /// <summary>
-    /// Init signing context
-    /// </summary>
-    /// <param name="ctx">OUT: Context</param>
-    /// <param name="sk">IN: [32 bytes] Secret key</param>
-    /// <param name="blinding">IN: Blinding context</param>
-    public static void ed25519_Sign_Init(ref EDP_SIGN_CTX ctx, Span<U8> sk, EDP_BLINDING_CTX blinding)
-    {
-        ecp_TrimSecretKey(sk);
-        Span<U_WORD> t = stackalloc U_WORD[Const.K_WORDS];
-        Affine_POINT Q;
-        ecp_BytesToWords(t, sk[..32]);
-        edp_BasePointMultiply(ref Q, t, blinding);
-        ed25519_PackPoint(ctx.pk, Q.y, Q.x[0]);
-        sk[..32].CopyTo(ctx.sk);
-    }
-    
+    /*
     /// <summary>
     /// Calculate signature nonce HMAC_sk(m) mod BPO
     /// </summary>
     /// <param name="nonce">OUT: Secret nonce</param>
     /// <param name="sk">IN: [32 bytes] Secret key</param>
     /// <param name="m">IN: [32 bytes] Message</param>
-    public static void HNONCE(Span<U_WORD> nonce, ReadOnlySpan<U8> sk, ReadOnlySpan<U8> m)
+    public static void HNONCE_SHA2(Span<U_WORD> nonce, ReadOnlySpan<U8> sk, ReadOnlySpan<U8> m)
     {
         HMAC<SHA512> ctx = new();
+        Span<U8> md = stackalloc U8[ctx.HashSz];
         ctx.Init(sk);
         ctx.Update(m);
 
-        Span<U8> md = stackalloc U8[ctx.HashSz];
         ctx.Digest(md);
         eco_DigestToWords(nonce, md);
-        eco_Mod(nonce); /* nonce mod BPO */
+        eco_Mod(nonce); // nonce mod BPO
+        ctx.Dispose();
     }
+
+    /// <summary>
+    /// Calculate signature nonce HMAC_sk(m) mod BPO
+    /// </summary>
+    /// <param name="nonce">OUT: Secret nonce</param>
+    /// <param name="sk">IN: [32 bytes] Secret key</param>
+    /// <param name="m">IN: [32 bytes] Message</param>
+    public static void HNONCE_SHA3(Span<U_WORD> nonce, ReadOnlySpan<U8> sk, ReadOnlySpan<U8> m)
+    {
+        HMAC<SHA3_512> ctx = new();
+        Span<U8> md = stackalloc U8[ctx.HashSz];
+        ctx.Init(sk);
+        ctx.Update(m);
+
+        ctx.Digest(md);
+        eco_DigestToWords(nonce, md);
+        eco_Mod(nonce); // nonce mod BPO
+        ctx.Dispose();
+    }
+
+    /// <summary>
+    /// Calculate signature nonce HMAC_sk(m) mod BPO
+    /// </summary>
+    /// <param name="nonce">OUT: Secret nonce</param>
+    /// <param name="sk">IN: [32 bytes] Secret key</param>
+    /// <param name="m">IN: [32 bytes] Message</param>
+    public static void HNONCE_KECCAK(Span<U_WORD> nonce, ReadOnlySpan<U8> sk, ReadOnlySpan<U8> m)
+    {
+        HMAC<Keccak_512> ctx = new();
+        Span<U8> md = stackalloc U8[ctx.HashSz];
+        ctx.Init(sk);
+        ctx.Update(m);
+
+        ctx.Digest(md);
+        eco_DigestToWords(nonce, md);
+        eco_Mod(nonce); // nonce mod BPO
+        ctx.Dispose();
+    }*/
 }
