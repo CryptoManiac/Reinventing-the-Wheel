@@ -21,7 +21,7 @@ namespace EdDSA_Mehdi.Internal.Curve25519;
  */
 public static partial class ECP
 {
-        /// <summary>
+    /// <summary>
     /// Reference: http://eprint.iacr.org/2008/522
     /// Cost: 7M + 7add
     /// Return: R = P + BasePoint

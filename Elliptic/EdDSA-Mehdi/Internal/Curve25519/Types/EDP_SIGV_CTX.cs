@@ -4,7 +4,7 @@ namespace EdDSA_Mehdi.Internal.Curve25519.Types;
 
 
 /// <summary>
-/// Signature verification context
+/// Ed25519 signature verification context
 /// </summary>
 [StructLayout(LayoutKind.Explicit)]
 public unsafe struct EDP_SIGV_CTX{

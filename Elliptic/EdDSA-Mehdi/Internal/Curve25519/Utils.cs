@@ -148,4 +148,21 @@ public static partial class ECP
             Y[k++] = a;
         }
     }
+    
+    /// <summary>
+    /// Constant-time comparison
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <param name="len"></param>
+    /// <returns></returns>
+    public static bool Equals(ReadOnlySpan<U8> x, ReadOnlySpan<U8> y, int len)
+    {
+        int diff = 0;
+        for (int i = 0; i != len; ++i)
+        {
+            diff |= x[i] ^ y[i];
+        }
+        return !Convert.ToBoolean(diff);
+    }
 }

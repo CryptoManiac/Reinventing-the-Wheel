@@ -3,6 +3,9 @@ using Wheel.Crypto.Elliptic.EllipticCommon;
 
 namespace EdDSA_Mehdi.Internal.Curve25519.Types;
 
+/// <summary>
+/// Ed25519 signing context
+/// </summary>
 public struct EDP_SIGN_CTX
 {
     private unsafe fixed U8 _sk[32];
