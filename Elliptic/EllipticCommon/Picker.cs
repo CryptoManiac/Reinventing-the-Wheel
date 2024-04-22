@@ -47,12 +47,23 @@ public ref struct Picker
 /// </summary>
 public ref struct ReadOnlyPicker
 {
+    #region Pointers to the sequences
     unsafe readonly ulong* s0;
     unsafe readonly ulong* s1;
+    #endregion
+
+    /// <summary>
+    /// Sequence sizes
+    /// </summary>
     unsafe fixed int sizes[2];
 
     public unsafe ReadOnlyPicker(ReadOnlySpan<ulong> s0, ReadOnlySpan<ulong> s1)
     {
+        // Get wrapped addresses
+        //  This structure is kept on stack and not moved so this is safe thing to do.
+        //  WARNING: DON'T anything like that for other scenarios.
+
+        #region Hacky address magic
         fixed (void* ptr = s0)
         {
             this.s0 = (ulong*)ptr;
@@ -61,7 +72,10 @@ public ref struct ReadOnlyPicker
         {
             this.s1 = (ulong*)ptr;
         }
+        #endregion
 
+        // Save sequence sizes
+        //  Will be needed in getter to reconstruct spans
         sizes[0] = s0.Length;
         sizes[1] = s1.Length;
     }

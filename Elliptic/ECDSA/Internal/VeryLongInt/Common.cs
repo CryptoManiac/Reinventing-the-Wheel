@@ -15,17 +15,27 @@ internal static partial class VLI
     /// <summary>
     /// Choose between four memory spans by index without branching
     /// </summary>
-    /// <typeparam name="T">Index type (comparable value)</typeparam>
     public ref struct QuadPicker
     {
+        #region Pointers to the sequences
         unsafe readonly ulong* s0;
         unsafe readonly ulong* s1;
         unsafe readonly ulong* s2;
         unsafe readonly ulong* s3;
+        #endregion
+
+        /// <summary>
+        /// Element size array
+        /// </summary>
         unsafe fixed int sizes[4];
 
         public unsafe QuadPicker(ReadOnlySpan<ulong> s0, ReadOnlySpan<ulong> s1, ReadOnlySpan<ulong> s2, ReadOnlySpan<ulong> s3)
         {
+            // Get wrapped addresses
+            //  This structure is kept on stack and not moved so this is safe thing to do.
+            //  WARNING: DON'T anything like that for other scenarios.
+
+            #region Hacky address magic
             fixed (void* ptr = s0)
             {
                 this.s0 = (ulong*)ptr;
@@ -45,7 +55,10 @@ internal static partial class VLI
             {
                 this.s3 = (ulong*)ptr;
             }
+            #endregion
 
+            // Save sequence sizes
+            //  Will be needed in getter to reconstruct spans
             sizes[0] = s0.Length;
             sizes[1] = s1.Length;
             sizes[2] = s2.Length;
