@@ -126,7 +126,7 @@ public struct DERSignature<CurveImpl> : ISignature where CurveImpl : unmanaged, 
                 encoded[pos++] = 0x00;
             }
 
-            r.CopyTo(encoded.Slice(pos, r.Length));
+            r.CopyTo(encoded[pos..(pos + r.Length)]);
 
             pos += r.Length;
 
@@ -142,7 +142,7 @@ public struct DERSignature<CurveImpl> : ISignature where CurveImpl : unmanaged, 
                 encoded[pos++] = 0x00;
             }
 
-            s.CopyTo(encoded.Slice(pos, s.Length));
+            s.CopyTo(encoded[pos..(pos + s.Length)]);
         }
 
         // Number of bytes written

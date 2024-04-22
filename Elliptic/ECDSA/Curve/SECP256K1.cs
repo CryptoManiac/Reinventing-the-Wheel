@@ -98,13 +98,13 @@ public readonly partial struct SECPCurve
         ulong carry;
 
         VLI.Clear(tmp, curve.NUM_WORDS);
-        VLI.Clear(tmp.Slice(curve.NUM_WORDS), curve.NUM_WORDS);
+        VLI.Clear(tmp[curve.NUM_WORDS..], curve.NUM_WORDS);
 
-        OmegaMult_SECP256K1(curve, tmp, product.Slice(curve.NUM_WORDS)); // (Rq, q) = q * c
+        OmegaMult_SECP256K1(curve, tmp, product[curve.NUM_WORDS..]); // (Rq, q) = q * c
 
         carry = VLI.Add(result, product, tmp, curve.NUM_WORDS); // (C, r) = r + q
         VLI.Clear(product, curve.NUM_WORDS);
-        OmegaMult_SECP256K1(curve, product, tmp.Slice(curve.NUM_WORDS)); // Rq*c
+        OmegaMult_SECP256K1(curve, product, tmp[curve.NUM_WORDS..]); // Rq*c
         carry += VLI.Add(result, result, product, curve.NUM_WORDS); // (C1, r) = r + Rq*c
 
         while (carry > 0)
