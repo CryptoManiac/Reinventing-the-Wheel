@@ -13,31 +13,51 @@ internal static partial class VLI
     public const int WORD_BITS_SHIFT = 6;
 
     /// <summary>
-    /// Choose between two spans by either zero or non-zero index
+    /// Choose between four memory spans by index without branching
     /// </summary>
     /// <typeparam name="T">Index type (comparable value)</typeparam>
-    public readonly ref struct QuadPicker
+    public ref struct QuadPicker
     {
-        readonly ReadOnlySpan<ulong> s0;
-        readonly ReadOnlySpan<ulong> s1;
-        readonly ReadOnlySpan<ulong> s2;
-        readonly ReadOnlySpan<ulong> s3;
-        public QuadPicker(ReadOnlySpan<ulong> s0, ReadOnlySpan<ulong> s1, ReadOnlySpan<ulong> s2, ReadOnlySpan<ulong> s3)
+        unsafe readonly ulong* s0;
+        unsafe readonly ulong* s1;
+        unsafe readonly ulong* s2;
+        unsafe readonly ulong* s3;
+        unsafe fixed int sizes[4];
+
+        public unsafe QuadPicker(ReadOnlySpan<ulong> s0, ReadOnlySpan<ulong> s1, ReadOnlySpan<ulong> s2, ReadOnlySpan<ulong> s3)
         {
-            this.s0 = s0;
-            this.s1 = s1;
-            this.s2 = s2;
-            this.s3 = s3;
-        }
-        public readonly ReadOnlySpan<ulong> this[ulong index]
-        {
-            get => (index % 4) switch
+            fixed (void* ptr = s0)
             {
-                0 => s0,
-                1 => s1,
-                2 => s2,
-                _ => s3,
-            };
+                this.s0 = (ulong*)ptr;
+            }
+
+            fixed (void* ptr = s1)
+            {
+                this.s1 = (ulong*)ptr;
+            }
+
+            fixed (void* ptr = s2)
+            {
+                this.s2 = (ulong*)ptr;
+            }
+
+            fixed (void* ptr = s3)
+            {
+                this.s3 = (ulong*)ptr;
+            }
+
+            sizes[0] = s0.Length;
+            sizes[1] = s1.Length;
+            sizes[2] = s2.Length;
+            sizes[3] = s3.Length;
+        }
+        public unsafe readonly ReadOnlySpan<ulong> this[ulong index]
+        {
+            get
+            {
+                ulong** ptrs = stackalloc ulong*[4] { s0, s1, s2, s3 };
+                return new(ptrs[index % 4], sizes[index % 4]);
+            }
         }
     }
 }
