@@ -64,6 +64,12 @@ internal static partial class VLI
             sizes[2] = s2.Length;
             sizes[3] = s3.Length;
         }
+
+        /// <summary>
+        /// Get element by index, index is mod 4.
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>Memory span</returns>
         public unsafe readonly ReadOnlySpan<ulong> this[ulong index]
         {
             get

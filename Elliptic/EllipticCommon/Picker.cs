@@ -23,6 +23,12 @@ public ref struct Picker
         sizes[0] = s0.Length;
         sizes[1] = s1.Length;
     }
+
+    /// <summary>
+    /// Get element by index, index is mod 2.
+    /// </summary>
+    /// <param name="index">Index</param>
+    /// <returns>Memory span</returns>
     public unsafe readonly Span<ulong> this[int index]
     {
         get {
@@ -79,6 +85,12 @@ public ref struct ReadOnlyPicker
         sizes[0] = s0.Length;
         sizes[1] = s1.Length;
     }
+
+    /// <summary>
+    /// Get element by index, index is mod 2.
+    /// </summary>
+    /// <param name="index">Index</param>
+    /// <returns>Memory span</returns>
     public unsafe readonly ReadOnlySpan<ulong> this[int index]
     {
         get
