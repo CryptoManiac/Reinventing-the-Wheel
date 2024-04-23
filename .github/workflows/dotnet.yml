@@ -25,4 +25,4 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
     - name: Test SECP256K1
-      run: dotnet run Test_SECP256K1
+      run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_SECP256K1
