@@ -26,3 +26,15 @@ jobs:
       run: dotnet build --no-restore
     - name: Test SECP256K1
       run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_SECP256K1
+    - name: Test SECP160R1
+      run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_SECP160R1
+    - name: Test SECP192R1
+      run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_SECP192R1
+    - name: Test SECP224R1
+      run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_SECP224R1
+    - name: Test SECP256R1
+      run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_SECP256R1
+    - name: Test SECP384R1
+      run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_SECP384R1
+    - name: Test SECP521R1
+      run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_SECP521R1
