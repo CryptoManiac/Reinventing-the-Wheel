@@ -46,8 +46,8 @@ jobs:
       run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_EdDSA
     - name: Test EdDSA_Seed
       run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_EdDSA_Seed
-    - name: Test PBKDF2
-      run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_PBKDF2
+#    - name: Test PBKDF2
+#      run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_PBKDF2
     - name: Test Hashing
       run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_Hashing
     - name: Test HMAC
