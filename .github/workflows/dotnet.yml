@@ -38,3 +38,25 @@ jobs:
       run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_SECP384R1
     - name: Test SECP521R1
       run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_SECP521R1
+    - name: Test ECDH
+      run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_ECDH
+    - name: Test EdDH
+      run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_EdDH
+    - name: Test EdDSA
+      run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_EdDSA
+    - name: Test EdDSA_Seed
+      run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_EdDSA_Seed
+    - name: Test PBKDF2
+      run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_PBKDF2
+    - name: Test Hashing
+      run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_Hashing
+    - name: Test HMAC
+      run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_HMAC
+    - name: Test Shamir
+      run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_Shamir
+    - name: Test Base58
+      run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_Base58
+    - name: Test Bech32
+      run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_Bech32
+    - name: Test AES
+      run: dotnet run --project /home/runner/work/Wheel/Wheel/Tests/Test_AES
